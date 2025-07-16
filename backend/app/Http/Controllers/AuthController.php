@@ -18,15 +18,19 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'gender' => 'required|string|in:male,female,other',
+            'phone' => 'required|string|max:20',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = new User();
+        $user->name = $request->name;
+        $user->gender = $request->gender;
+        $user->phone = $request->phone;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -37,6 +41,8 @@ class AuthController extends Controller
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
+                    'gender' => $user->gender,
+                    'phone' => $user->phone,
                     'email' => $user->email,
                     'created_at' => $user->created_at,
                 ],
@@ -56,7 +62,9 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['メールアドレスまたはパスワードが正しくありません。'],
             ]);

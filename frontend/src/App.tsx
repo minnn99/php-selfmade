@@ -18,6 +18,13 @@ function App() {
     setIsLoading(false);
   }, []);
 
+  const handleLogout = () => {
+    // ローカルストレージから認証情報を削除
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+  };
+
   // ローディング中の表示
   if (isLoading) {
     return (
@@ -34,7 +41,7 @@ function App() {
     return <LoginPage />;
   }
 
-  return <MainLayout />;
+  return <MainLayout onLogout={handleLogout} />;
 }
 
 export default App;

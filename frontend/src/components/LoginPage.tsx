@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
+import { SignupPage } from './SignupPage';
+import { ForgotPasswordPage } from './ForgotPasswordPage';
 
 export const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleLogin = async (email: string, password: string) => {
     setIsLoading(true);
@@ -43,5 +47,20 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  return <LoginForm onLogin={handleLogin} isLoading={isLoading} />;
+  if (showSignup) {
+    return <SignupPage onShowLogin={() => setShowSignup(false)} />;
+  }
+
+  if (showForgotPassword) {
+    return <ForgotPasswordPage onBackToLogin={() => setShowForgotPassword(false)} />;
+  }
+
+  return (
+    <LoginForm 
+      onLogin={handleLogin} 
+      isLoading={isLoading} 
+      onShowSignup={() => setShowSignup(true)}
+      onShowForgotPassword={() => setShowForgotPassword(true)}
+    />
+  );
 };
