@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SignupForm } from './SignupForm';
+import { SignupConfirmPage } from './SignupConfirmPage';
 
 interface SignupData {
   name: string;
@@ -16,8 +17,21 @@ interface SignupPageProps {
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'form' | 'confirm'>('form');
+  const [signupData, setSignupData] = useState<SignupData | null>(null);
 
-  const handleSignup = async (data: SignupData) => {
+  const handleSignupFormSubmit = (data: SignupData) => {
+    setSignupData(data);
+    setCurrentStep('confirm');
+  };
+
+  const handleEditSignup = () => {
+    setCurrentStep('form');
+  };
+
+  const handleConfirmSignup = async () => {
+    if (!signupData) return;
+    
     setIsLoading(true);
     
     try {
@@ -28,11 +42,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          name: data.name,
-          gender: data.gender,
-          phone: data.phone,
-          email: data.email,
-          password: data.password,
+          name: signupData.name,
+          gender: signupData.gender,
+          phone: signupData.phone,
+          email: signupData.email,
+          password: signupData.password,
         }),
       });
 
@@ -61,5 +75,23 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
     }
   };
 
-  return <SignupForm onSignup={handleSignup} isLoading={isLoading} onShowLogin={onShowLogin} />;
+  if (currentStep === 'confirm' && signupData) {
+    return (
+      <SignupConfirmPage
+        signupData={signupData}
+        onConfirm={handleConfirmSignup}
+        onEdit={handleEditSignup}
+        isLoading={isLoading}
+      />
+    );
+  }
+
+  return (
+    <SignupForm 
+      onSignup={handleSignupFormSubmit} 
+      isLoading={isLoading} 
+      onShowLogin={onShowLogin}
+      initialData={signupData || undefined}
+    />
+  );
 };

@@ -6,6 +6,7 @@ interface SignupFormProps {
   onSignup: (data: SignupData) => void;
   isLoading?: boolean;
   onShowLogin?: () => void;
+  initialData?: Partial<SignupData>;
 }
 
 interface SignupData {
@@ -17,14 +18,14 @@ interface SignupData {
   confirmPassword: string;
 }
 
-export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = false, onShowLogin }) => {
+export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = false, onShowLogin, initialData }) => {
   const [formData, setFormData] = useState<SignupData>({
-    name: '',
-    gender: '',
-    phone: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: initialData?.name || '',
+    gender: initialData?.gender || '',
+    phone: initialData?.phone || '',
+    email: initialData?.email || '',
+    password: initialData?.password || '',
+    confirmPassword: initialData?.confirmPassword || ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

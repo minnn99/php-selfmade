@@ -6,7 +6,6 @@ import { WelcomeScreen } from "./components/WelcomeScreen";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFirstTime, setIsFirstTime] = useState(false);
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "main">("login");
 
   useEffect(() => {
@@ -21,7 +20,6 @@ function App() {
       setIsAuthenticated(true);
       setCurrentView("main");
     } else if (!hasVisited) {
-      setIsFirstTime(true);
       setCurrentView("welcome");
     } else {
       setCurrentView("login");
@@ -41,14 +39,12 @@ function App() {
   const handleGetStarted = () => {
     // 訪問フラグをセットして登録ページへ
     localStorage.setItem("has_visited", "true");
-    setIsFirstTime(false);
     setCurrentView("login");
   };
 
   const handleWelcomeLogin = () => {
     // 訪問フラグをセットしてログインページへ
     localStorage.setItem("has_visited", "true");
-    setIsFirstTime(false);
     setCurrentView("login");
   };
 
