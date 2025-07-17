@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { OverviewCards } from "./OverviewCards";
 import { Calendar } from "./Calendar";
 import { Navigation } from "./Navigation";
 import { TodaySection } from "./TodaySection";
+import { SettingsSidebar } from "./SettingsSidebar";
 
 interface MainLayoutProps {
   onLogout: () => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
       {/* Header */}
@@ -17,13 +20,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-900">Pairiod</h1>
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors" title="通知">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+              <button 
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                title="設定"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -68,6 +74,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           </div>
         </div>
       </div>
+
+      {/* Settings Sidebar */}
+      <SettingsSidebar 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };
