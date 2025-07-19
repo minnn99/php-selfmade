@@ -17,9 +17,9 @@ class MenstrualCycle extends Model
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'symptoms' => 'array'
+        'start_date' => 'datetime:Y-m-d',
+        'end_date' => 'datetime:Y-m-d',
+        'symptoms' => 'array',
     ];
 
     public function user(): BelongsTo

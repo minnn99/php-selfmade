@@ -162,33 +162,11 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     if (day.isCurrentMonth) {
       const clickedDate = new Date(currentYear, currentMonth, day.date);
       setSelectedDateForModal(clickedDate);
-      
-      // 既存データを非同期で取得
-      let existingData = await getExistingDataForDate(clickedDate);
 
-      // 既存データがない場合、アクティブな周期がないか確認する
-      if (!existingData) {
-        const statusResponse = await menstrualCycleAPI.getCurrentStatus();
-        if (statusResponse.data?.hasActiveCycle && statusResponse.data?.activeCycle) {
-          const activeCycle = statusResponse.data.activeCycle;
-          const startDate = new Date(activeCycle.start_date);
-          // クリックされた日付がアクティブな周期の開始日以降である場合
-          if (clickedDate >= startDate) {
-            existingData = {
-              isPeriodStart: false,
-              isPeriodEnd: true, // 終了日として設定する
-              symptoms: [],
-              mood: "",
-              healthNotes: "",
-              cycleId: activeCycle.id,
-              existingCycleData: activeCycle
-            };
-          }
-        }
-      }
-      
+      // 既存の周期データを取得
+      const existingData = await getExistingDataForDate(clickedDate);
       setExistingDataForModal(existingData);
-      
+
       setIsModalOpen(true);
     }
   };
@@ -205,8 +183,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     // 生理期間中またはアクティブな開始日の場合、その周期の詳細情報を取得
     if ((dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
       try {
-        const cycleResponse = await menstrualCycleAPI.getCycle(dayData.cycleId);
-        const cycleData = cycleResponse.data;
+        const cycleData = await menstrualCycleAPI.getCycle(dayData.cycleId);
         
         // 選択した日付が開始日・終了日かを判定
         const selectedDateStr = getLocalDateString(date);
@@ -253,28 +230,41 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     try {
       const dateStr = getLocalDateString(selectedDateForModal);
 
-      if (data.isPeriodStart) {
-        // 新しい周期を開始
-        await menstrualCycleAPI.startCycle({
-          start_date: dateStr,
+      if (data.cycleId) {
+        // 既存の周期IDがある場合：周期の更新
+        const updateData: any = {
           flow_intensity: data.flowIntensity,
           symptoms: data.symptoms,
           notes: data.healthNotes,
-        });
-      } else if (data.isPeriodEnd) {
-        // 既存の周期を終了
-        await menstrualCycleAPI.endCycle(dateStr);
-      } else if (data.cycleId) {
-        // 既存の周期情報を更新（症状やメモなど）
-        await menstrualCycleAPI.updateCycle(data.cycleId, {
-          flow_intensity: data.flowIntensity,
-          symptoms: data.symptoms,
-          notes: data.healthNotes,
-        });
+        };
+
+        if (data.isPeriodStart) {
+          // 開始日を更新
+          updateData.start_date = dateStr;
+        } else if (data.isPeriodEnd) {
+          // 終了日を更新
+          updateData.end_date = dateStr;
+        }
+        
+        await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
+
+      } else {
+        // 既存の周期IDがない場合：新規作成
+        if (data.isPeriodStart) {
+          await menstrualCycleAPI.startCycle({
+            start_date: dateStr,
+            flow_intensity: data.flowIntensity,
+            symptoms: data.symptoms,
+            notes: data.healthNotes,
+          });
+        } else if (data.isPeriodEnd) {
+          await menstrualCycleAPI.endCycle(dateStr);
+        }
       }
 
       await loadCalendarData();
       alert('記録が保存されました！');
+
     } catch (error: any) {
       console.error('Failed to save record:', error);
       let errorMessage = '記録の保存に失敗しました。';
