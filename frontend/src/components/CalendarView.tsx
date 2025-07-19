@@ -384,13 +384,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     return decorations;
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 flex items-center justify-center h-96">
-        <div className="text-gray-500">読み込み中...</div>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
@@ -401,12 +395,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
           <p className="text-sm text-neutral-600">生理周期と症状を確認</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button
-            onClick={handleDeleteAll}
-            className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
-          >
-            全データ削除
-          </button>
+          
           <div className="flex items-center space-x-1">
             <button
               onClick={goToPreviousMonth}

@@ -320,13 +320,7 @@ export const Calendar: React.FC = () => {
   
   const days = getDaysInMonth(currentDate);
   
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 flex items-center justify-center h-64">
-        <div className="text-gray-500">読み込み中...</div>
-      </div>
-    );
-  }
+  
 
   const getDayClassName = (day: DayData): string => {
     let className = 'w-10 h-10 flex items-center justify-center text-sm font-medium transition-colors relative cursor-pointer ';
@@ -366,12 +360,7 @@ export const Calendar: React.FC = () => {
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex items-center space-x-3">
-          <button
-            onClick={handleDeleteAll}
-            className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 border border-red-300 rounded hover:bg-red-100 transition-colors"
-          >
-            全削除
-          </button>
+          
           <div className="flex items-center space-x-2">
             <button
               onClick={() => navigateMonth('prev')}

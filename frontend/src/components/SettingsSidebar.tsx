@@ -1,4 +1,5 @@
 import React from "react";
+import { menstrualCycleAPI } from "../services/api";
 
 interface SettingsSidebarProps {
   isOpen: boolean;
@@ -14,6 +15,40 @@ interface SettingItem {
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClose }) => {
+
+  const handleDeleteAll = async () => {
+    const confirmMessage = '全ての生理周期データを削除しますか？\nこの操作は取り消すことができません。';
+    
+    if (confirm(confirmMessage)) {
+      const secondConfirm = '本当に全てのデータを削除しますか？\n※この操作は永続的で復元できません※';
+      
+      if (confirm(secondConfirm)) {
+        try {
+          const response = await menstrualCycleAPI.deleteAllCycles();
+          alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`);
+          onClose(); // 設定サイドバーを閉じる
+          // 必要であれば、ここでカレンダーデータを再読み込みするイベントを発火させる
+          // 例: window.dispatchEvent(new CustomEvent('menstrualCycleDataUpdated'));
+        } catch (error: any) {
+          console.error('Failed to delete all cycles:', error);
+          
+          let errorMessage = '全削除に失敗しました。';
+          if (error.response) {
+            const errorData = error.response.data;
+            if (errorData.message) {
+              errorMessage += `\nエラー: ${errorData.message}`;
+            }
+            errorMessage += `\nステータス: ${error.response.status}`;
+          } else if (error.message) {
+            errorMessage += `\nエラー: ${error.message}`;
+          }
+          
+          alert(errorMessage);
+        }
+      }
+    }
+  };
+
   const settingItems: SettingItem[] = [
     {
       id: "profile",
@@ -131,6 +166,17 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         console.log("サポート");
       },
     },
+    {
+      id: "delete_all_data",
+      title: "全データ削除",
+      description: "全ての生理周期データを完全に削除します",
+      icon: (
+        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      ),
+      onClick: handleDeleteAll,
+    },
   ];
 
   return (
@@ -140,7 +186,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
