@@ -287,37 +287,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     }
   };
 
-  // 全データ削除処理
-  const handleDeleteAll = async () => {
-    const confirmMessage = '全ての生理周期データを削除しますか？\nこの操作は取り消すことができません。';
-    
-    if (confirm(confirmMessage)) {
-      const secondConfirm = '本当に全てのデータを削除しますか？\n※この操作は永続的で復元できません※';
-      
-      if (confirm(secondConfirm)) {
-        try {
-          const response = await menstrualCycleAPI.deleteAllCycles();
-          await loadCalendarData();
-          alert(`全ての生理周期データが削除されました\n削除件数: ${response.data?.deleted_count || 0}件`);
-        } catch (error: any) {
-          console.error('Failed to delete all cycles:', error);
-          
-          let errorMessage = '全削除に失敗しました。';
-          if (error.response) {
-            const errorData = error.response.data;
-            if (errorData.message) {
-              errorMessage += `\nエラー: ${errorData.message}`;
-            }
-            errorMessage += `\nステータス: ${error.response.status}`;
-          } else if (error.message) {
-            errorMessage += `\nエラー: ${error.message}`;
-          }
-          
-          alert(errorMessage);
-        }
-      }
-    }
-  };
+  
 
   // モーダルを閉じる処理
   const handleModalClose = () => {
@@ -387,7 +357,13 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
   
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-6 relative">
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
