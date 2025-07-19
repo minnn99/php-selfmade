@@ -26,10 +26,19 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   const loadMenstrualStatus = async () => {
     try {
       const status = await menstrualCycleAPI.getCurrentStatus();
+      console.log('Menstrual status response:', status); // デバッグログ
       setMenstrualStatus(status);
     } catch (error) {
       console.error('Failed to load menstrual status:', error);
     }
+  };
+
+  // ローカルタイムゾーンで日付文字列を取得
+  const getLocalDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const handleStartPeriod = async () => {
@@ -37,7 +46,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     
     setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString(new Date());
       await menstrualCycleAPI.startCycle({
         start_date: today
       });
@@ -53,12 +62,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   };
 
   const handleEndPeriod = async () => {
-    if (loading || !menstrualStatus?.activeCycle) return;
+    if (loading || !menstrualStatus?.data?.hasActiveCycle || !menstrualStatus?.data?.activeCycle) return;
     
     setLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
-      await menstrualCycleAPI.endCycle(menstrualStatus.activeCycle.id, today);
+      const today = getLocalDateString(new Date());
+      await menstrualCycleAPI.endCycle(menstrualStatus.data.activeCycle.id, today);
       
       // Reload status after ending
       await loadMenstrualStatus();
@@ -133,10 +142,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     {
       id: 'period-start',
       label: '生理開始',
-      color: menstrualStatus?.hasActiveCycle 
+      color: menstrualStatus?.data?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
         : 'bg-red-500 hover:bg-red-600',
-      disabled: menstrualStatus?.hasActiveCycle || loading,
+      disabled: menstrualStatus?.data?.hasActiveCycle || loading,
       onClick: handleStartPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,10 +156,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     {
       id: 'period-end',
       label: '生理終了',
-      color: !menstrualStatus?.hasActiveCycle 
+      color: !menstrualStatus?.data?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
         : 'bg-gray-500 hover:bg-gray-600',
-      disabled: !menstrualStatus?.hasActiveCycle || loading,
+      disabled: !menstrualStatus?.data?.hasActiveCycle || loading,
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

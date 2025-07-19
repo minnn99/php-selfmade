@@ -19,7 +19,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Menstrual Cycle routes
     Route::get('/menstrual-cycles', [MenstrualCycleController::class, 'index']);
     Route::post('/menstrual-cycles', [MenstrualCycleController::class, 'store']);
-    Route::patch('/menstrual-cycles/{cycle}/end', [MenstrualCycleController::class, 'end']);
     Route::get('/menstrual-cycles/calendar', [MenstrualCycleController::class, 'getCalendarData']);
     Route::get('/menstrual-cycles/status', [MenstrualCycleController::class, 'getCurrentStatus']);
+    Route::get('/menstrual-cycles/active-for-end-date', [MenstrualCycleController::class, 'getActiveCycleForEndDate']);
+    Route::delete('/menstrual-cycles/delete-all', [MenstrualCycleController::class, 'deleteAll']);
+    Route::get('/menstrual-cycles/{cycle}', [MenstrualCycleController::class, 'show']);
+    Route::put('/menstrual-cycles/{cycle}', [MenstrualCycleController::class, 'update']);
+    Route::delete('/menstrual-cycles/{cycle}', [MenstrualCycleController::class, 'destroy']);
+    Route::post('/menstrual-cycles/end', [MenstrualCycleController::class, 'end']);
 });

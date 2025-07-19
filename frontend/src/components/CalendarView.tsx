@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI } from "../services/api";
+import { DateRecordModal, type RecordData } from "./DateRecordModal";
 
 interface CalendarDay {
   date: number;
@@ -9,6 +10,9 @@ interface CalendarDay {
   hasSymptoms: boolean;
   isOvulation: boolean;
   isPredictedPeriod: boolean;
+  isPeriodStart: boolean;
+  isPeriodEnd: boolean;
+  isActive: boolean;
 }
 
 interface CalendarViewProps {
@@ -17,9 +21,11 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [calendarApiData, setCalendarApiData] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
+  const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
 
   // 現在の月の年と月を取得
   const currentYear = currentDate.getFullYear();
@@ -34,6 +40,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     setLoading(true);
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
+      console.log('Calendar API Response:', data.data); // デバッグログ追加
       setCalendarApiData(data.data || {});
     } catch (error) {
       console.error('Failed to load calendar data:', error);
@@ -86,6 +93,9 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
         hasSymptoms: dayData?.symptoms?.length > 0 || false,
         isOvulation: false, // TODO: 排卵日計算を追加
         isPredictedPeriod: false, // TODO: 予測機能を追加
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || false,
       });
     }
 
@@ -99,6 +109,11 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
       const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
       const dayData = calendarApiData[dateKey];
 
+      // デバッグログ: 期間に関連するデータがある日付のみログ出力
+      if (dayData && (dayData.hasPeriod || dayData.isPeriodStart || dayData.isPeriodEnd)) {
+        console.log(`Date ${dateKey}:`, dayData);
+      }
+
       days.push({
         date,
         isCurrentMonth: true,
@@ -107,6 +122,9 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
         hasSymptoms: dayData?.symptoms?.length > 0 || false,
         isOvulation: false, // TODO: 排卵日計算を追加
         isPredictedPeriod: false, // TODO: 予測機能を追加
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || false,
       });
     }
 
@@ -128,6 +146,9 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
         hasSymptoms: dayData?.symptoms?.length > 0 || false,
         isOvulation: false,
         isPredictedPeriod: false, // TODO: 予測機能を追加
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || false,
       });
     }
 
@@ -137,10 +158,182 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
   const calendarDays = generateCalendarDays();
 
   // 日付がクリックされた時の処理
-  const handleDateClick = (day: CalendarDay) => {
+  const handleDateClick = async (day: CalendarDay) => {
     if (day.isCurrentMonth) {
-      setSelectedDate(new Date(currentYear, currentMonth, day.date));
+      const clickedDate = new Date(currentYear, currentMonth, day.date);
+      setSelectedDateForModal(clickedDate);
+      
+      // 既存データを非同期で取得
+      let existingData = await getExistingDataForDate(clickedDate);
+
+      // 既存データがない場合、アクティブな周期がないか確認する
+      if (!existingData) {
+        const statusResponse = await menstrualCycleAPI.getCurrentStatus();
+        if (statusResponse.data?.hasActiveCycle && statusResponse.data?.activeCycle) {
+          const activeCycle = statusResponse.data.activeCycle;
+          const startDate = new Date(activeCycle.start_date);
+          // クリックされた日付がアクティブな周期の開始日以降である場合
+          if (clickedDate >= startDate) {
+            existingData = {
+              isPeriodStart: false,
+              isPeriodEnd: true, // 終了日として設定する
+              symptoms: [],
+              mood: "",
+              healthNotes: "",
+              cycleId: activeCycle.id,
+              existingCycleData: activeCycle
+            };
+          }
+        }
+      }
+      
+      setExistingDataForModal(existingData);
+      
+      setIsModalOpen(true);
     }
+  };
+
+  // 選択された日の既存データを取得
+  const getExistingDataForDate = async (date: Date): Promise<RecordData | undefined> => {
+    const dateKey = getLocalDateString(date);
+    const dayData = calendarApiData[dateKey];
+    
+    console.log('Getting existing data for date:', dateKey, 'Found data:', dayData); // デバッグログ
+    
+    if (!dayData) return undefined;
+
+    // 生理期間中またはアクティブな開始日の場合、その周期の詳細情報を取得
+    if ((dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
+      try {
+        const cycleResponse = await menstrualCycleAPI.getCycle(dayData.cycleId);
+        const cycleData = cycleResponse.data;
+        
+        // 選択した日付が開始日・終了日かを判定
+        const selectedDateStr = getLocalDateString(date);
+        const isStartDate = cycleData.start_date === selectedDateStr;
+        const isEndDate = cycleData.end_date === selectedDateStr;
+
+        return {
+          isPeriodStart: isStartDate,
+          isPeriodEnd: isEndDate,
+          symptoms: cycleData.symptoms || [],
+          mood: "",
+          healthNotes: cycleData.notes || "",
+          flowIntensity: cycleData.flow_intensity,
+          cycleId: cycleData.id,
+          existingCycleData: cycleData
+        };
+      } catch (error) {
+        console.error('Failed to fetch cycle details:', error);
+      }
+    }
+
+    return {
+      isPeriodStart: false,
+      isPeriodEnd: false,
+      symptoms: dayData.symptoms || [],
+      mood: dayData.mood || "",
+      healthNotes: dayData.notes || "",
+      flowIntensity: dayData.flowIntensity
+    };
+  };
+
+  // ローカルタイムゾーンで日付文字列を取得
+  const getLocalDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // モーダルのデータ保存処理
+  const handleModalSave = async (data: RecordData) => {
+    if (!selectedDateForModal) return;
+
+    try {
+      const dateStr = getLocalDateString(selectedDateForModal);
+
+      if (data.isPeriodStart) {
+        // 新しい周期を開始
+        await menstrualCycleAPI.startCycle({
+          start_date: dateStr,
+          flow_intensity: data.flowIntensity,
+          symptoms: data.symptoms,
+          notes: data.healthNotes,
+        });
+      } else if (data.isPeriodEnd) {
+        // 既存の周期を終了
+        await menstrualCycleAPI.endCycle(dateStr);
+      } else if (data.cycleId) {
+        // 既存の周期情報を更新（症状やメモなど）
+        await menstrualCycleAPI.updateCycle(data.cycleId, {
+          flow_intensity: data.flowIntensity,
+          symptoms: data.symptoms,
+          notes: data.healthNotes,
+        });
+      }
+
+      await loadCalendarData();
+      alert('記録が保存されました！');
+    } catch (error: any) {
+      console.error('Failed to save record:', error);
+      let errorMessage = '記録の保存に失敗しました。';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      alert(errorMessage);
+    }
+  };
+
+  // 削除処理
+  const handleDelete = async (cycleId: number) => {
+    try {
+      await menstrualCycleAPI.deleteCycle(cycleId);
+      await loadCalendarData();
+      alert('生理周期が削除されました');
+    } catch (error: any) {
+      console.error('Failed to delete cycle:', error);
+      alert('削除に失敗しました');
+    }
+  };
+
+  // 全データ削除処理
+  const handleDeleteAll = async () => {
+    const confirmMessage = '全ての生理周期データを削除しますか？\nこの操作は取り消すことができません。';
+    
+    if (confirm(confirmMessage)) {
+      const secondConfirm = '本当に全てのデータを削除しますか？\n※この操作は永続的で復元できません※';
+      
+      if (confirm(secondConfirm)) {
+        try {
+          const response = await menstrualCycleAPI.deleteAllCycles();
+          await loadCalendarData();
+          alert(`全ての生理周期データが削除されました\n削除件数: ${response.data?.deleted_count || 0}件`);
+        } catch (error: any) {
+          console.error('Failed to delete all cycles:', error);
+          
+          let errorMessage = '全削除に失敗しました。';
+          if (error.response) {
+            const errorData = error.response.data;
+            if (errorData.message) {
+              errorMessage += `\nエラー: ${errorData.message}`;
+            }
+            errorMessage += `\nステータス: ${error.response.status}`;
+          } else if (error.message) {
+            errorMessage += `\nエラー: ${error.message}`;
+          }
+          
+          alert(errorMessage);
+        }
+      }
+    }
+  };
+
+  // モーダルを閉じる処理
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedDateForModal(null);
+    setExistingDataForModal(undefined);
   };
 
   // 日付セルのスタイルを決定
@@ -149,9 +342,23 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     
     if (!day.isCurrentMonth) {
       baseStyle += "text-gray-300 ";
+    } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
+      // 今日かつ生理関連の場合
+      baseStyle += "bg-red-600 text-white rounded-lg ";
     } else if (day.isToday) {
+      // 今日のみの場合
       baseStyle += "bg-primary-600 text-white rounded-lg ";
+    } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
+      // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
+      baseStyle += "bg-red-500 text-white rounded-lg ";
+    } else if (day.isPredictedPeriod) {
+      // 予測生理日の場合
+      baseStyle += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
+    } else if (day.isOvulation) {
+      // 排卵日の場合
+      baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else {
+      // 通常の日付
       baseStyle += "text-gray-700 hover:bg-gray-100 rounded-lg ";
     }
 
@@ -162,24 +369,22 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
   const getDayDecorations = (day: CalendarDay) => {
     const decorations = [];
 
-    if (day.hasPeriod) {
+    // 生理日は背景色で表示するため、ドットは不要
+    // 予測生理日の場合のみドット表示
+    if (day.isPredictedPeriod && !day.hasPeriod) {
       decorations.push(
-        <div key="period" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full"></div>
+        <div key="predicted" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 border-2 border-red-400 rounded-full bg-white"></div>
       );
     }
 
-    if (day.isPredictedPeriod) {
-      decorations.push(
-        <div key="predicted" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 border-2 border-red-400 rounded-full"></div>
-      );
-    }
-
-    if (day.isOvulation) {
+    // 排卵日も背景色で表示するため、生理日と重複しない場合のみ
+    if (day.isOvulation && !day.hasPeriod) {
       decorations.push(
         <div key="ovulation" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-pink-500 rounded-full"></div>
       );
     }
 
+    // 症状がある場合は小さなドットを表示
     if (day.hasSymptoms) {
       decorations.push(
         <div key="symptoms" className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
@@ -189,6 +394,14 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     return decorations;
   };
 
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 flex items-center justify-center h-96">
+        <div className="text-gray-500">読み込み中...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
       {/* Header */}
@@ -197,26 +410,34 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
           <h2 className="text-xl font-semibold text-neutral-900">カレンダー</h2>
           <p className="text-sm text-neutral-600">生理周期と症状を確認</p>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-3">
           <button
-            onClick={goToPreviousMonth}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={handleDeleteAll}
+            className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            全データ削除
           </button>
-          <div className="px-4 py-2 text-lg font-semibold text-gray-900 min-w-[120px] text-center">
-            {currentYear}年{monthNames[currentMonth]}
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={goToPreviousMonth}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="px-4 py-2 text-lg font-semibold text-gray-900 min-w-[120px] text-center">
+              {currentYear}年{monthNames[currentMonth]}
+            </div>
+            <button
+              onClick={goToNextMonth}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={goToNextMonth}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -267,27 +488,16 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
         </div>
       </div>
 
-      {/* Selected Date Info */}
-      {selectedDate && (
-        <div className="border-t border-gray-200 pt-4 mt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
-            {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-          </h3>
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center justify-between">
-              <span>症状記録</span>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
-                追加
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>メモ</span>
-              <button className="text-primary-600 hover:text-primary-700 font-medium">
-                追加
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* DateRecordModal */}
+      {selectedDateForModal && (
+        <DateRecordModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          selectedDate={selectedDateForModal}
+          onSave={handleModalSave}
+          onDelete={handleDelete}
+          existingData={existingDataForModal}
+        />
       )}
     </div>
   );

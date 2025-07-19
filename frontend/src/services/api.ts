@@ -92,9 +92,9 @@ export const menstrualCycleAPI = {
   },
 
   // End cycle
-  endCycle: async (cycleId: number, endDate: string) => {
-    return apiRequest(`/menstrual-cycles/${cycleId}/end`, {
-      method: 'PATCH',
+  endCycle: async (endDate: string) => {
+    return apiRequest(`/menstrual-cycles/end`, {
+      method: 'POST',
       body: JSON.stringify({ end_date: endDate }),
     });
   },
@@ -107,5 +107,43 @@ export const menstrualCycleAPI = {
   // Get current status (active cycle, etc.)
   getCurrentStatus: async () => {
     return apiRequest('/menstrual-cycles/status');
+  },
+
+  // Get active cycle for specific end date
+  getActiveCycleForEndDate: async (endDate: string) => {
+    return apiRequest(`/menstrual-cycles/active-for-end-date?end_date=${endDate}`);
+  },
+
+  // Get specific cycle details
+  getCycle: async (cycleId: number) => {
+    return apiRequest(`/menstrual-cycles/${cycleId}`);
+  },
+
+  // Update existing cycle
+  updateCycle: async (cycleId: number, data: {
+    start_date?: string;
+    end_date?: string;
+    flow_intensity?: number;
+    symptoms?: string[];
+    notes?: string;
+  }) => {
+    return apiRequest(`/menstrual-cycles/${cycleId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete cycle
+  deleteCycle: async (cycleId: number) => {
+    return apiRequest(`/menstrual-cycles/${cycleId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Delete all cycles
+  deleteAllCycles: async () => {
+    return apiRequest('/menstrual-cycles/delete-all', {
+      method: 'DELETE',
+    });
   },
 };
