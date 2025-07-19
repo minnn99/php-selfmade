@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { menstrualCycleAPI } from "../services/api";
+import { ConfirmationModal } from "./ConfirmationModal"; // 追加
 
 interface SettingsSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  onDataDeleted: () => void; // 追加
 }
 
 interface SettingItem {
@@ -14,39 +16,50 @@ interface SettingItem {
   onClick: () => void;
 }
 
-export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClose }) => {
+export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClose, onDataDeleted }) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSecondConfirmModal, setShowSecondConfirmModal] = useState(false);
 
-  const handleDeleteAll = async () => {
-    const confirmMessage = '全ての生理周期データを削除しますか？\nこの操作は取り消すことができません。';
-    
-    if (confirm(confirmMessage)) {
-      const secondConfirm = '本当に全てのデータを削除しますか？\n※この操作は永続的で復元できません※';
+  // 最初の確認モーダルを表示する関数
+  const handleInitialDeleteClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  // 最初の確認モーダルで「はい」が押された時の処理
+  const handleConfirmFirst = () => {
+    setShowConfirmModal(false); // 最初のモーダルを閉じる
+    setShowSecondConfirmModal(true); // 次の確認モーダルを表示
+  };
+
+  // 2番目の確認モーダルで「はい」が押された時の処理（実際の削除処理）
+  const handleConfirmSecond = async () => {
+    setShowSecondConfirmModal(false); // 2番目のモーダルを閉じる
+    try {
+      const response = await menstrualCycleAPI.deleteAllCycles();
+      // alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`); // カスタムモーダルに置き換えるのが理想
+      onClose();
+      onDataDeleted(); // データ削除成功時に親に通知
+    } catch (error: any) {
+      console.error('Failed to delete all cycles:', error);
       
-      if (confirm(secondConfirm)) {
-        try {
-          const response = await menstrualCycleAPI.deleteAllCycles();
-          alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`);
-          onClose(); // 設定サイドバーを閉じる
-          // 必要であれば、ここでカレンダーデータを再読み込みするイベントを発火させる
-          // 例: window.dispatchEvent(new CustomEvent('menstrualCycleDataUpdated'));
-        } catch (error: any) {
-          console.error('Failed to delete all cycles:', error);
-          
-          let errorMessage = '全削除に失敗しました。';
-          if (error.response) {
-            const errorData = error.response.data;
-            if (errorData.message) {
-              errorMessage += `\nエラー: ${errorData.message}`;
-            }
-            errorMessage += `\nステータス: ${error.response.status}`;
-          } else if (error.message) {
-            errorMessage += `\nエラー: ${error.message}`;
-          }
-          
-          alert(errorMessage);
+      let errorMessage = '全削除に失敗しました。';
+      if (error.response) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage += `\nエラー: ${errorData.message}`;
         }
+        errorMessage += `\nステータス: ${error.response.status}`;
+      } else if (error.message) {
+        errorMessage += `\nエラー: ${error.message}`;
       }
+      alert(errorMessage); // ここもカスタムモーダルに置き換えるのが理想
     }
+  };
+
+  // モーダルを閉じる共通の処理
+  const handleCancel = () => {
+    setShowConfirmModal(false);
+    setShowSecondConfirmModal(false);
   };
 
   const settingItems: SettingItem[] = [
@@ -175,7 +188,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
       ),
-      onClick: handleDeleteAll,
+      onClick: handleInitialDeleteClick, // ここを修正
     },
   ];
 
@@ -237,6 +250,24 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
           </div>
         </div>
       </div>
+
+      {/* 最初の確認モーダル */}
+      {showConfirmModal && (
+        <ConfirmationModal
+          message="全ての生理周期データを削除しますか？この操作は取り消すことができません。"
+          onConfirm={handleConfirmFirst}
+          onCancel={handleCancel}
+        />
+      )}
+
+      {/* 2番目の確認モーダル */}
+      {showSecondConfirmModal && (
+        <ConfirmationModal
+          message="本当に全てのデータを削除しますか？※この操作は永続的で復元できません※"
+          onConfirm={handleConfirmSecond}
+          onCancel={handleCancel}
+        />
+      )}
     </>
   );
 };

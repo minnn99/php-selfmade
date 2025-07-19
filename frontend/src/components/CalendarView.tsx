@@ -16,10 +16,10 @@ interface CalendarDay {
 }
 
 interface CalendarViewProps {
-  // 将来的にAPI連携時に使用予定
+  refreshKey?: number; // 外部からのデータ更新をトリガーするためのキー
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = () => {
+export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarApiData, setCalendarApiData] = useState<any>({});
   const [loading, setLoading] = useState(false);
@@ -34,7 +34,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
   // Load calendar data when date changes
   useEffect(() => {
     loadCalendarData();
-  }, [currentYear, currentMonth]);
+  }, [currentYear, currentMonth, refreshKey]);
 
   const loadCalendarData = async () => {
     setLoading(true);

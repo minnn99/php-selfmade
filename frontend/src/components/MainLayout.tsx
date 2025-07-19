@@ -14,6 +14,12 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<string>("dashboard");
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0); // 追加
+
+  // データ削除成功時にカレンダーをリフレッシュするためのハンドラ
+  const handleDataDeleted = () => {
+    setCalendarRefreshKey(prevKey => prevKey + 1);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
@@ -78,7 +84,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
             )}
 
             {currentView === "calendar" && (
-              <CalendarView />
+              <CalendarView refreshKey={calendarRefreshKey} />
             )}
           </div>
 
@@ -96,6 +102,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       <SettingsSidebar 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        onDataDeleted={handleDataDeleted} // 追加
       />
     </div>
   );
