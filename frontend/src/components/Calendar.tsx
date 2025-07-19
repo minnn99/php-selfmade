@@ -50,11 +50,11 @@ export const Calendar: React.FC = () => {
       const currentDay = new Date(year, month, day);
       const isToday = currentDay.toDateString() === today.toDateString();
       
-      // Sample data for demonstration
-      const isPeriod = [12, 13, 14, 15, 16].includes(day);
-      const isOvulation = day === 26;
-      const isFertile = [24, 25, 26, 27, 28].includes(day);
-      const isPredicted = [10, 11, 12, 13, 14, 15, 16, 17].includes(day) && month === today.getMonth() + 1;
+      // No dummy data - calendar will be empty until real data is connected
+      const isPeriod = false;
+      const isOvulation = false;
+      const isFertile = false;
+      const isPredicted = false;
       
       days.push({
         date: day,

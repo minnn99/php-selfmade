@@ -66,14 +66,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
                 {/* Overview Cards */}
                 <OverviewCards />
 
+                {/* Calendar */}
+                <Calendar />
+
                 {/* Today Section */}
                 <TodaySection />
 
                 {/* Partner Connection */}
                 <PartnerConnection />
-
-                {/* Calendar */}
-                <Calendar />
               </>
             )}
 

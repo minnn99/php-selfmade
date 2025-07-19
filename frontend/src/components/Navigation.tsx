@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { menstrualCycleAPI } from '../services/api';
 
 interface NavigationItem {
   id: string;
@@ -14,6 +15,60 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
+  const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Load menstrual status on component mount
+  useEffect(() => {
+    loadMenstrualStatus();
+  }, []);
+
+  const loadMenstrualStatus = async () => {
+    try {
+      const status = await menstrualCycleAPI.getCurrentStatus();
+      setMenstrualStatus(status);
+    } catch (error) {
+      console.error('Failed to load menstrual status:', error);
+    }
+  };
+
+  const handleStartPeriod = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await menstrualCycleAPI.startCycle({
+        start_date: today
+      });
+      
+      // Reload status after starting
+      await loadMenstrualStatus();
+      alert('生理が開始されました');
+    } catch (error: any) {
+      alert('エラーが発生しました: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEndPeriod = async () => {
+    if (loading || !menstrualStatus?.activeCycle) return;
+    
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await menstrualCycleAPI.endCycle(menstrualStatus.activeCycle.id, today);
+      
+      // Reload status after ending
+      await loadMenstrualStatus();
+      alert('生理が終了されました');
+    } catch (error: any) {
+      alert('エラーが発生しました: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   const navigationItems: NavigationItem[] = [
     {
       id: 'dashboard',
@@ -78,7 +133,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     {
       id: 'period-start',
       label: '生理開始',
-      color: 'bg-red-500 hover:bg-red-600',
+      color: menstrualStatus?.hasActiveCycle 
+        ? 'bg-gray-300 cursor-not-allowed' 
+        : 'bg-red-500 hover:bg-red-600',
+      disabled: menstrualStatus?.hasActiveCycle || loading,
+      onClick: handleStartPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -88,7 +147,11 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     {
       id: 'period-end',
       label: '生理終了',
-      color: 'bg-gray-500 hover:bg-gray-600',
+      color: !menstrualStatus?.hasActiveCycle 
+        ? 'bg-gray-300 cursor-not-allowed' 
+        : 'bg-gray-500 hover:bg-gray-600',
+      disabled: !menstrualStatus?.hasActiveCycle || loading,
+      onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
@@ -132,10 +195,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           {quickActions.map((action) => (
             <button
               key={action.id}
+              onClick={action.onClick}
+              disabled={action.disabled}
               className={`w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${action.color}`}
             >
               <span className="mr-2">{action.icon}</span>
-              {action.label}
+              {loading ? '処理中...' : action.label}
             </button>
           ))}
         </div>

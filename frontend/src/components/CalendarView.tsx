@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { menstrualCycleAPI } from "../services/api";
 
 interface CalendarDay {
   date: number;
@@ -17,10 +18,30 @@ interface CalendarViewProps {
 export const CalendarView: React.FC<CalendarViewProps> = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [calendarApiData, setCalendarApiData] = useState<any>({});
+  const [loading, setLoading] = useState(false);
 
   // 現在の月の年と月を取得
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
+
+  // Load calendar data when date changes
+  useEffect(() => {
+    loadCalendarData();
+  }, [currentYear, currentMonth]);
+
+  const loadCalendarData = async () => {
+    setLoading(true);
+    try {
+      const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
+      setCalendarApiData(data.data || {});
+    } catch (error) {
+      console.error('Failed to load calendar data:', error);
+      setCalendarApiData({});
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 月の名前
   const monthNames = [
@@ -40,7 +61,7 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
-  // カレンダーの日付データを生成（仮データ含む）
+  // カレンダーの日付データを生成（APIデータを使用）
   const generateCalendarDays = (): CalendarDay[] => {
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
@@ -53,61 +74,60 @@ export const CalendarView: React.FC<CalendarViewProps> = () => {
     // 前月の末尾の日付を追加
     const prevMonth = new Date(currentYear, currentMonth - 1, 0);
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
+      const prevDate = prevMonth.getDate() - i;
+      const dateKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(prevDate).padStart(2, '0')}`;
+      const dayData = calendarApiData[dateKey];
+
       days.push({
-        date: prevMonth.getDate() - i,
+        date: prevDate,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: false,
-        hasSymptoms: false,
-        isOvulation: false,
-        isPredictedPeriod: false,
+        hasPeriod: dayData?.hasPeriod || false,
+        hasSymptoms: dayData?.symptoms?.length > 0 || false,
+        isOvulation: false, // TODO: 排卵日計算を追加
+        isPredictedPeriod: false, // TODO: 予測機能を追加
       });
     }
 
-    // 当月の日付を追加（仮データでの症状・生理日設定）
+    // 当月の日付を追加（APIデータを使用）
     for (let date = 1; date <= daysInMonth; date++) {
       const isToday = 
         today.getFullYear() === currentYear &&
         today.getMonth() === currentMonth &&
         today.getDate() === date;
 
-      // 仮データ：生理日（5-9日、25-28日）
-      const hasPeriod = (date >= 5 && date <= 9) || (date >= 25 && date <= 28);
-      
-      // 仮データ：排卵日（14日前後）
-      const isOvulation = date === 14;
-      
-      // 仮データ：症状記録（いくつかの日）
-      const hasSymptoms = [3, 7, 12, 16, 22, 26].includes(date);
-      
-      // 仮データ：予測生理日（次月の3-7日）
-      const isPredictedPeriod = false;
+      const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+      const dayData = calendarApiData[dateKey];
 
       days.push({
         date,
         isCurrentMonth: true,
         isToday,
-        hasPeriod,
-        hasSymptoms,
-        isOvulation,
-        isPredictedPeriod,
+        hasPeriod: dayData?.hasPeriod || false,
+        hasSymptoms: dayData?.symptoms?.length > 0 || false,
+        isOvulation: false, // TODO: 排卵日計算を追加
+        isPredictedPeriod: false, // TODO: 予測機能を追加
       });
     }
 
     // 次月の初頭の日付を追加
     const remainingDays = 42 - days.length; // 6週間分（42日）
     for (let date = 1; date <= remainingDays; date++) {
-      // 次月の予測生理日設定
-      const isPredictedPeriod = date >= 3 && date <= 7;
+      const nextMonth = currentMonth + 1;
+      const nextYear = nextMonth > 11 ? currentYear + 1 : currentYear;
+      const actualNextMonth = nextMonth > 11 ? 0 : nextMonth;
+      
+      const dateKey = `${nextYear}-${String(actualNextMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+      const dayData = calendarApiData[dateKey];
       
       days.push({
         date,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: false,
-        hasSymptoms: false,
+        hasPeriod: dayData?.hasPeriod || false,
+        hasSymptoms: dayData?.symptoms?.length > 0 || false,
         isOvulation: false,
-        isPredictedPeriod,
+        isPredictedPeriod: false, // TODO: 予測機能を追加
       });
     }
 

@@ -14,10 +14,10 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-semibold text-gray-900">1月18日</p>
-          <p className="text-sm text-gray-500">あと6日</p>
+          <p className="text-2xl font-semibold text-gray-900">-</p>
+          <p className="text-sm text-gray-500">データなし</p>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-pink-500 h-2 rounded-full" style={{width: '75%'}}></div>
+            <div className="bg-pink-500 h-2 rounded-full" style={{width: '0%'}}></div>
           </div>
         </div>
       </div>
@@ -33,10 +33,10 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-semibold text-gray-900">22日目</p>
-          <p className="text-sm text-gray-500">28日周期</p>
+          <p className="text-2xl font-semibold text-gray-900">-</p>
+          <p className="text-sm text-gray-500">データなし</p>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary-500 h-2 rounded-full" style={{width: '79%'}}></div>
+            <div className="bg-primary-500 h-2 rounded-full" style={{width: '0%'}}></div>
           </div>
         </div>
       </div>
@@ -52,11 +52,11 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-semibold text-gray-900">1月4日</p>
-          <p className="text-sm text-gray-500">8日前に終了</p>
+          <p className="text-2xl font-semibold text-gray-900">-</p>
+          <p className="text-sm text-gray-500">データなし</p>
           <div className="flex items-center space-x-1">
-            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-            <span className="text-xs text-gray-500">妊娠しやすい期間</span>
+            <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
+            <span className="text-xs text-gray-500">データ登録後表示</span>
           </div>
         </div>
       </div>

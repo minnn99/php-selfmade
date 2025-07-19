@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MenstrualCycleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,4 +15,11 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    
+    // Menstrual Cycle routes
+    Route::get('/menstrual-cycles', [MenstrualCycleController::class, 'index']);
+    Route::post('/menstrual-cycles', [MenstrualCycleController::class, 'store']);
+    Route::patch('/menstrual-cycles/{cycle}/end', [MenstrualCycleController::class, 'end']);
+    Route::get('/menstrual-cycles/calendar', [MenstrualCycleController::class, 'getCalendarData']);
+    Route::get('/menstrual-cycles/status', [MenstrualCycleController::class, 'getCurrentStatus']);
 });
