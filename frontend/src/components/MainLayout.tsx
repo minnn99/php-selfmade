@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { OverviewCards } from "./OverviewCards";
 import { Calendar } from "./Calendar";
+import { CalendarView } from "./CalendarView";
 import { Navigation } from "./Navigation";
 import { TodaySection } from "./TodaySection";
 import { SettingsSidebar } from "./SettingsSidebar";
+import { PartnerConnection } from "./PartnerConnection";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -11,6 +13,7 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<string>("dashboard");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
@@ -58,19 +61,33 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
-            {/* Overview Cards */}
-            <OverviewCards />
+            {currentView === "dashboard" && (
+              <>
+                {/* Overview Cards */}
+                <OverviewCards />
 
-            {/* Today Section */}
-            <TodaySection />
+                {/* Today Section */}
+                <TodaySection />
 
-            {/* Calendar */}
-            <Calendar />
+                {/* Partner Connection */}
+                <PartnerConnection />
+
+                {/* Calendar */}
+                <Calendar />
+              </>
+            )}
+
+            {currentView === "calendar" && (
+              <CalendarView />
+            )}
           </div>
 
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <Navigation />
+            <Navigation 
+              activeView={currentView}
+              onViewChange={setCurrentView}
+            />
           </div>
         </div>
       </div>

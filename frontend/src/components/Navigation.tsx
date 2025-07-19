@@ -8,18 +8,22 @@ interface NavigationItem {
   badge?: string;
 }
 
-export const Navigation: React.FC = () => {
+interface NavigationProps {
+  activeView: string;
+  onViewChange: (view: string) => void;
+}
+
+export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
   const navigationItems: NavigationItem[] = [
     {
       id: 'dashboard',
       label: 'ダッシュボード',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v1H8V5z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
       ),
-      isActive: true,
+      isActive: activeView === 'dashboard',
     },
     {
       id: 'calendar',
@@ -29,6 +33,7 @@ export const Navigation: React.FC = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
+      isActive: activeView === 'calendar',
     },
     {
       id: 'symptoms',
@@ -101,6 +106,7 @@ export const Navigation: React.FC = () => {
           {navigationItems.map((item) => (
             <button
               key={item.id}
+              onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                 item.isActive
                   ? 'bg-primary-100 text-primary-700'
