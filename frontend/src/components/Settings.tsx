@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { menstrualCycleAPI } from "../services/api";
 import { ConfirmationModal } from "./ConfirmationModal";
+import { NotificationSettingsModal } from "./NotificationSettingsModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -17,6 +18,7 @@ interface SettingItem {
 export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSecondConfirmModal, setShowSecondConfirmModal] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -54,6 +56,11 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
     setShowSecondConfirmModal(false);
   };
 
+  const handleNotificationSave = (settings: any) => {
+    console.log('Notification settings saved:', settings);
+    // ここで実際の保存処理を実装
+  };
+
   const settingItems: SettingItem[] = [
     {
       id: "profile",
@@ -78,7 +85,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("通知設定");
+        setShowNotificationModal(true);
       },
     },
     {
@@ -253,6 +260,13 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
           onCancel={handleCancel}
         />
       )}
+
+      {/* Notification Settings Modal */}
+      <NotificationSettingsModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+        onSave={handleNotificationSave}
+      />
     </>
   );
 };
