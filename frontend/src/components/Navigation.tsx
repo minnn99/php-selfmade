@@ -100,6 +100,17 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       isActive: activeView === 'calendar',
     },
     {
+      id: 'pregnancy-support',
+      label: '妊娠サポート',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+      isActive: activeView === 'pregnancy-support',
+      badge: 'BETA',
+    },
+    {
       id: 'symptoms',
       label: '症状記録',
       icon: (
@@ -190,7 +201,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               <span className="mr-3">{item.icon}</span>
               {item.label}
               {item.badge && (
-                <span className="ml-auto bg-primary-100 text-primary-600 text-xs px-2 py-1 rounded-full">
+                <span className="ml-auto bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">
                   {item.badge}
                 </span>
               )}
