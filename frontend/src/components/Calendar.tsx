@@ -21,7 +21,7 @@ export const Calendar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [calendarApiData, setCalendarApiData] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
 
   const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
@@ -38,15 +38,13 @@ export const Calendar: React.FC = () => {
   }, [currentYear, currentMonth]);
 
   const loadCalendarData = async () => {
-    setLoading(true);
+    // 月切り替え時はローディング状態を設定しない（スムーズな切り替えのため）
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
       setCalendarApiData(data.data || {});
     } catch (error) {
       console.error("Failed to load calendar data:", error);
       setCalendarApiData({});
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -156,12 +154,23 @@ export const Calendar: React.FC = () => {
     const dateKey = getLocalDateString(date);
     const dayData = calendarApiData[dateKey];
 
-    if (!dayData) return undefined;
+    // データがない場合は即座に基本データを返す
+    if (!dayData) {
+      return {
+        isPeriodStart: false,
+        isPeriodEnd: false,
+        symptoms: [],
+        mood: "",
+        healthNotes: "",
+        flowIntensity: undefined,
+      };
+    }
 
-    // 生理期間中またはアクティブな開始日の場合、その周期の詳細情報を取得
+    // 生理期間中またはアクティブな開始日で cycleId がある場合のみ API を呼び出す
     if ((dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
       try {
-        const cycleData = await menstrualCycleAPI.getCycle(dayData.cycleId);
+        const cycleResponse = await menstrualCycleAPI.getCycle(dayData.cycleId);
+        const cycleData = cycleResponse.data;
 
         // 選択した日付が開始日・終了日かを判定
         const selectedDateStr = getLocalDateString(date);
@@ -180,30 +189,37 @@ export const Calendar: React.FC = () => {
         };
       } catch (error) {
         console.error("Failed to fetch cycle details:", error);
+        // エラーの場合は基本データを返す
       }
     }
 
+    // API呼び出しが不要な場合やエラーの場合
     return {
-      isPeriodStart: false,
-      isPeriodEnd: false,
+      isPeriodStart: dayData.isPeriodStart || false,
+      isPeriodEnd: dayData.isPeriodEnd || false,
       symptoms: dayData.symptoms || [],
       mood: dayData.mood || "",
       healthNotes: dayData.notes || "",
       flowIntensity: dayData.flowIntensity,
+      cycleId: dayData.cycleId,
     };
   };
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: DayData) => {
-    if (day.isCurrentMonth) {
+    if (day.isCurrentMonth && !loading) {
       const clickedDate = new Date(currentYear, currentMonth, day.date);
       setSelectedDateForModal(clickedDate);
 
-      // 既存の周期データを取得
-      const existingData = await getExistingDataForDate(clickedDate);
-      setExistingDataForModal(existingData);
-
-      setIsModalOpen(true);
+      try {
+        setLoading(true);
+        // 既存の周期データを取得
+        const existingData = await getExistingDataForDate(clickedDate);
+        setExistingDataForModal(existingData);
+        setIsModalOpen(true);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -342,7 +358,7 @@ export const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}

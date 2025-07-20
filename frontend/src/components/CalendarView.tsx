@@ -24,7 +24,7 @@ interface CalendarViewProps {
 export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarApiData, setCalendarApiData] = useState<any>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
@@ -39,7 +39,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   }, [currentYear, currentMonth, refreshKey]);
 
   const loadCalendarData = async () => {
-    setLoading(true);
+    // 月切り替え時はローディング状態を設定しない（スムーズな切り替えのため）
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
       console.log("Calendar API Response:", data.data); // デバッグログ追加
@@ -47,8 +47,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     } catch (error) {
       console.error("Failed to load calendar data:", error);
       setCalendarApiData({});
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -156,15 +154,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: CalendarDay) => {
-    if (day.isCurrentMonth) {
+    if (day.isCurrentMonth && !loading) {
       const clickedDate = new Date(day.year, day.month, day.date);
       setSelectedDateForModal(clickedDate);
 
-      // 既存の周期データを取得
-      const existingData = await getExistingDataForDate(clickedDate);
-      setExistingDataForModal(existingData);
-
-      setIsModalOpen(true);
+      try {
+        setLoading(true);
+        // 既存の周期データを取得
+        const existingData = await getExistingDataForDate(clickedDate);
+        setExistingDataForModal(existingData);
+        setIsModalOpen(true);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -173,14 +175,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     const dateKey = getLocalDateString(date);
     const dayData = calendarApiData[dateKey];
 
-    console.log("Getting existing data for date:", dateKey, "Found data:", dayData); // デバッグログ
+    // データがない場合は即座に undefined を返す
+    if (!dayData) {
+      return {
+        isPeriodStart: false,
+        isPeriodEnd: false,
+        symptoms: [],
+        mood: "",
+        healthNotes: "",
+        flowIntensity: undefined,
+      };
+    }
 
-    if (!dayData) return undefined;
-
-    // 生理期間中またはアクティブな開始日の場合、その周期の詳細情報を取得
+    // 生理期間中またはアクティブな開始日で cycleId がある場合のみ API を呼び出す
     if ((dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
       try {
-        const cycleData = await menstrualCycleAPI.getCycle(dayData.cycleId);
+        const cycleResponse = await menstrualCycleAPI.getCycle(dayData.cycleId);
+        const cycleData = cycleResponse.data;
 
         // 選択した日付が開始日・終了日かを判定
         const selectedDateStr = getLocalDateString(date);
@@ -199,16 +210,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         };
       } catch (error) {
         console.error("Failed to fetch cycle details:", error);
+        // エラーの場合は基本データを返す
       }
     }
 
+    // API呼び出しが不要な場合やエラーの場合
     return {
-      isPeriodStart: false,
-      isPeriodEnd: false,
+      isPeriodStart: dayData.isPeriodStart || false,
+      isPeriodEnd: dayData.isPeriodEnd || false,
       symptoms: dayData.symptoms || [],
       mood: dayData.mood || "",
       healthNotes: dayData.notes || "",
       flowIntensity: dayData.flowIntensity,
+      cycleId: dayData.cycleId,
     };
   };
 
@@ -344,13 +358,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6 relative">
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <p className="text-white text-lg">Loading...</p>
-        </div>
-      )}
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
