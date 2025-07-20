@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { menstrualCycleAPI } from "../services/api";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
+import { PrivacySettingsModal } from "./PrivacySettingsModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -19,6 +20,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSecondConfirmModal, setShowSecondConfirmModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -32,7 +34,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const handleConfirmSecond = async () => {
     setShowSecondConfirmModal(false);
     try {
-      const response = await menstrualCycleAPI.deleteAllCycles();
+      await menstrualCycleAPI.deleteAllCycles();
       onDataDeleted();
     } catch (error: any) {
       console.error('Failed to delete all cycles:', error);
@@ -58,6 +60,11 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
 
   const handleNotificationSave = (settings: any) => {
     console.log('Notification settings saved:', settings);
+    // ここで実際の保存処理を実装
+  };
+
+  const handlePrivacySave = (settings: any) => {
+    console.log('Privacy settings saved:', settings);
     // ここで実際の保存処理を実装
   };
 
@@ -103,7 +110,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("プライバシー");
+        setShowPrivacyModal(true);
       },
     },
     {
@@ -266,6 +273,13 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         isOpen={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
         onSave={handleNotificationSave}
+      />
+
+      {/* Privacy Settings Modal */}
+      <PrivacySettingsModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        onSave={handlePrivacySave}
       />
     </>
   );
