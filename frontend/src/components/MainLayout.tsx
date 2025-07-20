@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { OverviewCards } from "./OverviewCards";
 import { Calendar } from "./Calendar";
 import { CalendarView } from "./CalendarView";
+import { Statistics } from "./Statistics";
 import { Navigation } from "./Navigation";
 import { TodaySection } from "./TodaySection";
 import { SettingsSidebar } from "./SettingsSidebar";
@@ -85,6 +86,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
 
             {currentView === "calendar" && (
               <CalendarView refreshKey={calendarRefreshKey} />
+            )}
+
+            {currentView === "statistics" && (
+              <Statistics />
             )}
           </div>
 
