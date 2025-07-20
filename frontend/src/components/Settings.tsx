@@ -3,6 +3,7 @@ import { menstrualCycleAPI } from "../services/api";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
+import { AppearanceSettingsModal } from "./AppearanceSettingsModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -21,6 +22,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showSecondConfirmModal, setShowSecondConfirmModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showAppearanceModal, setShowAppearanceModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -65,6 +67,11 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
 
   const handlePrivacySave = (settings: any) => {
     console.log('Privacy settings saved:', settings);
+    // ここで実際の保存処理を実装
+  };
+
+  const handleAppearanceSave = (settings: any) => {
+    console.log('Appearance settings saved:', settings);
     // ここで実際の保存処理を実装
   };
 
@@ -164,7 +171,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("外観");
+        setShowAppearanceModal(true);
       },
     },
     {
@@ -280,6 +287,13 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         isOpen={showPrivacyModal}
         onClose={() => setShowPrivacyModal(false)}
         onSave={handlePrivacySave}
+      />
+
+      {/* Appearance Settings Modal */}
+      <AppearanceSettingsModal
+        isOpen={showAppearanceModal}
+        onClose={() => setShowAppearanceModal(false)}
+        onSave={handleAppearanceSave}
       />
     </>
   );
