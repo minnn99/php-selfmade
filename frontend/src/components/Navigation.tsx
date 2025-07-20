@@ -67,7 +67,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
-      await menstrualCycleAPI.endCycle(menstrualStatus.data.activeCycle.id, today);
+      await menstrualCycleAPI.endCycle(today);
       
       // Reload status after ending
       await loadMenstrualStatus();
@@ -109,6 +109,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       ),
       isActive: activeView === 'pregnancy-support',
       badge: 'BETA',
+    },
+    {
+      id: 'partner-connection',
+      label: 'パートナー連動',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+      ),
+      isActive: activeView === 'partner-connection',
     },
     {
       id: 'symptoms',

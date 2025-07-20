@@ -65,9 +65,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
 
                 {/* Today Section */}
                 <TodaySection />
-
-                {/* Partner Connection */}
-                <PartnerConnection />
               </>
             )}
 
@@ -81,6 +78,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
 
             {currentView === "pregnancy-support" && (
               <PregnancySupport />
+            )}
+
+            {currentView === "partner-connection" && (
+              <PartnerConnection />
             )}
 
             {currentView === "settings" && (
