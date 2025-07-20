@@ -5,6 +5,7 @@ import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
 import { AppearanceSettingsModal } from "./AppearanceSettingsModal";
 import { DataManagementModal } from "./DataManagementModal";
+import { ProfileSettingsModal } from "./ProfileSettingsModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -25,6 +26,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
   const [showDataManagementModal, setShowDataManagementModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -77,6 +79,11 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
     // ここで実際の保存処理を実装
   };
 
+  const handleProfileSave = (profileData: any) => {
+    console.log('Profile data saved:', profileData);
+    // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
+  };
+
   const settingItems: SettingItem[] = [
     {
       id: "profile",
@@ -88,7 +95,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("ユーザー情報");
+        setShowProfileModal(true);
       },
     },
     {
@@ -302,6 +309,13 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
       <DataManagementModal
         isOpen={showDataManagementModal}
         onClose={() => setShowDataManagementModal(false)}
+      />
+
+      {/* Profile Settings Modal */}
+      <ProfileSettingsModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onSave={handleProfileSave}
       />
     </>
   );

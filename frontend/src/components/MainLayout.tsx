@@ -10,6 +10,7 @@ import { SettingsSidebar } from "./SettingsSidebar";
 import { PartnerConnection } from "./PartnerConnection";
 import { PregnancySupport } from "./PregnancySupport";
 import { SelfCare } from "./SelfCare";
+import { MedicalRecords } from "./MedicalRecords";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -87,6 +88,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
 
             {currentView === "self-care" && (
               <SelfCare />
+            )}
+
+            {currentView === "medical-records" && (
+              <MedicalRecords />
             )}
 
             {currentView === "settings" && (
