@@ -4,6 +4,7 @@ import { ConfirmationModal } from "./ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
 import { AppearanceSettingsModal } from "./AppearanceSettingsModal";
+import { DataManagementModal } from "./DataManagementModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -23,6 +24,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
+  const [showDataManagementModal, setShowDataManagementModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -153,7 +155,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("データ管理");
+        setShowDataManagementModal(true);
       },
     },
     {
@@ -294,6 +296,12 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         isOpen={showAppearanceModal}
         onClose={() => setShowAppearanceModal(false)}
         onSave={handleAppearanceSave}
+      />
+
+      {/* Data Management Modal */}
+      <DataManagementModal
+        isOpen={showDataManagementModal}
+        onClose={() => setShowDataManagementModal(false)}
       />
     </>
   );
