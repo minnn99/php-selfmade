@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI } from '../services/api';
+import { DynamicAdvice } from './DynamicAdvice';
 
 interface NavigationItem {
   id: string;
@@ -121,6 +122,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       isActive: activeView === 'partner-connection',
     },
     {
+      id: 'self-care',
+      label: 'セルフケア',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+      isActive: activeView === 'self-care',
+    },
+    {
       id: 'symptoms',
       label: '症状記録',
       icon: (
@@ -238,22 +249,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         </div>
       </div>
 
-      {/* Health Tips */}
-      <div className="bg-gradient-to-br from-primary-50 to-purple-50 rounded-xl border border-primary-200 p-4">
-        <div className="flex items-start space-x-3">
-          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-gray-900 mb-1">今日のアドバイス</h4>
-            <p className="text-xs text-gray-600 leading-relaxed">
-              生理前の期間です。カルシウムやマグネシウムを含む食品を摂取することで、PMSの症状を軽減できます。
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Dynamic Health Tips */}
+      <DynamicAdvice />
 
       {/* Cycle Progress */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
