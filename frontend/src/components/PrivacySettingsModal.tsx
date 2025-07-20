@@ -21,12 +21,6 @@ interface PrivacySettings {
     statisticsSharing: boolean;
     predictionDataSharing: boolean;
   };
-  security: {
-    twoFactorAuth: boolean;
-    dataEncryption: boolean;
-    secureBackup: boolean;
-    loginNotifications: boolean;
-  };
 }
 
 export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
@@ -48,12 +42,6 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
       profileVisibility: 'private',
       statisticsSharing: false,
       predictionDataSharing: false
-    },
-    security: {
-      twoFactorAuth: false,
-      dataEncryption: true,
-      secureBackup: true,
-      loginNotifications: true
     }
   });
 
@@ -265,67 +253,6 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
             </div>
           </div>
 
-          {/* セキュリティ設定 */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">セキュリティ設定</h3>
-              <p className="text-sm text-gray-500">アカウントとデータのセキュリティ設定</p>
-            </div>
-            
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">2段階認証</span>
-                  <p className="text-xs text-gray-500">ログイン時の追加認証</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.security.twoFactorAuth}
-                  onChange={(e) => updateSetting('security', 'twoFactorAuth', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">データ暗号化</span>
-                  <p className="text-xs text-gray-500">保存データの暗号化</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.security.dataEncryption}
-                  onChange={(e) => updateSetting('security', 'dataEncryption', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">セキュアバックアップ</span>
-                  <p className="text-xs text-gray-500">暗号化されたクラウドバックアップ</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.security.secureBackup}
-                  onChange={(e) => updateSetting('security', 'secureBackup', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">ログイン通知</span>
-                  <p className="text-xs text-gray-500">新しいデバイスからのログイン通知</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.security.loginNotifications}
-                  onChange={(e) => updateSetting('security', 'loginNotifications', e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

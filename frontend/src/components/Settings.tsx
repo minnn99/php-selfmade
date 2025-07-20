@@ -6,6 +6,8 @@ import { PrivacySettingsModal } from "./PrivacySettingsModal";
 import { AppearanceSettingsModal } from "./AppearanceSettingsModal";
 import { DataManagementModal } from "./DataManagementModal";
 import { ProfileSettingsModal } from "./ProfileSettingsModal";
+import { SupportModal } from "./SupportModal";
+import { SecuritySettingsModal } from "./SecuritySettingsModal";
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -27,6 +29,8 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
   const [showDataManagementModal, setShowDataManagementModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -144,7 +148,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("セキュリティ");
+        setShowSecurityModal(true);
       },
     },
     {
@@ -198,7 +202,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         </svg>
       ),
       onClick: () => {
-        console.log("サポート");
+        setShowSupportModal(true);
       },
     },
     {
@@ -316,6 +320,18 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted }) => {
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         onSave={handleProfileSave}
+      />
+
+      {/* Support Modal */}
+      <SupportModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+      />
+
+      {/* Security Settings Modal */}
+      <SecuritySettingsModal
+        isOpen={showSecurityModal}
+        onClose={() => setShowSecurityModal(false)}
       />
     </>
   );
