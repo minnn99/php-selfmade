@@ -7,6 +7,7 @@ interface DateRecordModalProps {
   onSave: (data: RecordData) => void;
   onDelete?: (cycleId: number) => void;
   existingData?: RecordData;
+  isInPeriod?: boolean; // 生理期間中かどうか
 }
 
 export interface RecordData {
@@ -26,7 +27,8 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({
   selectedDate,
   onSave,
   onDelete,
-  existingData
+  existingData,
+  isInPeriod = false
 }) => {
   const [formData, setFormData] = useState<RecordData>({
     isPeriodStart: false,
@@ -172,7 +174,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({
             </div>
 
             {/* 経血量 */}
-            {(formData.isPeriodStart || formData.isPeriodEnd) && (
+            {(formData.isPeriodStart || formData.isPeriodEnd || isInPeriod) && (
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700">経血量</label>
                 <div className="grid grid-cols-5 gap-2">
@@ -197,7 +199,18 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({
 
           {/* 症状セクション */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">症状</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">症状</h3>
+              {(formData.symptoms.length > 0 || formData.mood || formData.healthNotes.trim()) && (
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, symptoms: [], mood: "", healthNotes: "" }))}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  全てクリア
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {symptomOptions.map((symptom) => (
                 <button

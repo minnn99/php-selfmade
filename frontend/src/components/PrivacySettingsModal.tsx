@@ -76,7 +76,7 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium text-gray-900">データ共有設定</h3>
-              <p className="text-sm text-gray-500">どのデータを共有するかを設定できます</p>
+              <p className="text-sm text-gray-500">アプリや統計データの共有設定を管理</p>
             </div>
             
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">

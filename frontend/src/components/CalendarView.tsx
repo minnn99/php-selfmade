@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { menstrualCycleAPI } from "../services/api";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
 
@@ -28,6 +28,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
+  const [internalRefreshKey, setInternalRefreshKey] = useState(0); // 内部の強制再描画用
 
   // 現在の月の年と月を取得
   const currentYear = currentDate.getFullYear();
@@ -36,14 +37,56 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   // Load calendar data when date changes
   useEffect(() => {
     loadCalendarData();
-  }, [currentYear, currentMonth, refreshKey]);
+    cleanupOldLocalStorageData();
+  }, [currentYear, currentMonth, refreshKey, internalRefreshKey]);
+
+  // 古いローカルストレージデータをクリーンアップする関数
+  const cleanupOldLocalStorageData = () => {
+    const currentYearMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    
+    // 現在月のローカルストレージキーを取得
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(`daily-symptoms-${currentYearMonth}`)) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key) || '{}');
+          const hasSymptoms = data.symptoms && data.symptoms.length > 0;
+          const hasMood = data.mood && data.mood.trim() !== '';
+          const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
+          const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+          
+          // 全てのデータが空の場合は削除
+          if (!hasSymptoms && !hasMood && !hasHealthNotes && !hasFlowIntensity) {
+            localStorage.removeItem(key);
+          }
+        } catch (error) {
+          // 破損したデータも削除
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  };
 
   const loadCalendarData = async () => {
     // 月切り替え時はローディング状態を設定しない（スムーズな切り替えのため）
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
-      console.log("Calendar API Response:", data.data); // デバッグログ追加
-      setCalendarApiData(data.data || {});
+      const rawData = data.data || {};
+      
+      // 古いデータをフィルタリング（30日以上前のデータは無視）
+      const currentDate = new Date();
+      const thirtyDaysAgo = new Date(currentDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+      const filteredData: any = {};
+      
+      Object.keys(rawData).forEach(dateKey => {
+        const keyDate = new Date(dateKey);
+        if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
+          // 30日以内、または表示中の月のデータのみ保持
+          filteredData[dateKey] = rawData[dateKey];
+        }
+      });
+      
+      setCalendarApiData(filteredData);
     } catch (error) {
       console.error("Failed to load calendar data:", error);
       setCalendarApiData({});
@@ -63,6 +106,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
   const goToNextMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  // Helper function to check if a date has user input data stored locally
+  const hasUserInputForDate = (dateKey: string): boolean => {
+    const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+    if (!storedData) return false;
+    
+    try {
+      const data = JSON.parse(storedData);
+      // Check if any meaningful data exists (not just empty/default values)
+      return (data.symptoms && data.symptoms.length > 0) || 
+             (data.mood && data.mood.trim() !== '') ||
+             (data.healthNotes && data.healthNotes.trim() !== '') ||
+             (data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0);
+    } catch {
+      return false;
+    }
   };
 
   // カレンダーの日付データを生成（APIデータを使用）
@@ -93,7 +153,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isCurrentMonth: false,
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
-        hasSymptoms: dayData?.symptoms?.length > 0 || false,
+        hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: false,
         isPredictedPeriod: false,
         isPeriodStart: dayData?.isPeriodStart || false,
@@ -114,7 +174,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isCurrentMonth: true,
         isToday,
         hasPeriod: dayData?.hasPeriod || false,
-        hasSymptoms: dayData?.symptoms?.length > 0 || false,
+        hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: false,
         isPredictedPeriod: false,
         isPeriodStart: dayData?.isPeriodStart || false,
@@ -137,7 +197,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isCurrentMonth: false,
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
-        hasSymptoms: dayData?.symptoms?.length > 0 || false,
+        hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: false,
         isPredictedPeriod: false,
         isPeriodStart: dayData?.isPeriodStart || false,
@@ -150,7 +210,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     return days;
   };
 
-  const calendarDays = generateCalendarDays();
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, internalRefreshKey]);
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: CalendarDay) => {
@@ -175,54 +235,64 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     const dateKey = getLocalDateString(date);
     const dayData = calendarApiData[dateKey];
 
-    // データがない場合は即座に undefined を返す
-    if (!dayData) {
-      return {
-        isPeriodStart: false,
-        isPeriodEnd: false,
-        symptoms: [],
-        mood: "",
-        healthNotes: "",
-        flowIntensity: undefined,
-      };
+    // ローカルストレージから症状・気分・メモ・経血量データを取得
+    let localSymptoms: string[] = [];
+    let localMood = "";
+    let localHealthNotes = "";
+    let localFlowIntensity: number | undefined = undefined;
+    
+    try {
+      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        localSymptoms = parsed.symptoms || [];
+        localMood = parsed.mood || "";
+        localHealthNotes = parsed.healthNotes || "";
+        localFlowIntensity = parsed.flowIntensity;
+      }
+    } catch (error) {
+      console.error("Failed to parse local symptoms data:", error);
     }
 
     // 生理期間中またはアクティブな開始日で cycleId がある場合のみ API を呼び出す
-    if ((dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
+    if (dayData && (dayData.hasPeriod || dayData.isPeriodStart || dayData.isActive) && dayData.cycleId) {
       try {
         const cycleResponse = await menstrualCycleAPI.getCycle(dayData.cycleId);
         const cycleData = cycleResponse.data;
 
-        // 選択した日付が開始日・終了日かを判定
-        const selectedDateStr = getLocalDateString(date);
-        const isStartDate = cycleData.start_date === selectedDateStr;
-        const isEndDate = cycleData.end_date === selectedDateStr;
+        // cycleDataが存在することを確認
+        if (cycleData) {
+          // 選択した日付が開始日・終了日かを判定
+          const selectedDateStr = getLocalDateString(date);
+          const isStartDate = cycleData.start_date === selectedDateStr;
+          const isEndDate = cycleData.end_date === selectedDateStr;
 
-        return {
-          isPeriodStart: isStartDate,
-          isPeriodEnd: isEndDate,
-          symptoms: cycleData.symptoms || [],
-          mood: "",
-          healthNotes: cycleData.notes || "",
-          flowIntensity: cycleData.flow_intensity,
-          cycleId: cycleData.id,
-          existingCycleData: cycleData,
-        };
+          return {
+            isPeriodStart: isStartDate,
+            isPeriodEnd: isEndDate,
+            symptoms: localSymptoms, // ローカルデータを使用
+            mood: localMood, // ローカルデータを使用
+            healthNotes: localHealthNotes, // ローカルデータを使用
+            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : cycleData.flow_intensity,
+            cycleId: cycleData.id,
+            existingCycleData: cycleData,
+          };
+        }
       } catch (error) {
         console.error("Failed to fetch cycle details:", error);
-        // エラーの場合は基本データを返す
+        // エラーの場合はローカルデータを使用
       }
     }
 
     // API呼び出しが不要な場合やエラーの場合
     return {
-      isPeriodStart: dayData.isPeriodStart || false,
-      isPeriodEnd: dayData.isPeriodEnd || false,
-      symptoms: dayData.symptoms || [],
-      mood: dayData.mood || "",
-      healthNotes: dayData.notes || "",
-      flowIntensity: dayData.flowIntensity,
-      cycleId: dayData.cycleId,
+      isPeriodStart: dayData?.isPeriodStart || false,
+      isPeriodEnd: dayData?.isPeriodEnd || false,
+      symptoms: localSymptoms, // ローカルデータを使用
+      mood: localMood, // ローカルデータを使用
+      healthNotes: localHealthNotes, // ローカルデータを使用
+      flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : dayData?.flowIntensity,
+      cycleId: dayData?.cycleId,
     };
   };
 
@@ -241,13 +311,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     try {
       const dateStr = getLocalDateString(selectedDateForModal);
 
+      // 1. 日付別の症状・気分・メモ・経血量をローカルストレージに保存
+      const dailyRecord = {
+        date: dateStr,
+        symptoms: data.symptoms,
+        mood: data.mood,
+        healthNotes: data.healthNotes,
+        flowIntensity: data.flowIntensity,
+        timestamp: new Date().toISOString()
+      };
+      
+      // 症状、気分、メモ、経血量のいずれかが入力されている場合のみ保存
+      const hasSymptoms = data.symptoms.length > 0;
+      const hasMood = data.mood && data.mood.trim() !== '';
+      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
+      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+      
+      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
+        localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
+      } else {
+        // データがない場合は削除
+        localStorage.removeItem(`daily-symptoms-${dateStr}`);
+      }
+
+      // 2. 生理周期情報はAPIに保存（症状・経血量データは除く）
       if (data.cycleId) {
-        // 既存の周期IDがある場合：周期の更新
-        const updateData: any = {
-          flow_intensity: data.flowIntensity,
-          symptoms: data.symptoms,
-          notes: data.healthNotes,
-        };
+        // 既存の周期IDがある場合：周期の更新（症状・経血量データは送信しない）
+        const updateData: any = {};
 
         if (data.isPeriodStart) {
           // 開始日を更新
@@ -257,15 +347,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           updateData.end_date = dateStr;
         }
 
-        await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
+        // 更新データがある場合のみAPI呼び出し
+        if (Object.keys(updateData).length > 0) {
+          await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
+        }
       } else {
-        // 既存の周期IDがない場合：新規作成
+        // 既存の周期IDがない場合：新規作成（症状・経血量データは送信しない）
         if (data.isPeriodStart) {
           await menstrualCycleAPI.startCycle({
             start_date: dateStr,
-            flow_intensity: data.flowIntensity,
-            symptoms: data.symptoms,
-            notes: data.healthNotes,
+            // flow_intensity, symptoms, notes は送信しない
           });
         } else if (data.isPeriodEnd) {
           await menstrualCycleAPI.endCycle(dateStr);
@@ -273,6 +364,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       }
 
       await loadCalendarData();
+      // カレンダーを強制的に再描画
+      setInternalRefreshKey(prev => prev + 1);
       alert("記録が保存されました！");
     } catch (error: any) {
       console.error("Failed to save record:", error);
@@ -439,6 +532,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           onSave={handleModalSave}
           onDelete={handleDelete}
           existingData={existingDataForModal}
+          isInPeriod={calendarApiData[getLocalDateString(selectedDateForModal)]?.hasPeriod || false}
         />
       )}
     </div>

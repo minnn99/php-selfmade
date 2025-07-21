@@ -174,7 +174,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     {
       id: "appearance",
       title: "外観",
-      description: "テーマ、表示設定",
+      description: "テーマ、言語設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

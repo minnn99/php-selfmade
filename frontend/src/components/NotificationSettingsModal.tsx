@@ -250,7 +250,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium text-gray-900">一般設定</h3>
-              <p className="text-sm text-gray-500">通知の基本設定</p>
+              <p className="text-sm text-gray-500">プッシュ通知と音声設定</p>
             </div>
             <div className="space-y-3">
               <label className="flex items-center justify-between">

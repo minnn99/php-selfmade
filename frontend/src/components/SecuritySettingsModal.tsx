@@ -145,7 +145,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium text-gray-900">パスワード設定</h3>
-              <p className="text-sm text-gray-500">アカウントのパスワードを管理</p>
+              <p className="text-sm text-gray-500">パスワード変更と強度設定</p>
             </div>
             
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">

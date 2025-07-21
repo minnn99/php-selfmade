@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { TermsOfServiceModal } from "./TermsOfServiceModal";
+import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 
 interface SupportModalProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface ContactForm {
 export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<"faq" | "contact" | "info">("faq");
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [contactForm, setContactForm] = useState<ContactForm>({
     name: "",
     email: "",
@@ -289,10 +293,16 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
         <h5 className="font-medium text-amber-900 mb-2">📋 利用規約・プライバシーポリシー</h5>
         <div className="space-y-2">
-          <button className="text-sm text-amber-700 hover:text-amber-900 underline block">
+          <button 
+            onClick={() => setShowTermsModal(true)}
+            className="text-sm text-amber-700 hover:text-amber-900 underline block"
+          >
             利用規約を確認する
           </button>
-          <button className="text-sm text-amber-700 hover:text-amber-900 underline block">
+          <button 
+            onClick={() => setShowPrivacyModal(true)}
+            className="text-sm text-amber-700 hover:text-amber-900 underline block"
+          >
             プライバシーポリシーを確認する
           </button>
         </div>
@@ -350,6 +360,18 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
           {activeTab === "info" && renderInfo()}
         </div>
       </div>
+      
+      {/* Terms of Service Modal */}
+      <TermsOfServiceModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
+      
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
     </div>
   );
 };

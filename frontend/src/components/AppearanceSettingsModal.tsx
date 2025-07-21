@@ -9,40 +9,12 @@ interface AppearanceSettingsModalProps {
 interface AppearanceSettings {
   theme: {
     mode: "light" | "dark" | "auto";
-    primaryColor: string;
-    accentColor: string;
   };
   language: {
     locale: string;
-    dateFormat: string;
-    timeFormat: "12h" | "24h";
-  };
-  display: {
-    fontSize: "small" | "medium" | "large";
-    compactMode: boolean;
-    showCalendarNumbers: boolean;
-    showWeekNumbers: boolean;
-    firstDayOfWeek: 0 | 1; // 0: 日曜日, 1: 月曜日
   };
 }
 
-const themeColors = [
-  { name: "ピンク", value: "#ec4899" },
-  { name: "パープル", value: "#8b5cf6" },
-  { name: "ブルー", value: "#3b82f6" },
-  { name: "グリーン", value: "#10b981" },
-  { name: "オレンジ", value: "#f59e0b" },
-  { name: "レッド", value: "#ef4444" },
-];
-
-const accentColors = [
-  { name: "ライト", value: "#f8fafc" },
-  { name: "ピンク", value: "#fdf2f8" },
-  { name: "パープル", value: "#f3e8ff" },
-  { name: "ブルー", value: "#eff6ff" },
-  { name: "グリーン", value: "#ecfdf5" },
-  { name: "イエロー", value: "#fffbeb" },
-];
 
 const languageOptions = [
   { value: "ja-JP", label: "日本語" },
@@ -51,31 +23,13 @@ const languageOptions = [
   { value: "zh-CN", label: "中文（简体）" },
 ];
 
-const dateFormatOptions = [
-  { value: "YYYY/MM/DD", label: "2025/01/20" },
-  { value: "MM/DD/YYYY", label: "01/20/2025" },
-  { value: "DD/MM/YYYY", label: "20/01/2025" },
-  { value: "YYYY-MM-DD", label: "2025-01-20" },
-];
-
 export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = ({ isOpen, onClose, onSave }) => {
   const [settings, setSettings] = useState<AppearanceSettings>({
     theme: {
       mode: "light",
-      primaryColor: "#ec4899",
-      accentColor: "#fdf2f8",
     },
     language: {
       locale: "ja-JP",
-      dateFormat: "YYYY/MM/DD",
-      timeFormat: "24h",
-    },
-    display: {
-      fontSize: "medium",
-      compactMode: false,
-      showCalendarNumbers: true,
-      showWeekNumbers: false,
-      firstDayOfWeek: 1,
     },
   });
 
@@ -121,8 +75,8 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
           {/* テーマ・色設定 */}
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">テーマ・色設定</h3>
-              <p className="text-sm text-gray-500">アプリの見た目とカラーテーマを設定</p>
+              <h3 className="text-lg font-medium text-gray-900">テーマ・言語設定</h3>
+              <p className="text-sm text-gray-500">アプリのテーマモードと言語を設定</p>
             </div>
 
             {/* テーマモード */}
@@ -152,171 +106,28 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
               </div>
             </div>
 
-            {/* プライマリカラー */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">プライマリカラー</label>
-              <div className="grid grid-cols-6 gap-3">
-                {themeColors.map((color) => (
-                  <label key={color.value} className="flex flex-col items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="primaryColor"
-                      value={color.value}
-                      checked={settings.theme.primaryColor === color.value}
-                      onChange={(e) => updateSetting("theme", "primaryColor", e.target.value)}
-                      className="sr-only peer"
-                    />
-                    <div
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:border-gray-600 peer-checked:scale-110 transition-all"
-                      style={{ backgroundColor: color.value }}
-                    />
-                    <span className="text-xs mt-1 text-gray-600">{color.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* アクセントカラー */}
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">アクセントカラー</label>
-              <div className="grid grid-cols-6 gap-3">
-                {accentColors.map((color) => (
-                  <label key={color.value} className="flex flex-col items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      name="accentColor"
-                      value={color.value}
-                      checked={settings.theme.accentColor === color.value}
-                      onChange={(e) => updateSetting("theme", "accentColor", e.target.value)}
-                      className="sr-only peer"
-                    />
-                    <div
-                      className="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:border-gray-600 peer-checked:scale-110 transition-all"
-                      style={{ backgroundColor: color.value }}
-                    />
-                    <span className="text-xs mt-1 text-gray-600">{color.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* 言語設定 */}
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium text-gray-900">言語設定</h3>
-              <p className="text-sm text-gray-500">表示言語と日付・時刻の形式設定</p>
+              <p className="text-sm text-gray-500">アプリで使用する言語を選択</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">表示言語</label>
-                <select
-                  value={settings.language.locale}
-                  onChange={(e) => updateSetting("language", "locale", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {languageOptions.map((lang) => (
-                    <option key={lang.value} value={lang.value}>
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">日付形式</label>
-                <select
-                  value={settings.language.dateFormat}
-                  onChange={(e) => updateSetting("language", "dateFormat", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {dateFormatOptions.map((format) => (
-                    <option key={format.value} value={format.value}>
-                      {format.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">時刻形式</label>
-                <select
-                  value={settings.language.timeFormat}
-                  onChange={(e) => updateSetting("language", "timeFormat", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="24h">24時間表記 (13:30)</option>
-                  <option value="12h">12時間表記 (1:30 PM)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* 表示設定 */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">表示設定</h3>
-              <p className="text-sm text-gray-500">カレンダーやUIの表示をカスタマイズ</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">フォントサイズ</label>
-                  <select
-                    value={settings.display.fontSize}
-                    onChange={(e) => updateSetting("display", "fontSize", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value="small">小</option>
-                    <option value="medium">中</option>
-                    <option value="large">大</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">週の始まり</label>
-                  <select
-                    value={settings.display.firstDayOfWeek}
-                    onChange={(e) => updateSetting("display", "firstDayOfWeek", parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value={1}>月曜日</option>
-                    <option value={0}>日曜日</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">コンパクトモード</span>
-                  <input
-                    type="checkbox"
-                    checked={settings.display.compactMode}
-                    onChange={(e) => updateSetting("display", "compactMode", e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">カレンダーに日付番号を表示</span>
-                  <input
-                    type="checkbox"
-                    checked={settings.display.showCalendarNumbers}
-                    onChange={(e) => updateSetting("display", "showCalendarNumbers", e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">週番号を表示</span>
-                  <input
-                    type="checkbox"
-                    checked={settings.display.showWeekNumbers}
-                    onChange={(e) => updateSetting("display", "showWeekNumbers", e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                </label>
-              </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">表示言語</label>
+              <select
+                value={settings.language.locale}
+                onChange={(e) => updateSetting("language", "locale", e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {languageOptions.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
