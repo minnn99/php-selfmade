@@ -262,6 +262,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           </div>
         </div>
       </div>
+
     </div>
   );
 };

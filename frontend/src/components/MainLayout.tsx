@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { OverviewCards } from "./OverviewCards";
 import { Calendar } from "./Calendar";
 import { CalendarView } from "./CalendarView";
@@ -11,6 +11,7 @@ import { PartnerConnection } from "./PartnerConnection";
 import { PregnancySupport } from "./PregnancySupport";
 import { SelfCare } from "./SelfCare";
 import { MedicalRecords } from "./MedicalRecords";
+import { NotificationPopup } from "./NotificationPopup";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -20,6 +21,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0); // 追加
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   // データ削除成功時にカレンダーをリフレッシュするためのハンドラ
   const handleDataDeleted = () => {
@@ -34,14 +48,45 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-gray-900">Pairiod</h1>
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors" title="通知">
+              {/* Notification Button - Always visible */}
+              <div className="relative">
+                <button 
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors" 
+                  title="通知"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {/* Notification Badge */}
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                </button>
+                
+                <NotificationPopup 
+                  isOpen={isNotificationOpen}
+                  onClose={() => setIsNotificationOpen(false)}
+                />
+              </div>
+              
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                title="メニュー"
+              >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  {isMobileMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
                 </svg>
               </button>
+              
+              {/* Desktop Logout Button */}
               <button
                 onClick={onLogout}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                className="hidden lg:block p-2 text-gray-400 hover:text-red-600 transition-colors"
                 title="ログアウト"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,10 +98,43 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         </div>
       </header>
 
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMobileMenuOpen(false)} />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div className={`lg:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}>
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">メニュー</h2>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div className="overflow-y-auto h-full pb-20">
+          <Navigation 
+            activeView={currentView}
+            onViewChange={(view) => {
+              setCurrentView(view);
+              setIsMobileMenuOpen(false);
+            }}
+          />
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-3 space-y-8">
+          <div className="lg:col-span-3 space-y-8 w-full">
             {currentView === "dashboard" && (
               <>
                 {/* Overview Cards */}
@@ -95,12 +173,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
             )}
 
             {currentView === "settings" && (
-              <Settings onDataDeleted={handleDataDeleted} />
+              <Settings 
+                onDataDeleted={handleDataDeleted} 
+                onLogout={isMobile ? onLogout : undefined}
+              />
             )}
           </div>
 
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
+          {/* Desktop Sidebar Navigation */}
+          <div className="hidden lg:block lg:col-span-1">
             <Navigation 
               activeView={currentView}
               onViewChange={setCurrentView}
