@@ -1,6 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
+import { DailyRecordModal } from "./DailyRecordModal";
+
+interface DailyRecordData {
+  mood: string;
+  physicalCondition: string;
+  waterIntake: number;
+  sleepHours: number;
+  notes: string;
+}
 
 export const TodaySection: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dailyData, setDailyData] = useState<DailyRecordData | null>(null);
   const today = new Date();
   const dateString = today.toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -8,6 +19,35 @@ export const TodaySection: React.FC = () => {
     day: "numeric",
     weekday: "long",
   });
+
+  const handleSaveRecord = (data: DailyRecordData) => {
+    setDailyData(data);
+    // ここで実際の保存処理を実装（localStorageやAPI）
+    localStorage.setItem(`daily-record-${today.toISOString().split('T')[0]}`, JSON.stringify(data));
+    console.log('Daily record saved:', data);
+  };
+
+  const getMoodEmoji = (mood: string) => {
+    const moodMap: { [key: string]: string } = {
+      'excellent': '😊',
+      'good': '🙂',
+      'normal': '😐',
+      'poor': '😔',
+      'terrible': '😩'
+    };
+    return moodMap[mood] || '😐';
+  };
+
+  const getPhysicalEmoji = (condition: string) => {
+    const conditionMap: { [key: string]: string } = {
+      'excellent': '💪',
+      'good': '👍',
+      'normal': '👌',
+      'poor': '😰',
+      'terrible': '🤒'
+    };
+    return conditionMap[condition] || '👌';
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
@@ -18,7 +58,10 @@ export const TodaySection: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button className="inline-flex items-center justify-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 transition-colors"
+          >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -27,7 +70,7 @@ export const TodaySection: React.FC = () => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            今日の症状を記録する
+            今日の記録を追加
           </button>
         </div>
       </div>
@@ -37,24 +80,36 @@ export const TodaySection: React.FC = () => {
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">気分</p>
           <div className="flex justify-center space-x-1">
-            <span className="text-lg">😊</span>
+            <span className="text-lg">{dailyData ? getMoodEmoji(dailyData.mood) : '😊'}</span>
           </div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">体調</p>
           <div className="flex justify-center space-x-1">
-            <span className="text-lg">💪</span>
+            <span className="text-lg">{dailyData ? getPhysicalEmoji(dailyData.physicalCondition) : '💪'}</span>
           </div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">水分摂取</p>
-          <p className="text-sm font-medium text-gray-900">1.2L</p>
+          <p className="text-sm font-medium text-gray-900">
+            {dailyData ? `${dailyData.waterIntake}L` : '1.2L'}
+          </p>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">睡眠時間</p>
-          <p className="text-sm font-medium text-gray-900">7.5h</p>
+          <p className="text-sm font-medium text-gray-900">
+            {dailyData ? `${dailyData.sleepHours}h` : '7.5h'}
+          </p>
         </div>
       </div>
+
+      {/* Daily Record Modal */}
+      <DailyRecordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveRecord}
+        date={today}
+      />
     </div>
   );
 };
