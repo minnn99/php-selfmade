@@ -36,7 +36,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     setShowSecondConfirmModal(false); // 2番目のモーダルを閉じる
     try {
       const response = await menstrualCycleAPI.deleteAllCycles();
-      // alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`); // カスタムモーダルに置き換えるのが理想
+      alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`);
       onClose();
       onDataDeleted(); // データ削除成功時に親に通知
     } catch (error: any) {
