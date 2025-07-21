@@ -12,6 +12,7 @@ import { PregnancySupport } from "./PregnancySupport";
 import { SelfCare } from "./SelfCare";
 import { MedicalRecords } from "./MedicalRecords";
 import { NotificationPopup } from "./NotificationPopup";
+import { MobileActions } from "./MobileActions";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -41,12 +42,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-medical">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Pairiod</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900">Pairiod</h1>
             <div className="flex items-center space-x-4">
               {/* Notification Button - Always visible */}
               <div className="relative">
@@ -104,12 +105,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       )}
 
       {/* Mobile Menu Drawer */}
-      <div className={`lg:hidden fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+      <div className={`lg:hidden fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
         isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">メニュー</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">メニュー</h2>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -127,6 +128,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               setCurrentView(view);
               setIsMobileMenuOpen(false);
             }}
+            mobileMenuOnly={true}
           />
         </div>
       </div>
@@ -139,6 +141,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               <>
                 {/* Overview Cards */}
                 <OverviewCards />
+
+                {/* Mobile Actions - only visible on mobile */}
+                <MobileActions />
 
                 {/* Calendar */}
                 <Calendar />

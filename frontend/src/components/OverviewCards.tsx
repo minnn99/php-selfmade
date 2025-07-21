@@ -4,7 +4,7 @@ export const OverviewCards: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Next Period Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600">次回の生理予定日</h3>
           <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
@@ -23,7 +23,7 @@ export const OverviewCards: React.FC = () => {
       </div>
 
       {/* Current Cycle Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600">現在の周期</h3>
           <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
@@ -42,7 +42,7 @@ export const OverviewCards: React.FC = () => {
       </div>
 
       {/* Ovulation Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6 hover:shadow-md transition-shadow">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600">排卵予定日</h3>
           <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">

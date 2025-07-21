@@ -20,6 +20,7 @@ interface SettingItem {
   description: string;
   icon: React.ReactNode;
   onClick: () => void;
+  badge?: string;
 }
 
 export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) => {
@@ -184,6 +185,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
           />
         </svg>
       ),
+      badge: "BETA",
       onClick: () => {
         setShowAppearanceModal(true);
       },
@@ -258,9 +260,16 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                   {item.icon}
                 </div>
                 <div className="ml-4 flex-1">
-                  <h3 className="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors">
-                    {item.title}
-                  </h3>
+                  <div className="flex items-center">
+                    <h3 className="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors">
+                      {item.title}
+                    </h3>
+                    {item.badge && (
+                      <span className="ml-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-neutral-500 mt-1">{item.description}</p>
                 </div>
                 <div className="flex-shrink-0 ml-2">

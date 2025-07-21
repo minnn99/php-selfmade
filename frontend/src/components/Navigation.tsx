@@ -13,9 +13,10 @@ interface NavigationItem {
 interface NavigationProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  mobileMenuOnly?: boolean;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange }) => {
+export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
   const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
@@ -195,17 +196,46 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
   ];
 
-  return (
-    <div className="space-y-6">
-      {/* Main Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-sm font-medium text-gray-600 mb-4">メニュー</h3>
+  // モバイルメニュー専用の場合はメニュー項目のみを返す
+  if (mobileMenuOnly) {
+    return (
+      <div className="p-4">
         <nav className="space-y-1">
           {navigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium rounded-lg transition-colors ${
+                item.isActive
+                  ? 'bg-primary-100 text-primary-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.label}
+              {item.badge && (
+                <span className="ml-auto bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Main Navigation */}
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
+        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">メニュー</h3>
+        <nav className="space-y-1">
+          {navigationItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onViewChange(item.id)}
+              className={`w-full flex items-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium rounded-lg transition-colors ${
                 item.isActive
                   ? 'bg-primary-100 text-primary-700'
                   : 'text-gray-700 hover:bg-gray-100'
@@ -225,14 +255,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
+        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
         <div className="space-y-2">
           {quickActions.map((action) => (
             <button
               key={action.id}
               onClick={action.onClick}
               disabled={action.disabled}
-              className={`w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white rounded-lg transition-colors ${action.color}`}
+              className={`w-full flex items-center justify-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium text-white rounded-lg transition-colors ${action.color}`}
             >
               <span className="mr-2">{action.icon}</span>
               {loading ? '処理中...' : action.label}
@@ -246,7 +276,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
       {/* Cycle Progress */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-sm font-medium text-gray-600 mb-4">周期の進行状況</h3>
+        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">周期の進行状況</h3>
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-xs text-gray-600 mb-1">

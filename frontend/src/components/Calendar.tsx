@@ -296,7 +296,7 @@ export const Calendar: React.FC = () => {
   const days = generateDays();
 
   const getDayClassName = (day: DayData): string => {
-    let className = "w-10 h-10 flex items-center justify-center text-sm font-medium transition-colors relative cursor-pointer ";
+    let className = "w-10 h-10 flex items-center justify-center text-xs sm:text-sm font-medium transition-colors relative cursor-pointer ";
 
     if (!day.isCurrentMonth) {
       className += "text-gray-300 ";
@@ -329,7 +329,7 @@ export const Calendar: React.FC = () => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex items-center space-x-3">
@@ -339,7 +339,7 @@ export const Calendar: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 text-sm text-primary-600 hover:text-primary-700 transition-colors">
+            <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 text-xs sm:text-sm text-primary-600 hover:text-primary-700 transition-colors">
               今日
             </button>
             <button onClick={() => navigateMonth("next")} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -354,7 +354,7 @@ export const Calendar: React.FC = () => {
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-1 mb-4">
         {weekdays.map((day, index) => (
-          <div key={day} className={`w-10 h-8 flex items-center justify-center text-sm font-medium ${
+          <div key={day} className={`w-10 h-8 flex items-center justify-center text-xs sm:text-sm font-medium ${
             index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
           }`}>
             {day}
@@ -374,7 +374,7 @@ export const Calendar: React.FC = () => {
 
       {/* Legend */}
       <div className="mt-6 pt-4 border-t border-gray-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded"></div>
             <span className="text-gray-600">生理日</span>
