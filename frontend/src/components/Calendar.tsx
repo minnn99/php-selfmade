@@ -37,69 +37,49 @@ export const Calendar: React.FC = () => {
   useEffect(() => {
     loadCalendarData();
     cleanupOldLocalStorageData();
-    cleanupOldDatabaseData();
-    // 特定の問題のあるキーを手動削除（一時的な修正）
-    ['daily-symptoms-2025-07-01', 'daily-symptoms-2025-07-07', 'daily-symptoms-2025-07-10'].forEach(key => {
-      const data = localStorage.getItem(key);
-      if (data) {
-        try {
-          const parsed = JSON.parse(data);
-          if ((!parsed.symptoms || parsed.symptoms.length === 0) && 
-              (!parsed.mood || parsed.mood.trim() === '') && 
-              (!parsed.healthNotes || parsed.healthNotes.trim() === '')) {
-            localStorage.removeItem(key);
-            console.log(`Force removed problematic key: ${key}`);
-          }
-        } catch (e) {
-          localStorage.removeItem(key);
-          console.log(`Force removed corrupted key: ${key}`);
-        }
-      }
-    });
+    // 特定の問題のあるキーを手動削除（一時的な修正） - 成功したので無効化
+    // ["daily-symptoms-2025-07-01", "daily-symptoms-2025-07-02", "daily-symptoms-2025-07-03", "daily-symptoms-2025-07-07", "daily-symptoms-2025-07-10"].forEach((key) => {
+    //   const data = localStorage.getItem(key);
+    //   if (data) {
+    //     console.log(`Found problematic key ${key}:`, data);
+    //     try {
+    //       const parsed = JSON.parse(data);
+    //       // 古いデータなので強制削除
+    //       localStorage.removeItem(key);
+    //       console.log(`Force removed old data key: ${key}`, parsed);
+    //     } catch (e) {
+    //       localStorage.removeItem(key);
+    //       console.log(`Force removed corrupted key: ${key}`);
+    //     }
+    //   } else {
+    //     console.log(`Key ${key} does not exist in localStorage`);
+    //   }
+    // });
   }, [currentYear, currentMonth]);
-
-  // 古いデータベース生理周期データをクリーンアップする関数（一回のみ実行）
-  const cleanupOldDatabaseData = async () => {
-    const hasCleanedUp = localStorage.getItem('database-cleanup-completed');
-    if (hasCleanedUp) return;
-
-    try {
-      console.log('Starting database cleanup...');
-      await menstrualCycleAPI.deleteAllCycles();
-      localStorage.setItem('database-cleanup-completed', 'true');
-      console.log('Database cleanup completed successfully');
-    } catch (error) {
-      console.error('Failed to cleanup database:', error);
-    }
-  };
 
   // 古いローカルストレージデータをクリーンアップする関数
   const cleanupOldLocalStorageData = () => {
-    const currentYearMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-    
-    // 現在月のローカルストレージキーを取得
+    // 一回だけ実行する7月データの完全クリーンアップ
+    const hasCleanedJuly = localStorage.getItem('july-data-cleanup-completed');
+    if (hasCleanedJuly) return;
+
+    // 全ての7月のデータを強制削除（古いバージョンで保存された可能性のあるデータ）
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(`daily-symptoms-${currentYearMonth}`)) {
-        try {
-          const data = JSON.parse(localStorage.getItem(key) || '{}');
-          const hasSymptoms = data.symptoms && data.symptoms.length > 0;
-          const hasMood = data.mood && data.mood.trim() !== '';
-          const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
-          const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-          
-          // 全てのデータが空の場合は削除
-          if (!hasSymptoms && !hasMood && !hasHealthNotes && !hasFlowIntensity) {
-            localStorage.removeItem(key);
-            console.log(`Cleaned up old data: ${key}`);
-          }
-        } catch (error) {
-          // 破損したデータも削除
-          localStorage.removeItem(key);
-          console.log(`Removed corrupted data: ${key}`);
-        }
+      if (key && key.startsWith('daily-symptoms-2025-07-')) {
+        keys.push(key);
       }
     }
+    
+    if (keys.length > 0) {
+      keys.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      console.log(`Cleaned up ${keys.length} old July data entries`);
+    }
+    
+    localStorage.setItem('july-data-cleanup-completed', 'true');
   };
 
   const loadCalendarData = async () => {
@@ -107,22 +87,22 @@ export const Calendar: React.FC = () => {
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
       const rawData = data.data || {};
-      
+
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
-      const thirtyDaysAgo = new Date(currentDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+      const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
       const filteredData: any = {};
-      
-      Object.keys(rawData).forEach(dateKey => {
+
+      Object.keys(rawData).forEach((dateKey) => {
         const keyDate = new Date(dateKey);
         if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
           // 30日以内、または表示中の月のデータのみ保持
           filteredData[dateKey] = rawData[dateKey];
         } else {
-          console.log(`Filtering out old data for ${dateKey}`);
+          // console.log(`Filtering out old data for ${dateKey}`);
         }
       });
-      
+
       setCalendarApiData(filteredData);
     } catch (error) {
       console.error("Failed to load calendar data:", error);
@@ -134,30 +114,25 @@ export const Calendar: React.FC = () => {
   const hasUserInputForDate = (dateKey: string): boolean => {
     const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
     if (!storedData) return false;
-    
+
     try {
       const data = JSON.parse(storedData);
       // Check if any meaningful data exists (not just empty/default values)
       const hasSymptoms = data.symptoms && data.symptoms.length > 0;
-      const hasMood = data.mood && data.mood.trim() !== '';
-      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
+      const hasMood = data.mood && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
       const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-      
+
       const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
       
-      // デバッグログ追加
-      if (dateKey.includes('2025-07-01') || dateKey.includes('2025-07-07') || dateKey.includes('2025-07-10')) {
-        console.log(`Debug ${dateKey}:`, {
-          storedData,
-          data,
-          hasSymptoms,
-          hasMood,
-          hasHealthNotes,
-          hasFlowIntensity,
-          result
+      // 特定の日付についてのみデバッグログ
+      if (dateKey.endsWith('-21') || result) {
+        console.log(`hasUserInputForDate(${dateKey}):`, {
+          result, hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity,
+          storedData, parsedData: data
         });
       }
-      
+
       return result;
     } catch {
       return false;
@@ -275,7 +250,7 @@ export const Calendar: React.FC = () => {
     let localMood = "";
     let localHealthNotes = "";
     let localFlowIntensity: number | undefined = undefined;
-    
+
     try {
       const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
       if (localData) {
@@ -363,23 +338,23 @@ export const Calendar: React.FC = () => {
         mood: data.mood,
         healthNotes: data.healthNotes,
         flowIntensity: data.flowIntensity,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       // 症状、気分、メモ、経血量のいずれかが入力されている場合のみ保存
       const hasSymptoms = data.symptoms.length > 0;
-      const hasMood = data.mood && data.mood.trim() !== '';
-      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
+      const hasMood = data.mood && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
       const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-      
+
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
-        console.log(`Saving data for ${dateStr}:`, dailyRecord);
+        console.log(`SAVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity}, dailyRecord);
       } else {
         // データがない場合は削除
         localStorage.removeItem(`daily-symptoms-${dateStr}`);
-        console.log(`Removing data for ${dateStr}:`, { hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity });
-        console.log(`Data removed. Checking if key exists: ${localStorage.getItem(`daily-symptoms-${dateStr}`) === null}`);
+        console.log(`REMOVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity});
+        console.log(`Verification after removal: exists = ${localStorage.getItem(`daily-symptoms-${dateStr}`) !== null}`);
       }
 
       // 2. 生理周期情報はAPIに保存（症状・経血量データは除く）
@@ -413,7 +388,8 @@ export const Calendar: React.FC = () => {
 
       await loadCalendarData();
       // カレンダーを強制的に再描画
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
+      console.log(`Calendar refresh triggered for ${dateStr}, refreshKey: ${refreshKey + 1}`);
       alert("記録が保存されました！");
     } catch (error: any) {
       console.error("Failed to save record:", error);
@@ -436,7 +412,6 @@ export const Calendar: React.FC = () => {
       alert("削除に失敗しました");
     }
   };
-
 
   // モーダルを閉じる処理
   const handleModalClose = () => {
@@ -479,7 +454,8 @@ export const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+      {/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -491,7 +467,10 @@ export const Calendar: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 text-xs sm:text-sm text-primary-600 hover:text-primary-700 transition-colors">
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              className="px-3 py-1 text-xs sm:text-sm text-primary-600 hover:text-primary-700 transition-colors"
+            >
               今日
             </button>
             <button onClick={() => navigateMonth("next")} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -506,9 +485,12 @@ export const Calendar: React.FC = () => {
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-1 mb-4">
         {weekdays.map((day, index) => (
-          <div key={day} className={`w-10 h-8 flex items-center justify-center text-xs sm:text-sm font-medium ${
-            index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
-          }`}>
+          <div
+            key={day}
+            className={`w-10 h-8 flex items-center justify-center text-xs sm:text-sm font-medium ${
+              index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
+            }`}
+          >
             {day}
           </div>
         ))}

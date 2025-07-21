@@ -201,10 +201,10 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">症状</h3>
-              {(formData.symptoms.length > 0 || formData.mood || formData.healthNotes.trim()) && (
+              {(formData.symptoms.length > 0 || formData.mood || formData.healthNotes.trim() || formData.flowIntensity) && (
                 <button
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, symptoms: [], mood: "", healthNotes: "" }))}
+                  onClick={() => setFormData(prev => ({ ...prev, symptoms: [], mood: "", healthNotes: "", flowIntensity: undefined }))}
                   className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   全てクリア

@@ -28,7 +28,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   const loadMenstrualStatus = async () => {
     try {
       const status = await menstrualCycleAPI.getCurrentStatus();
-      console.log('Menstrual status response:', status); // デバッグログ
       setMenstrualStatus(status);
     } catch (error) {
       console.error('Failed to load menstrual status:', error);
