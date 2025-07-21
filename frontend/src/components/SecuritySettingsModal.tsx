@@ -24,12 +24,6 @@ interface SecuritySettings {
     loginNotifications: boolean;
     suspiciousActivityAlerts: boolean;
   };
-  dataProtection: {
-    dataEncryption: boolean;
-    secureBackup: boolean;
-    autoLock: boolean;
-    autoLockTime: number; // minutes
-  };
 }
 
 export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ isOpen, onClose }) => {
@@ -51,12 +45,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
       deviceRemembering: true,
       loginNotifications: true,
       suspiciousActivityAlerts: true,
-    },
-    dataProtection: {
-      dataEncryption: true,
-      secureBackup: true,
-      autoLock: false,
-      autoLockTime: 5,
     },
   });
 
@@ -360,72 +348,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
             </div>
           </div>
 
-          {/* データ保護 */}
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">データ保護</h3>
-              <p className="text-sm text-gray-500">データの暗号化とセキュリティ</p>
-            </div>
-            
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">データ暗号化</span>
-                  <p className="text-xs text-gray-500">保存データの暗号化</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.dataProtection.dataEncryption}
-                  onChange={(e) => updateSetting("dataProtection", "dataEncryption", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">セキュアバックアップ</span>
-                  <p className="text-xs text-gray-500">暗号化されたクラウドバックアップ</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.dataProtection.secureBackup}
-                  onChange={(e) => updateSetting("dataProtection", "secureBackup", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              <label className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">自動ロック</span>
-                  <p className="text-xs text-gray-500">一定時間後の自動ロック</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.dataProtection.autoLock}
-                  onChange={(e) => updateSetting("dataProtection", "autoLock", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-
-              {settings.dataProtection.autoLock && (
-                <div className="ml-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    自動ロック時間（分）
-                  </label>
-                  <select
-                    value={settings.dataProtection.autoLockTime}
-                    onChange={(e) => updateSetting("dataProtection", "autoLockTime", parseInt(e.target.value))}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value={1}>1分</option>
-                    <option value={5}>5分</option>
-                    <option value={10}>10分</option>
-                    <option value={30}>30分</option>
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

@@ -13,6 +13,8 @@ interface ProfileData {
   email: string;
   phone: string;
   birthDate: string;
+  emergencyContact: string;
+  emergencyPhone: string;
   
   // 健康情報
   height: string;
@@ -21,44 +23,24 @@ interface ProfileData {
   allergies: string;
   medications: string;
   medicalHistory: string;
-  
-  // 生理周期情報
-  averageCycleLength: string;
-  averagePeriodLength: string;
-  lastPeriodDate: string;
-  
-  // プライバシー設定
-  profileVisibility: "public" | "private" | "partner-only";
-  dataSharing: boolean;
-  
-  // その他
-  notes: string;
-  emergencyContact: string;
-  emergencyPhone: string;
 }
 
 export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [activeTab, setActiveTab] = useState<"basic" | "health" | "cycle" | "privacy">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "health">("basic");
   const [profileData, setProfileData] = useState<ProfileData>({
     nickname: "",
     fullName: "",
     email: "",
     phone: "",
     birthDate: "",
+    emergencyContact: "",
+    emergencyPhone: "",
     height: "",
     weight: "",
     bloodType: "",
     allergies: "",
     medications: "",
     medicalHistory: "",
-    averageCycleLength: "28",
-    averagePeriodLength: "5",
-    lastPeriodDate: "",
-    profileVisibility: "private",
-    dataSharing: false,
-    notes: "",
-    emergencyContact: "",
-    emergencyPhone: "",
   });
 
   useEffect(() => {
@@ -123,8 +105,6 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   const tabs = [
     { id: "basic", label: "基本情報", icon: "👤" },
     { id: "health", label: "健康情報", icon: "🏥" },
-    { id: "cycle", label: "周期情報", icon: "📅" },
-    { id: "privacy", label: "プライバシー", icon: "🔒" },
   ];
 
   const renderBasicInfo = () => (
@@ -283,109 +263,6 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     </div>
   );
 
-  const renderCycleInfo = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">平均周期長 (日)</label>
-          <input
-            type="number"
-            value={profileData.averageCycleLength}
-            onChange={(e) => updateField("averageCycleLength", e.target.value)}
-            min="21"
-            max="35"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">一般的には21-35日</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">平均生理期間 (日)</label>
-          <input
-            type="number"
-            value={profileData.averagePeriodLength}
-            onChange={(e) => updateField("averagePeriodLength", e.target.value)}
-            min="3"
-            max="7"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">一般的には3-7日</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">最後の生理開始日</label>
-          <input
-            type="date"
-            value={profileData.lastPeriodDate}
-            onChange={(e) => updateField("lastPeriodDate", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-          />
-        </div>
-      </div>
-
-      <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-        <h4 className="font-medium text-pink-900 mb-2">周期予測について</h4>
-        <p className="text-sm text-pink-700">
-          入力した情報を基に、次回の生理日や排卵日を予測します。
-          個人差があるため、あくまで目安としてご利用ください。
-        </p>
-      </div>
-    </div>
-  );
-
-  const renderPrivacySettings = () => (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">プロフィールの表示設定</label>
-        <div className="space-y-3">
-          {[
-            { value: "private", label: "非公開", desc: "自分のみ表示" },
-            { value: "partner-only", label: "パートナーのみ", desc: "連携したパートナーのみ表示" },
-            { value: "public", label: "公開", desc: "すべてのユーザーに表示" },
-          ].map((option) => (
-            <label key={option.value} className="flex items-start">
-              <input
-                type="radio"
-                name="profileVisibility"
-                value={option.value}
-                checked={profileData.profileVisibility === option.value}
-                onChange={(e) => updateField("profileVisibility", e.target.value)}
-                className="mt-1 w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <div className="ml-3">
-                <div className="text-sm font-medium text-gray-900">{option.label}</div>
-                <div className="text-xs text-gray-500">{option.desc}</div>
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t border-gray-200 pt-4">
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={profileData.dataSharing}
-            onChange={(e) => updateField("dataSharing", e.target.checked)}
-            className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-          />
-          <span className="ml-2 text-sm text-gray-700">匿名化されたデータの研究利用に同意する</span>
-        </label>
-        <p className="text-xs text-gray-500 mt-1 ml-6">
-          個人を特定できない形でのデータ利用により、女性の健康研究に貢献できます
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">その他のメモ</label>
-        <textarea
-          value={profileData.notes}
-          onChange={(e) => updateField("notes", e.target.value)}
-          rows={4}
-          placeholder="特記事項、パートナーに伝えたいことなど"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-        />
-      </div>
-    </div>
-  );
 
   if (!isOpen) return null;
 
@@ -429,8 +306,6 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
         <div className="p-6">
           {activeTab === "basic" && renderBasicInfo()}
           {activeTab === "health" && renderHealthInfo()}
-          {activeTab === "cycle" && renderCycleInfo()}
-          {activeTab === "privacy" && renderPrivacySettings()}
         </div>
 
         {/* Footer */}

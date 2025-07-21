@@ -22,11 +22,9 @@ interface NotificationSettings {
     menstrualStart: boolean;
     ovulationPeriod: boolean;
     moodChanges: boolean;
-    email: string;
   };
   generalSettings: {
     pushNotifications: boolean;
-    emailNotifications: boolean;
     soundEnabled: boolean;
   };
 }
@@ -48,11 +46,9 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       menstrualStart: true,
       ovulationPeriod: true,
       moodChanges: false,
-      email: "",
     },
     generalSettings: {
       pushNotifications: true,
-      emailNotifications: false,
       soundEnabled: true,
     },
   });
@@ -246,16 +242,6 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                     <span className="text-sm text-gray-700">気分の変化に関する通知</span>
                   </label>
                 </div>
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">パートナーのメールアドレス</label>
-                  <input
-                    type="email"
-                    value={settings.partnerNotifications.email}
-                    onChange={(e) => updateSetting("partnerNotifications", "email", e.target.value)}
-                    placeholder="partner@example.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
               </div>
             )}
           </div>
@@ -273,15 +259,6 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   type="checkbox"
                   checked={settings.generalSettings.pushNotifications}
                   onChange={(e) => updateSetting("generalSettings", "pushNotifications", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-              </label>
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">メール通知</span>
-                <input
-                  type="checkbox"
-                  checked={settings.generalSettings.emailNotifications}
-                  onChange={(e) => updateSetting("generalSettings", "emailNotifications", e.target.checked)}
                   className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
                 />
               </label>

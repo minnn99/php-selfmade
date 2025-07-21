@@ -22,7 +22,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     textColor: "text-primary-600",
   });
 
-  const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
+  const [, setMenstrualStatus] = useState<any>(null);
 
   useEffect(() => {
     loadMenstrualStatus();
