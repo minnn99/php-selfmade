@@ -198,16 +198,16 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   // モバイルメニュー専用の場合はメニュー項目のみを返す
   if (mobileMenuOnly) {
     return (
-      <div className="p-4">
-        <nav className="space-y-1">
+      <div className="p-4 sm:p-6">
+        <nav className="space-y-2">
           {navigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center px-4 py-3 text-sm sm:text-base font-medium rounded-lg transition-colors min-h-[48px] ${
                 item.isActive
                   ? 'bg-primary-100 text-primary-700'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
               }`}
             >
               <span className="mr-3">{item.icon}</span>
@@ -227,14 +227,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   return (
     <div className="space-y-6">
       {/* Main Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">メニュー</h3>
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-5">
+        <h3 className="text-sm font-medium text-gray-600 mb-4">メニュー</h3>
         <nav className="space-y-1">
           {navigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium rounded-lg transition-colors ${
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors min-h-[40px] ${
                 item.isActive
                   ? 'bg-primary-100 text-primary-700'
                   : 'text-gray-700 hover:bg-gray-100'

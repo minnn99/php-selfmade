@@ -27,6 +27,40 @@ export const MobileActions: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // 生理期間中の日付をローカルストレージに保存してカレンダーに反映
+  const updateCalendarForPeriod = async (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // 開始日から終了日まで1日ずつループ
+    const currentDate = new Date(start);
+    while (currentDate <= end) {
+      const dateString = getLocalDateString(currentDate);
+      
+      // 既存のデータを取得
+      const existingData = JSON.parse(localStorage.getItem(`daily-symptoms-${dateString}`) || '{}');
+      
+      // 生理中のフラグを設定
+      const updatedData = {
+        ...existingData,
+        isPeriodStart: dateString === startDate,
+        isPeriodEnd: dateString === endDate,
+        hasPeriod: true,
+        symptoms: existingData.symptoms || [],
+        mood: existingData.mood || '',
+        healthNotes: existingData.healthNotes || '',
+        flowIntensity: existingData.flowIntensity || 2, // デフォルトは普通
+        timestamp: new Date().toISOString()
+      };
+      
+      // ローカルストレージに保存
+      localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+      
+      // 次の日へ
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  };
+
   const handleStartPeriod = async () => {
     if (loading) return;
     
@@ -37,8 +71,15 @@ export const MobileActions: React.FC = () => {
         start_date: today
       });
       
+      // 生理開始から今日まで（つまり今日だけ）を生理中として設定
+      await updateCalendarForPeriod(today, today);
+      
+      // カスタムイベントを発火してカレンダーとセルフケアを更新（すぐに実行）
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
       // Reload status after starting
       await loadMenstrualStatus();
+      
       alert('生理が開始されました');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);
@@ -53,10 +94,19 @@ export const MobileActions: React.FC = () => {
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
+      const startDate = menstrualStatus.data.activeCycle.start_date;
+      
       await menstrualCycleAPI.endCycle(today);
+      
+      // 生理開始日から今日まで全ての日を生理中として設定
+      await updateCalendarForPeriod(startDate, today);
+      
+      // カスタムイベントを発火してカレンダーとセルフケアを更新（すぐに実行）
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       // Reload status after ending
       await loadMenstrualStatus();
+      
       alert('生理が終了されました');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);

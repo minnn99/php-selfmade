@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { menstrualCycleAPI } from "../services/api";
 
 interface SelfCareProps {
   className?: string;
@@ -23,8 +24,81 @@ interface PartnerAdvice {
 }
 
 export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
-  const [selectedSymptom, setSelectedSymptom] = useState<string>("menstrual");
+  const [selectedSymptom, setSelectedSymptom] = useState<string>("general");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [todayStatus, setTodayStatus] = useState<string>("general");
+
+  // 今日の日付に基づいて状態を判定する関数
+  const getTodayStatus = async () => {
+    try {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+      
+      const data = await menstrualCycleAPI.getCalendarData(year, month);
+      const todayString = today.toISOString().split('T')[0];
+      const todayData = data.data?.[todayString];
+      
+      if (todayData) {
+        if (todayData.hasPeriod) {
+          return "menstrual";
+        } else if (todayData.isOvulation || todayData.isFertile) {
+          return "ovulation";
+        }
+        // PMS期間の判定（生理予定日の7日前から）
+        const keys = Object.keys(data.data).sort();
+        const todayIndex = keys.indexOf(todayString);
+        if (todayIndex !== -1) {
+          // 今後7日以内に生理予定日があるかチェック
+          for (let i = 1; i <= 7; i++) {
+            const futureIndex = todayIndex + i;
+            if (futureIndex < keys.length) {
+              const futureDate = keys[futureIndex];
+              const futureData = data.data[futureDate];
+              if (futureData?.isPredictedPeriod || futureData?.hasPeriod) {
+                return "pms";
+              }
+            }
+          }
+        }
+      }
+      
+      return "general";
+    } catch (error) {
+      console.error("今日の状態を取得できませんでした:", error);
+      return "general";
+    }
+  };
+
+  // 状態を更新する関数
+  const updateTodayStatus = async () => {
+    const status = await getTodayStatus();
+    setTodayStatus(status);
+    setSelectedSymptom(status);
+  };
+
+  // コンポーネントがマウントされた時に今日の状態を取得
+  useEffect(() => {
+    updateTodayStatus();
+  }, []);
+
+  // カスタムイベントリスナーを追加して、データ更新時にセルフケア状態も更新
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      updateTodayStatus();
+    };
+
+    // カスタムイベントリスナーを追加
+    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
+    
+    // ローカルストレージの変更を監視
+    window.addEventListener('storage', handleDataUpdate);
+
+    return () => {
+      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      window.removeEventListener('storage', handleDataUpdate);
+    };
+  }, []);
 
   const symptoms = [
     { id: "menstrual", label: "生理中", color: "bg-red-100 text-red-800" },
@@ -226,75 +300,96 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-4 sm:space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
         <div className="flex items-center">
-          <h2 className="text-xl font-semibold text-neutral-900">セルフケア提案</h2>
-          <span className="ml-3 text-2xl">🌸</span>
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">セルフケア提案</h2>
+          <span className="ml-2 sm:ml-3 text-xl sm:text-2xl">🌸</span>
         </div>
-        <p className="text-sm text-neutral-600 mt-2">
+        <p className="text-xs sm:text-sm text-neutral-600 mt-2">
           あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案
         </p>
       </div>
 
       {/* Symptom Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">現在の状態</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {symptoms.map((symptom) => (
-            <button
-              key={symptom.id}
-              onClick={() => setSelectedSymptom(symptom.id)}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ${
-                selectedSymptom === symptom.id
-                  ? symptom.color + " ring-2 ring-offset-2 ring-primary-500"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {symptom.label}
-            </button>
-          ))}
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900">現在の状態</h3>
+          {todayStatus !== "general" && (
+            <div className="flex items-center text-sm text-green-600">
+              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              今日の状態を自動検出
+            </div>
+          )}
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {symptoms.map((symptom) => {
+            const isAutoDetected = symptom.id === todayStatus;
+            return (
+              <button
+                key={symptom.id}
+                onClick={() => setSelectedSymptom(symptom.id)}
+                className={`p-3 rounded-lg text-sm font-medium transition-all relative ${
+                  selectedSymptom === symptom.id
+                    ? symptom.color + " ring-2 ring-offset-2 ring-primary-500"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {symptom.label}
+                {isAutoDetected && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {todayStatus !== "general" && (
+          <p className="text-xs text-gray-500 mt-2">
+            今日の日付に基づいて「{symptoms.find(s => s.id === todayStatus)?.label}」が自動選択されました
+          </p>
+        )}
       </div>
 
       {/* Category Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">カテゴリー</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">カテゴリー</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`p-3 rounded-lg text-sm font-medium transition-all ${
+              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
                 selectedCategory === category.id
                   ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
               }`}
             >
-              <div className="text-lg mb-1">{category.icon}</div>
-              {category.label}
+              <div className="text-base sm:text-lg mb-1">{category.icon}</div>
+              <span className="text-center leading-tight">{category.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Self Care Recommendations */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">おすすめのセルフケア</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">おすすめのセルフケア</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {getFilteredAdvices().map((advice) => (
             <div key={advice.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start space-x-3">
-                <div className="text-2xl flex-shrink-0">{advice.icon}</div>
-                <div className="flex-1">
+                <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">{advice.title}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(advice.difficulty)}`}>
+                    <h4 className="font-medium text-gray-900 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${getDifficultyColor(advice.difficulty)}`}>
                       {getDifficultyLabel(advice.difficulty)}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
                 </div>
               </div>
             </div>
@@ -302,30 +397,30 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
         </div>
         
         {getFilteredAdvices().length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-4xl mb-2">🌸</div>
-            <p>この条件に合うセルフケア提案がありません</p>
+          <div className="text-center py-6 sm:py-8 text-gray-500">
+            <div className="text-3xl sm:text-4xl mb-2">🌸</div>
+            <p className="text-sm sm:text-base">この条件に合うセルフケア提案がありません</p>
           </div>
         )}
       </div>
 
       {/* Partner Support Recommendations */}
-      <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-6">
-        <div className="flex items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
-          <span className="ml-2 text-xl">💕</span>
+      <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-4 sm:p-6">
+        <div className="flex items-center mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
+          <span className="ml-2 text-lg sm:text-xl">💕</span>
         </div>
-        <p className="text-sm text-gray-600 mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {partnerAdvices.map((advice) => (
             <div key={advice.id} className="bg-white/70 backdrop-blur-sm border border-pink-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
-                <div className="text-2xl flex-shrink-0">{advice.icon}</div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">{advice.title}</h4>
-                  <p className="text-xs text-pink-700 font-medium mb-2">{advice.situation}</p>
-                  <p className="text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+                <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-gray-900 mb-1 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                  <p className="text-xs text-pink-700 font-medium mb-2 leading-tight">{advice.situation}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
                 </div>
               </div>
             </div>
@@ -334,14 +429,14 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       </div>
 
       {/* Tips Section */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
         <div className="flex">
-          <svg className="w-5 h-5 text-amber-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
-          <div className="text-sm">
-            <p className="font-medium text-amber-800">重要な注意事項</p>
-            <ul className="mt-1 text-amber-700 list-disc list-inside space-y-1">
+          <div className="text-xs sm:text-sm min-w-0">
+            <p className="font-medium text-amber-800 mb-1 sm:mb-2">重要な注意事項</p>
+            <ul className="text-amber-700 list-disc list-inside space-y-1 leading-relaxed">
               <li>症状が重い場合は医師に相談してください</li>
               <li>アレルギーがある場合は食材に注意してください</li>
               <li>体調に異変を感じたら無理をせず休息を取ってください</li>

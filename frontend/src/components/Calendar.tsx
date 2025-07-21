@@ -37,25 +37,21 @@ export const Calendar: React.FC = () => {
   useEffect(() => {
     loadCalendarData();
     cleanupOldLocalStorageData();
-    // 特定の問題のあるキーを手動削除（一時的な修正） - 成功したので無効化
-    // ["daily-symptoms-2025-07-01", "daily-symptoms-2025-07-02", "daily-symptoms-2025-07-03", "daily-symptoms-2025-07-07", "daily-symptoms-2025-07-10"].forEach((key) => {
-    //   const data = localStorage.getItem(key);
-    //   if (data) {
-    //     console.log(`Found problematic key ${key}:`, data);
-    //     try {
-    //       const parsed = JSON.parse(data);
-    //       // 古いデータなので強制削除
-    //       localStorage.removeItem(key);
-    //       console.log(`Force removed old data key: ${key}`, parsed);
-    //     } catch (e) {
-    //       localStorage.removeItem(key);
-    //       console.log(`Force removed corrupted key: ${key}`);
-    //     }
-    //   } else {
-    //     console.log(`Key ${key} does not exist in localStorage`);
-    //   }
-    // });
   }, [currentYear, currentMonth]);
+
+  // Listen for menstrual data updates
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      loadCalendarData();
+      setRefreshKey(prev => prev + 1); // カレンダーを強制再描画
+    };
+
+    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
+    
+    return () => {
+      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+    };
+  }, []);
 
   // 古いローカルストレージデータをクリーンアップする関数
   const cleanupOldLocalStorageData = () => {
@@ -122,13 +118,14 @@ export const Calendar: React.FC = () => {
       const hasMood = data.mood && data.mood.trim() !== "";
       const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
       const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd || data.hasPeriod;
 
-      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
+      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo;
       
       // 特定の日付についてのみデバッグログ
       if (dateKey.endsWith('-21') || result) {
         console.log(`hasUserInputForDate(${dateKey}):`, {
-          result, hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity,
+          result, hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo,
           storedData, parsedData: data
         });
       }
@@ -160,17 +157,27 @@ export const Calendar: React.FC = () => {
       const date = prevMonthLastDate - firstDayWeekday + 1 + i;
       const dateKey = `${prevMonthYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
+      
+      // ローカルストレージからのデータも統合
+      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+      let localParsedData = null;
+      try {
+        localParsedData = localData ? JSON.parse(localData) : null;
+      } catch (error) {
+        console.error(`Failed to parse local data for ${dateKey}:`, error);
+      }
+      
       days.push({
         date,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isFertile: false,
-        isPredictedPeriod: false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isOvulation: dayData?.isOvulation || false,
+        isFertile: dayData?.isFertile || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
     }
@@ -180,17 +187,27 @@ export const Calendar: React.FC = () => {
       const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === date;
       const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
+      
+      // ローカルストレージからのデータも統合
+      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+      let localParsedData = null;
+      try {
+        localParsedData = localData ? JSON.parse(localData) : null;
+      } catch (error) {
+        console.error(`Failed to parse local data for ${dateKey}:`, error);
+      }
+      
       days.push({
         date,
         isCurrentMonth: true,
         isToday,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isFertile: false,
-        isPredictedPeriod: false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isOvulation: dayData?.isOvulation || false,
+        isFertile: dayData?.isFertile || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
     }
@@ -202,17 +219,27 @@ export const Calendar: React.FC = () => {
     while (days.length < 42) {
       const dateKey = `${nextMonthYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(nextMonthDate).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
+      
+      // ローカルストレージからのデータも統合
+      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+      let localParsedData = null;
+      try {
+        localParsedData = localData ? JSON.parse(localData) : null;
+      } catch (error) {
+        console.error(`Failed to parse local data for ${dateKey}:`, error);
+      }
+      
       days.push({
         date: nextMonthDate,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isFertile: false,
-        isPredictedPeriod: false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
+        isOvulation: dayData?.isOvulation || false,
+        isFertile: dayData?.isFertile || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
       nextMonthDate++;
@@ -331,29 +358,33 @@ export const Calendar: React.FC = () => {
     try {
       const dateStr = getLocalDateString(selectedDateForModal);
 
-      // 1. 日付別の症状・気分・メモ・経血量をローカルストレージに保存
+      // 1. 日付別の症状・気分・メモ・経血量・生理情報をローカルストレージに保存
       const dailyRecord = {
         date: dateStr,
         symptoms: data.symptoms,
         mood: data.mood,
         healthNotes: data.healthNotes,
         flowIntensity: data.flowIntensity,
+        isPeriodStart: data.isPeriodStart,
+        isPeriodEnd: data.isPeriodEnd,
+        hasPeriod: data.isPeriodStart || data.isPeriodEnd || false,
         timestamp: new Date().toISOString(),
       };
 
-      // 症状、気分、メモ、経血量のいずれかが入力されている場合のみ保存
+      // 症状、気分、メモ、経血量、生理情報のいずれかが入力されている場合のみ保存
       const hasSymptoms = data.symptoms.length > 0;
       const hasMood = data.mood && data.mood.trim() !== "";
       const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
       const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd;
 
-      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
+      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo) {
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
-        console.log(`SAVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity}, dailyRecord);
+        console.log(`SAVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo}, dailyRecord);
       } else {
         // データがない場合は削除
         localStorage.removeItem(`daily-symptoms-${dateStr}`);
-        console.log(`REMOVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity});
+        console.log(`REMOVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo});
         console.log(`Verification after removal: exists = ${localStorage.getItem(`daily-symptoms-${dateStr}`) !== null}`);
       }
 
@@ -461,20 +492,26 @@ export const Calendar: React.FC = () => {
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <button onClick={() => navigateMonth("prev")} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <button 
+              onClick={() => navigateMonth("prev")} 
+              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1 text-xs sm:text-sm text-primary-600 hover:text-primary-700 transition-colors"
+              className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-primary-600 hover:text-primary-700 transition-colors min-h-[44px] flex items-center justify-center"
             >
               今日
             </button>
-            <button onClick={() => navigateMonth("next")} className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              onClick={() => navigateMonth("next")} 
+              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -487,7 +524,7 @@ export const Calendar: React.FC = () => {
         {weekdays.map((day, index) => (
           <div
             key={day}
-            className={`w-10 h-8 flex items-center justify-center text-xs sm:text-sm font-medium ${
+            className={`h-8 sm:h-10 flex items-center justify-center text-sm sm:text-base font-medium ${
               index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
             }`}
           >
@@ -499,7 +536,7 @@ export const Calendar: React.FC = () => {
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => (
           <button key={index} className={getDayClassName(day)} onClick={() => handleDateClick(day)}>
-            {day.date}
+            <span className="text-sm sm:text-base">{day.date}</span>
             {/* 症状がある場合は小さなドットを表示 */}
             {day.hasSymptoms && <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>}
           </button>
@@ -507,8 +544,8 @@ export const Calendar: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="mt-6 pt-4 border-t border-gray-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs sm:text-sm">
+      <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-sm">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded"></div>
             <span className="text-gray-600">生理日</span>

@@ -238,39 +238,39 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
           <div>
-            <h2 className="text-xl font-semibold text-neutral-900">設定</h2>
-            <p className="text-sm text-neutral-600">アプリの設定を管理</p>
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">設定</h2>
+            <p className="text-xs sm:text-sm text-neutral-600">アプリの設定を管理</p>
           </div>
         </div>
 
         {/* Settings Grid */}
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {settingItems.map((item) => (
               <button
                 key={item.id}
                 onClick={item.onClick}
-                className="flex items-center p-4 rounded-lg hover:bg-neutral-50 transition-colors text-left group border border-gray-200 hover:border-primary-300"
+                className="flex items-center p-3 sm:p-4 rounded-lg hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-left group border border-gray-200 hover:border-primary-300 min-h-[44px]"
               >
-                <div className="flex-shrink-0 p-3 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-100 transition-colors">
+                <div className="flex-shrink-0 p-2 sm:p-3 bg-primary-50 rounded-lg text-primary-600 group-hover:bg-primary-100 transition-colors">
                   {item.icon}
                 </div>
-                <div className="ml-4 flex-1">
+                <div className="ml-3 sm:ml-4 flex-1 min-w-0">
                   <div className="flex items-center">
-                    <h3 className="text-sm font-medium text-neutral-900 group-hover:text-primary-600 transition-colors">
+                    <h3 className="text-sm sm:text-base font-medium text-neutral-900 group-hover:text-primary-600 transition-colors truncate">
                       {item.title}
                     </h3>
                     {item.badge && (
-                      <span className="ml-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">
+                      <span className="ml-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">
                         {item.badge}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-500 mt-1">{item.description}</p>
+                  <p className="text-xs text-neutral-500 mt-1 leading-tight">{item.description}</p>
                 </div>
                 <div className="flex-shrink-0 ml-2">
                   <svg
@@ -288,8 +288,8 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
         </div>
 
         {/* App Info */}
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-          <div className="text-center text-sm text-neutral-500">
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <div className="text-center text-xs sm:text-sm text-neutral-500">
             <p className="font-medium">Pairiod v1.0.0</p>
             <p className="mt-1">© 2025 Pairiod. All rights reserved.</p>
           </div>
