@@ -181,24 +181,6 @@ export const MobileActions: React.FC = () => {
         </div>
       </div>
 
-      {/* Cycle Progress */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">周期の進行状況</h3>
-        <div className="space-y-3">
-          <div>
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
-              <span>現在の周期</span>
-              <span>22/28日</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-primary-500 h-2 rounded-full" style={{width: '79%'}}></div>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500">
-            次の生理まで約6日
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

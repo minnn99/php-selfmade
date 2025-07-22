@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI } from '../services/api';
-import { CycleChart } from './CycleChart';
 
 interface CycleStats {
   averageCycleLength: number;
@@ -31,7 +30,6 @@ export const Statistics: React.FC = () => {
   const [cycleStats, setCycleStats] = useState<CycleStats | null>(null);
   const [symptomStats, setSymptomStats] = useState<SymptomStats | null>(null);
   const [flowStats, setFlowStats] = useState<FlowStats | null>(null);
-  const [chartData, setChartData] = useState<Array<{cycleNumber: number; cycleLength: number; startDate: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'3months' | '6months' | '1year' | 'all'>('6months');
 
@@ -98,13 +96,6 @@ export const Statistics: React.FC = () => {
       irregularityScore: Math.round(irregularityScore)
     });
 
-    // チャート用データの準備
-    const chartData = completedCycles.map((cycle, index) => ({
-      cycleNumber: index + 1,
-      cycleLength: cycleLengths[index],
-      startDate: cycle.start_date
-    }));
-    setChartData(chartData);
 
     // 症状統計の計算
     const allSymptoms: string[] = [];
@@ -256,12 +247,6 @@ export const Statistics: React.FC = () => {
         </div>
       </div>
 
-      {/* 周期チャート */}
-      {chartData.length > 1 && (
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-          <CycleChart data={chartData} averageLength={cycleStats.averageCycleLength} />
-        </div>
-      )}
 
       {/* 詳細統計 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

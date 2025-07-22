@@ -19,25 +19,25 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
-          <p className="text-lg text-neutral-600 mb-8">パスワードをリセット</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
+          <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">パスワードをリセット</p>
         </div>
 
         {/* Reset Password Card */}
-        <div className="bg-white rounded-xl shadow-lg border border-medical p-8">
+        <div className="bg-white rounded-xl shadow-lg border border-medical p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-neutral-900 text-center">パスワードリセット</h2>
-            <p className="text-neutral-600 text-center mt-2">
-              登録されているメールアドレスを入力してください。<br />
-              パスワードリセット用のリンクをお送りします。
+            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 text-center">パスワードリセット</h2>
+            <p className="text-sm sm:text-base text-neutral-600 text-center mt-2 leading-relaxed">
+              登録されているメールアドレスを入力してください。<br className="hidden sm:block" />
+              <span className="block sm:inline">パスワードリセット用のリンクをお送りします。</span>
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
@@ -52,7 +52,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400"
+                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
                   placeholder="example@email.com"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -67,7 +67,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 touch-manipulation min-h-[48px]"
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -87,7 +87,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           <div className="mt-6 text-center">
             <button
               onClick={onBackToLogin}
-              className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors"
+              className="text-sm font-medium text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
             >
               ← ログイン画面に戻る
             </button>
@@ -96,7 +96,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs sm:text-sm text-neutral-500">
             © 2025 Pairiod. すべての権利を保有します。
           </p>
         </div>
