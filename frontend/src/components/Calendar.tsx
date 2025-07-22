@@ -39,17 +39,32 @@ export const Calendar: React.FC = () => {
     cleanupOldLocalStorageData();
   }, [currentYear, currentMonth]);
 
-  // Listen for menstrual data updates
+  // Listen for menstrual data updates with debounce
   useEffect(() => {
+    let timeoutId: number;
+    
     const handleDataUpdate = () => {
-      loadCalendarData();
-      setRefreshKey(prev => prev + 1); // カレンダーを強制再描画
+      console.log('Calendar - Menstrual data updated, debouncing reload...');
+      
+      // Clear existing timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      // Set new timeout
+      timeoutId = setTimeout(() => {
+        loadCalendarData();
+        setRefreshKey(prev => prev + 1); // カレンダーを強制再描画
+      }, 400); // 400ms debounce for Calendar
     };
 
     window.addEventListener('menstrualDataUpdated', handleDataUpdate);
     
     return () => {
       window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, []);
 
@@ -432,11 +447,98 @@ export const Calendar: React.FC = () => {
     }
   };
 
-  // 削除処理
+  // ローカルストレージから生理データを削除する関数（完全削除版）
+  const clearPeriodDataFromLocalStorage = (cycleId: number) => {
+    console.log(`Clearing period data for cycle ID: ${cycleId}`);
+    
+    // まず calendarApiData から該当するサイクルの全ての日付を特定
+    const cycleDates = [];
+    for (const dateKey of Object.keys(calendarApiData)) {
+      const dayData = calendarApiData[dateKey];
+      if (dayData.cycle_id === cycleId) {
+        cycleDates.push(dateKey);
+      }
+    }
+    
+    console.log(`Found ${cycleDates.length} dates for cycle ${cycleId}:`, cycleDates);
+    
+    // 該当する日付のローカルストレージを完全削除
+    cycleDates.forEach(dateString => {
+      const localStorageKey = `daily-symptoms-${dateString}`;
+      const existingData = localStorage.getItem(localStorageKey);
+      
+      if (existingData) {
+        console.log(`Removing localStorage data for ${dateString}`);
+        localStorage.removeItem(localStorageKey);
+      }
+    });
+    
+    // さらに、現在の月の全ての日付で生理関連データをクリア（追加の安全策）
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // 今月の全ての日をチェック
+    for (let day = 1; day <= 31; day++) {
+      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const localStorageKey = `daily-symptoms-${dateString}`;
+      const existingData = localStorage.getItem(localStorageKey);
+      
+      if (existingData) {
+        try {
+          const data = JSON.parse(existingData);
+          // 生理関連のフラグがある場合はクリア
+          if (data.hasPeriod || data.isPeriodStart || data.isPeriodEnd) {
+            console.log(`Clearing period flags from ${dateString}`);
+            
+            const updatedData = {
+              ...data,
+              isPeriodStart: false,
+              isPeriodEnd: false,
+              hasPeriod: false,
+              flowIntensity: undefined
+            };
+            
+            // 他に意味のあるデータがない場合は完全に削除
+            const hasOtherData = 
+              (updatedData.symptoms && updatedData.symptoms.length > 0) ||
+              (updatedData.mood && updatedData.mood.trim() !== "") ||
+              (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
+              
+            if (hasOtherData) {
+              localStorage.setItem(localStorageKey, JSON.stringify(updatedData));
+            } else {
+              localStorage.removeItem(localStorageKey);
+            }
+          }
+        } catch (e) {
+          console.error(`Error processing localStorage data for ${dateString}:`, e);
+        }
+      }
+    }
+  };
+
+  // 削除処理（改良版）
   const handleDelete = async (cycleId: number) => {
     try {
+      console.log(`Starting deletion process for cycle ${cycleId}`);
+      
+      // ローカルストレージを先に削除（API削除前に実行）
+      clearPeriodDataFromLocalStorage(cycleId);
+      
+      // API からサイクルを削除
       await menstrualCycleAPI.deleteCycle(cycleId);
+      console.log(`Successfully deleted cycle ${cycleId} from API`);
+      
+      // カレンダーデータを再読み込み
       await loadCalendarData();
+      
+      // カレンダーを強制再描画
+      setRefreshKey(prev => prev + 1);
+      
+      // カスタムイベントを発火してアプリ全体を更新
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
       alert("生理周期が削除されました");
     } catch (error: any) {
       console.error("Failed to delete cycle:", error);

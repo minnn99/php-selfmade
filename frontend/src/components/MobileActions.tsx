@@ -4,18 +4,58 @@ import { menstrualCycleAPI } from '../services/api';
 export const MobileActions: React.FC = () => {
   const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
   // Load menstrual status on component mount
   useEffect(() => {
     loadMenstrualStatus();
   }, []);
 
+  // Debounced listener for menstrual data updates
+  useEffect(() => {
+    let timeoutId: number;
+    
+    const handleDataUpdate = () => {
+      console.log('MobileActions - Menstrual data updated, debouncing reload...');
+      
+      // Clear existing timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      // Set new timeout
+      timeoutId = setTimeout(() => {
+        if (!isLoadingStatus && !loading) {
+          loadMenstrualStatus();
+        }
+      }, 600); // 600ms debounce for MobileActions
+    };
+
+    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
+    
+    return () => {
+      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoadingStatus, loading]);
+
   const loadMenstrualStatus = async () => {
+    if (isLoadingStatus) {
+      console.log('MobileActions - Already loading status, skipping...');
+      return;
+    }
+
+    setIsLoadingStatus(true);
     try {
       const status = await menstrualCycleAPI.getCurrentStatus();
+      console.log('MobileActions - Loaded menstrual status:', status);
       setMenstrualStatus(status);
     } catch (error) {
-      console.error('Failed to load menstrual status:', error);
+      console.error('MobileActions - Failed to load menstrual status:', error);
+    } finally {
+      setIsLoadingStatus(false);
     }
   };
 
@@ -89,12 +129,12 @@ export const MobileActions: React.FC = () => {
   };
 
   const handleEndPeriod = async () => {
-    if (loading || !menstrualStatus?.data?.hasActiveCycle || !menstrualStatus?.data?.activeCycle) return;
+    if (loading || !menstrualStatus?.hasActiveCycle || !menstrualStatus?.activeCycle) return;
     
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
-      const startDate = menstrualStatus.data.activeCycle.start_date;
+      const startDate = menstrualStatus.activeCycle.start_date;
       
       await menstrualCycleAPI.endCycle(today);
       
@@ -119,10 +159,10 @@ export const MobileActions: React.FC = () => {
     {
       id: 'period-start',
       label: '生理開始',
-      color: menstrualStatus?.data?.hasActiveCycle 
+      color: menstrualStatus?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
-        : 'bg-red-500 hover:bg-red-600',
-      disabled: menstrualStatus?.data?.hasActiveCycle || loading,
+        : 'bg-red-500 hover:bg-red-600 active:bg-red-700',
+      disabled: menstrualStatus?.hasActiveCycle || loading,
       onClick: handleStartPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,14 +173,14 @@ export const MobileActions: React.FC = () => {
     {
       id: 'period-end',
       label: '生理終了',
-      color: !menstrualStatus?.data?.hasActiveCycle 
+      color: !menstrualStatus?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
-        : 'bg-gray-500 hover:bg-gray-600',
-      disabled: !menstrualStatus?.data?.hasActiveCycle || loading,
+        : 'bg-green-500 hover:bg-green-600 active:bg-green-700',
+      disabled: !menstrualStatus?.hasActiveCycle || loading,
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       ),
     },
@@ -150,7 +190,15 @@ export const MobileActions: React.FC = () => {
     <div className="lg:hidden space-y-6">
       {/* Quick Actions */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
+        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">
+          クイックアクション
+          {/* デバッグ情報 */}
+          {menstrualStatus && (
+            <span className="ml-2 text-xs text-gray-400">
+              (Active: {menstrualStatus.hasActiveCycle ? 'Yes' : 'No'})
+            </span>
+          )}
+        </h3>
         <div className="grid grid-cols-2 gap-2">
           {quickActions.map((action) => (
             <button
@@ -161,6 +209,10 @@ export const MobileActions: React.FC = () => {
             >
               <span className="mr-2">{action.icon}</span>
               {loading ? '処理中...' : action.label}
+              {/* 生理中状態の表示 */}
+              {action.id === 'period-end' && menstrualStatus?.hasActiveCycle && (
+                <span className="ml-1 text-xs opacity-90">(生理中)</span>
+              )}
             </button>
           ))}
         </div>

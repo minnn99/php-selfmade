@@ -31,11 +31,58 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     setShowSecondConfirmModal(true); // 次の確認モーダルを表示
   };
 
+  // ローカルストレージから全ての生理データを削除
+  const clearAllPeriodDataFromLocalStorage = () => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('daily-symptoms-')) {
+        keys.push(key);
+      }
+    }
+    
+    keys.forEach(key => {
+      const existingData = JSON.parse(localStorage.getItem(key) || '{}');
+      
+      // 生理関連のフラグのみを削除（他の症状データは保持）
+      const updatedData = {
+        ...existingData,
+        isPeriodStart: false,
+        isPeriodEnd: false,
+        hasPeriod: false,
+        flowIntensity: undefined
+      };
+      
+      // 他に意味のあるデータがない場合は完全に削除
+      const hasOtherData = 
+        (updatedData.symptoms && updatedData.symptoms.length > 0) ||
+        (updatedData.mood && updatedData.mood.trim() !== "") ||
+        (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
+        
+      if (hasOtherData) {
+        // 他のデータがある場合は生理情報のみクリア
+        localStorage.setItem(key, JSON.stringify(updatedData));
+      } else {
+        // 他にデータがない場合は完全に削除
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log(`Cleared period data from ${keys.length} localStorage entries`);
+  };
+
   // 2番目の確認モーダルで「はい」が押された時の処理（実際の削除処理）
   const handleConfirmSecond = async () => {
     setShowSecondConfirmModal(false); // 2番目のモーダルを閉じる
     try {
       const response = await menstrualCycleAPI.deleteAllCycles();
+      
+      // ローカルストレージから全ての生理データを削除
+      clearAllPeriodDataFromLocalStorage();
+      
+      // カスタムイベントを発火してアプリ全体を更新
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
       alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`);
       onClose();
       onDataDeleted(); // データ削除成功時に親に通知

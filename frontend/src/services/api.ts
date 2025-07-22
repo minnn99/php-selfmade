@@ -22,6 +22,12 @@ const apiRequest = async (
     ...options,
   };
 
+  console.log('API Request:', {
+    endpoint,
+    hasToken: !!token,
+    method: options.method || 'GET'
+  });
+
   const response = await fetch(`${API_BASE}${endpoint}`, config);
   
   if (!response.ok) {
@@ -36,7 +42,9 @@ const apiRequest = async (
     throw new Error(error.message || `Request failed: ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('API Response:', { endpoint, result });
+  return result;
 };
 
 // Auth API

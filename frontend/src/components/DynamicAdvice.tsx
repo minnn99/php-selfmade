@@ -23,25 +23,65 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   });
 
   const [, setMenstrualStatus] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadMenstrualStatus();
   }, []);
 
+  // Debounced function to prevent rapid successive API calls
+  useEffect(() => {
+    let timeoutId: number;
+    
+    const handleDataUpdate = () => {
+      console.log('DynamicAdvice - Menstrual data updated, debouncing reload...');
+      
+      // Clear existing timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      // Set new timeout
+      timeoutId = setTimeout(() => {
+        if (!isLoading) {
+          loadMenstrualStatus();
+        }
+      }, 300); // 300ms debounce
+    };
+
+    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
+    
+    return () => {
+      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isLoading]);
+
   const loadMenstrualStatus = async () => {
+    if (isLoading) {
+      console.log('DynamicAdvice - Already loading, skipping...');
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const status = await menstrualCycleAPI.getCurrentStatus();
+      console.log('DynamicAdvice - Loaded menstrual status:', status);
       setMenstrualStatus(status);
       updateAdviceBasedOnStatus(status);
     } catch (error) {
-      console.error("Failed to load menstrual status:", error);
+      console.error("DynamicAdvice - Failed to load menstrual status:", error);
       setDefaultAdvice();
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const updateAdviceBasedOnStatus = (status: any) => {
     // 生理中の場合
-    if (status?.data?.hasActiveCycle) {
+    if (status?.hasActiveCycle) {
       setCurrentAdvice({
         title: "生理中のケア",
         message: "生理中です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。",
@@ -107,11 +147,11 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   const getCycleDay = (status: any, currentDate: Date): number => {
     // 実際のAPI レスポンス構造に応じて調整が必要
     // ここでは仮の実装
-    if (!status?.data?.lastCycle?.start_date) {
+    if (!status?.lastCycle?.start_date) {
       return 1; // デフォルト値
     }
 
-    const lastCycleStart = new Date(status.data.lastCycle.start_date);
+    const lastCycleStart = new Date(status.lastCycle.start_date);
     const diffTime = currentDate.getTime() - lastCycleStart.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     

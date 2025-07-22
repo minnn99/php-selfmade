@@ -43,10 +43,57 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     setShowSecondConfirmModal(true);
   };
 
+  // ローカルストレージから全ての生理データを削除
+  const clearAllPeriodDataFromLocalStorage = () => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('daily-symptoms-')) {
+        keys.push(key);
+      }
+    }
+    
+    keys.forEach(key => {
+      const existingData = JSON.parse(localStorage.getItem(key) || '{}');
+      
+      // 生理関連のフラグのみを削除（他の症状データは保持）
+      const updatedData = {
+        ...existingData,
+        isPeriodStart: false,
+        isPeriodEnd: false,
+        hasPeriod: false,
+        flowIntensity: undefined
+      };
+      
+      // 他に意味のあるデータがない場合は完全に削除
+      const hasOtherData = 
+        (updatedData.symptoms && updatedData.symptoms.length > 0) ||
+        (updatedData.mood && updatedData.mood.trim() !== "") ||
+        (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
+        
+      if (hasOtherData) {
+        // 他のデータがある場合は生理情報のみクリア
+        localStorage.setItem(key, JSON.stringify(updatedData));
+      } else {
+        // 他にデータがない場合は完全に削除
+        localStorage.removeItem(key);
+      }
+    });
+    
+    console.log(`Cleared period data from ${keys.length} localStorage entries`);
+  };
+
   const handleConfirmSecond = async () => {
     setShowSecondConfirmModal(false);
     try {
       await menstrualCycleAPI.deleteAllCycles();
+      
+      // ローカルストレージから全ての生理データを削除
+      clearAllPeriodDataFromLocalStorage();
+      
+      // カスタムイベントを発火してアプリ全体を更新
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
       onDataDeleted();
     } catch (error: any) {
       console.error('Failed to delete all cycles:', error);
