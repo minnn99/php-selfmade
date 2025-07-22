@@ -1,63 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI } from '../services/api';
+import { menstrualStatusManager } from '../services/menstrualStatusManager';
 
 export const MobileActions: React.FC = () => {
   const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
-  // Load menstrual status on component mount
+  // Subscribe to menstrual status updates
   useEffect(() => {
-    loadMenstrualStatus();
-  }, []);
-
-  // Debounced listener for menstrual data updates
-  useEffect(() => {
-    let timeoutId: number;
-    
-    const handleDataUpdate = () => {
-      console.log('MobileActions - Menstrual data updated, debouncing reload...');
-      
-      // Clear existing timeout
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      
-      // Set new timeout
-      timeoutId = setTimeout(() => {
-        if (!isLoadingStatus && !loading) {
-          loadMenstrualStatus();
-        }
-      }, 600); // 600ms debounce for MobileActions
-    };
-
-    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
-    
-    return () => {
-      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isLoadingStatus, loading]);
-
-  const loadMenstrualStatus = async () => {
-    if (isLoadingStatus) {
-      console.log('MobileActions - Already loading status, skipping...');
-      return;
-    }
-
-    setIsLoadingStatus(true);
-    try {
-      const status = await menstrualCycleAPI.getCurrentStatus();
-      console.log('MobileActions - Loaded menstrual status:', status);
+    console.log('MobileActions - Subscribing to menstrual status updates');
+    const unsubscribe = menstrualStatusManager.subscribe((status) => {
+      console.log('MobileActions - Received status update:', status);
       setMenstrualStatus(status);
-    } catch (error) {
-      console.error('MobileActions - Failed to load menstrual status:', error);
-    } finally {
-      setIsLoadingStatus(false);
-    }
-  };
+    });
+
+    return unsubscribe;
+  }, []);
 
   // ローカルタイムゾーンで日付文字列を取得
   const getLocalDateString = (date: Date): string => {
@@ -123,7 +81,7 @@ export const MobileActions: React.FC = () => {
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       // Reload status after starting
-      await loadMenstrualStatus();
+      await menstrualStatusManager.forceReloadStatus();
       
       alert('生理が開始されました');
     } catch (error: any) {
@@ -150,7 +108,7 @@ export const MobileActions: React.FC = () => {
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       // Reload status after ending
-      await loadMenstrualStatus();
+      await menstrualStatusManager.forceReloadStatus();
       
       alert('生理が終了されました');
     } catch (error: any) {

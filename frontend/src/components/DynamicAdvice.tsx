@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI } from "../services/api";
+import { menstrualStatusManager } from "../services/menstrualStatusManager";
 
 interface DynamicAdviceProps {
   className?: string;
@@ -22,62 +22,16 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     textColor: "text-primary-600",
   });
 
-  const [, setMenstrualStatus] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
+  // Subscribe to menstrual status updates
   useEffect(() => {
-    loadMenstrualStatus();
-  }, []);
-
-  // Debounced function to prevent rapid successive API calls
-  useEffect(() => {
-    let timeoutId: number;
-    
-    const handleDataUpdate = () => {
-      console.log('DynamicAdvice - Menstrual data updated, debouncing reload...');
-      
-      // Clear existing timeout
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      
-      // Set new timeout
-      timeoutId = setTimeout(() => {
-        if (!isLoading) {
-          loadMenstrualStatus();
-        }
-      }, 300); // 300ms debounce
-    };
-
-    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
-    
-    return () => {
-      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isLoading]);
-
-  const loadMenstrualStatus = async () => {
-    if (isLoading) {
-      console.log('DynamicAdvice - Already loading, skipping...');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const status = await menstrualCycleAPI.getCurrentStatus();
-      console.log('DynamicAdvice - Loaded menstrual status:', status);
-      setMenstrualStatus(status);
+    console.log('DynamicAdvice - Subscribing to menstrual status updates');
+    const unsubscribe = menstrualStatusManager.subscribe((status) => {
+      console.log('DynamicAdvice - Received status update:', status);
       updateAdviceBasedOnStatus(status);
-    } catch (error) {
-      console.error("DynamicAdvice - Failed to load menstrual status:", error);
-      setDefaultAdvice();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    });
+
+    return unsubscribe;
+  }, []);
 
   const updateAdviceBasedOnStatus = (status: any) => {
     // 生理中の場合
@@ -133,14 +87,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         textColor: "text-yellow-600",
       });
     } else {
-      // 黄体期後期（PMS期間）
-      setCurrentAdvice({
-        title: "PMS期間",
-        message: "生理前の期間です。カルシウムやマグネシウムを含む食品を摂取することで、PMSの症状を軽減できます。",
-        icon: "🌙",
-        bgColor: "from-purple-50 to-indigo-50",
-        textColor: "text-purple-600",
-      });
+      // 黄体期後期（PMS期間）または状態不明の場合はデフォルトアドバイス
+      setDefaultAdvice();
     }
   };
 

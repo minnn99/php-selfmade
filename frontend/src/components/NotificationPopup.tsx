@@ -49,6 +49,8 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     );
     setNotifications(updatedNotifications);
     localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+    // Dispatch custom event to update badge
+    window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };
 
   const markAllAsRead = () => {
@@ -58,12 +60,16 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }));
     setNotifications(updatedNotifications);
     localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+    // Dispatch custom event to update badge
+    window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };
 
   const deleteNotification = (id: string) => {
     const updatedNotifications = notifications.filter(notification => notification.id !== id);
     setNotifications(updatedNotifications);
     localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+    // Dispatch custom event to update badge
+    window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };
 
   const getNotificationIcon = (type: string) => {

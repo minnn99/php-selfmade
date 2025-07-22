@@ -32,7 +32,9 @@ class AuthController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $tokenResult = $user->createToken('auth_token');
+        $token = $tokenResult->plainTextToken;
+        $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes(config('sanctum.expiration'));
 
         return response()->json([
             'success' => true,
@@ -48,6 +50,8 @@ class AuthController extends Controller
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'expires_at' => $expiresAt->toISOString(),
+                'expires_in' => config('sanctum.expiration') * 60, // 秒単位
             ]
         ], 201);
     }
@@ -60,6 +64,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'remember_me' => 'boolean', // ログイン状態を保持するかどうか
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -75,7 +80,13 @@ class AuthController extends Controller
         // 既存のトークンを削除（オプション）
         $user->tokens()->delete();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // remember_meに基づいてトークンの有効期限を決定
+        $rememberMe = $request->boolean('remember_me', false);
+        $expirationMinutes = $rememberMe ? 10080 : config('sanctum.expiration'); // 7日間 or デフォルト
+
+        $tokenResult = $user->createToken('auth_token');
+        $token = $tokenResult->plainTextToken;
+        $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes($expirationMinutes);
 
         return response()->json([
             'success' => true,
@@ -88,6 +99,9 @@ class AuthController extends Controller
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
+                'expires_at' => $expiresAt->toISOString(),
+                'expires_in' => $expirationMinutes * 60, // 秒単位
+                'remember_me' => $rememberMe,
             ]
         ]);
     }

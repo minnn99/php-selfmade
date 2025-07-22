@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { MainLayout } from "./components/MainLayout";
 import { LoginPage } from "./components/LoginPage";
 import { WelcomeScreen } from "./components/WelcomeScreen";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { authAPI } from "./services/api";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,13 +14,14 @@ function App() {
     // 初回起動チェック
     const hasVisited = localStorage.getItem("has_visited");
 
-    // ローカルストレージから認証トークンを確認
-    const token = localStorage.getItem("auth_token");
-    const user = localStorage.getItem("user");
+    // 新しい認証システムで認証状態をチェック
+    const isAuth = authAPI.isAuthenticated();
 
-    if (token && user) {
+    if (isAuth) {
       setIsAuthenticated(true);
       setCurrentView("main");
+      // Start automatic token expiration checking
+      authAPI.startTokenChecker();
     } else if (!hasVisited) {
       setCurrentView("welcome");
     } else {
@@ -28,10 +31,10 @@ function App() {
     setIsLoading(false);
   }, []);
 
-  const handleLogout = () => {
-    // ローカルストレージから認証情報を削除
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    // 新しい認証システムを使用してログアウト
+    await authAPI.logout();
+    authAPI.stopTokenChecker();
     setIsAuthenticated(false);
     setCurrentView("login");
   };
@@ -64,11 +67,34 @@ function App() {
     return <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />;
   }
 
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+    setCurrentView("main");
+    authAPI.startTokenChecker();
+    
+    // Check for redirect URL after login
+    const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirectAfterLogin');
+      window.location.href = redirectUrl;
+    }
+  };
+
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  return <MainLayout onLogout={handleLogout} />;
+  return (
+    <ProtectedRoute
+      onUnauthorized={() => {
+        setIsAuthenticated(false);
+        setCurrentView("login");
+        authAPI.stopTokenChecker();
+      }}
+    >
+      <MainLayout onLogout={handleLogout} />
+    </ProtectedRoute>
+  );
 }
 
 export default App;

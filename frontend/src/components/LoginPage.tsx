@@ -2,40 +2,30 @@ import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupPage } from './SignupPage';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
+import { authAPI } from '../services/api';
 
-export const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onLoginSuccess: () => void;
+}
+
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await authAPI.login(email, password, rememberMe);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.success) {
         // ログイン成功
-        localStorage.setItem('auth_token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
-        
-        alert(`${data.data.user.name}さん、ログインに成功しました！`);
-        
-        // メイン画面にリダイレクト（後で実装）
-        window.location.reload();
-        
+        alert(`${response.data.user.name}さん、ログインに成功しました！`);
+        onLoginSuccess(); // App.tsxの状態を更新
       } else {
         // エラーメッセージの表示
-        const errorMessage = data.message || 'ログインに失敗しました。';
+        const errorMessage = response.message || 'ログインに失敗しました。';
         alert(errorMessage);
       }
       

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI } from '../services/api';
+import { menstrualStatusManager } from '../services/menstrualStatusManager';
 import { DynamicAdvice } from './DynamicAdvice';
 
 interface NavigationItem {
@@ -19,60 +20,17 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
   const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false);
 
-  // Load menstrual status on component mount
+  // Subscribe to menstrual status updates
   useEffect(() => {
-    loadMenstrualStatus();
-  }, []);
-
-  // Debounced listener for menstrual data updates
-  useEffect(() => {
-    let timeoutId: number;
-    
-    const handleDataUpdate = () => {
-      console.log('Navigation - Menstrual data updated, debouncing reload...');
-      
-      // Clear existing timeout
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      
-      // Set new timeout
-      timeoutId = setTimeout(() => {
-        if (!isLoadingStatus && !loading) {
-          loadMenstrualStatus();
-        }
-      }, 500); // 500ms debounce for Navigation (longer since it's less critical)
-    };
-
-    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
-    
-    return () => {
-      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isLoadingStatus, loading]);
-
-  const loadMenstrualStatus = async () => {
-    if (isLoadingStatus) {
-      console.log('Navigation - Already loading status, skipping...');
-      return;
-    }
-
-    setIsLoadingStatus(true);
-    try {
-      const status = await menstrualCycleAPI.getCurrentStatus();
-      console.log('Navigation - Loaded menstrual status:', status);
+    console.log('Navigation - Subscribing to menstrual status updates');
+    const unsubscribe = menstrualStatusManager.subscribe((status) => {
+      console.log('Navigation - Received status update:', status);
       setMenstrualStatus(status);
-    } catch (error) {
-      console.error('Navigation - Failed to load menstrual status:', error);
-    } finally {
-      setIsLoadingStatus(false);
-    }
-  };
+    });
+
+    return unsubscribe;
+  }, []);
 
   // ローカルタイムゾーンで日付文字列を取得
   const getLocalDateString = (date: Date): string => {
@@ -138,7 +96,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       // Reload status after starting
-      await loadMenstrualStatus();
+      await menstrualStatusManager.forceReloadStatus();
       alert('生理が開始されました');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);
@@ -164,7 +122,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       // Reload status after ending
-      await loadMenstrualStatus();
+      await menstrualStatusManager.forceReloadStatus();
       alert('生理が終了されました');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);
@@ -369,25 +327,6 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
       {/* Dynamic Health Tips */}
       <DynamicAdvice />
-
-      {/* Cycle Progress */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">周期の進行状況</h3>
-        <div className="space-y-3">
-          <div>
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
-              <span>現在の周期</span>
-              <span>22/28日</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-primary-500 h-2 rounded-full" style={{width: '79%'}}></div>
-            </div>
-          </div>
-          <div className="text-xs text-gray-500">
-            次の生理まで約6日
-          </div>
-        </div>
-      </div>
 
     </div>
   );

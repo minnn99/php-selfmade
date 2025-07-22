@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface LoginFormProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string, password: string, rememberMe?: boolean) => void;
   isLoading?: boolean;
   onShowSignup?: () => void;
   onShowForgotPassword?: () => void;
@@ -11,10 +11,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    onLogin(email, password, rememberMe);
   };
 
   return (
@@ -102,10 +103,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-medical rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700">
-                  ログイン状態を保持
+                  ログイン状態を保持（7日間）
                 </label>
               </div>
               <div className="text-sm">

@@ -1,9 +1,76 @@
 // API Base URL
 const API_BASE = 'http://localhost:8000/api';
 
-// Get auth token from localStorage
+// Auth token management
+interface AuthData {
+  token: string;
+  expires_at: string;
+  user: any;
+}
+
 const getAuthToken = (): string | null => {
-  return localStorage.getItem('auth_token');
+  const authData = getAuthData();
+  if (!authData) return null;
+  
+  // Check if token is expired
+  if (isTokenExpired(authData.expires_at)) {
+    logout();
+    return null;
+  }
+  
+  return authData.token;
+};
+
+const getAuthData = (): AuthData | null => {
+  try {
+    const authDataStr = localStorage.getItem('auth_data');
+    return authDataStr ? JSON.parse(authDataStr) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setAuthData = (data: AuthData) => {
+  localStorage.setItem('auth_data', JSON.stringify(data));
+};
+
+const isTokenExpired = (expiresAt: string): boolean => {
+  return new Date() >= new Date(expiresAt);
+};
+
+const logout = () => {
+  localStorage.removeItem('auth_data');
+  localStorage.removeItem('auth_token'); // 後方互換性のため
+  sessionStorage.removeItem('redirectAfterLogin'); // Clear any pending redirects
+  
+  // Redirect to login page
+  window.location.href = '/';
+};
+
+// Automatic token expiration checker
+let tokenCheckInterval: number | null = null;
+
+const startTokenExpirationChecker = () => {
+  // Clear existing interval
+  if (tokenCheckInterval) {
+    clearInterval(tokenCheckInterval);
+  }
+  
+  // Check token expiration every minute
+  tokenCheckInterval = window.setInterval(() => {
+    const authData = getAuthData();
+    if (authData && isTokenExpired(authData.expires_at)) {
+      console.log('Token expired, logging out...');
+      logout();
+    }
+  }, 60000); // Check every minute
+};
+
+const stopTokenExpirationChecker = () => {
+  if (tokenCheckInterval) {
+    clearInterval(tokenCheckInterval);
+    tokenCheckInterval = null;
+  }
 };
 
 // API request helper
@@ -31,6 +98,12 @@ const apiRequest = async (
   const response = await fetch(`${API_BASE}${endpoint}`, config);
   
   if (!response.ok) {
+    // 401 Unauthorized - トークンが無効または期限切れ
+    if (response.status === 401) {
+      logout();
+      throw new Error('認証が切れました。再度ログインしてください。');
+    }
+    
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
     console.error('API Error:', {
       status: response.status,
@@ -49,11 +122,23 @@ const apiRequest = async (
 
 // Auth API
 export const authAPI = {
-  login: async (email: string, password: string) => {
-    return apiRequest('/login', {
+  login: async (email: string, password: string, rememberMe: boolean = false) => {
+    const response = await apiRequest('/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, remember_me: rememberMe }),
     });
+    
+    // Save auth data after successful login
+    if (response.success && response.data) {
+      const authData: AuthData = {
+        token: response.data.token,
+        expires_at: response.data.expires_at,
+        user: response.data.user
+      };
+      setAuthData(authData);
+    }
+    
+    return response;
   },
 
   register: async (userData: {
@@ -64,19 +149,63 @@ export const authAPI = {
     gender: string;
     phone: string;
   }) => {
-    return apiRequest('/register', {
+    const response = await apiRequest('/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
+    
+    // Save auth data after successful registration
+    if (response.success && response.data) {
+      const authData: AuthData = {
+        token: response.data.token,
+        expires_at: response.data.expires_at,
+        user: response.data.user
+      };
+      setAuthData(authData);
+    }
+    
+    return response;
   },
 
   logout: async () => {
-    return apiRequest('/logout', { method: 'POST' });
+    try {
+      await apiRequest('/logout', { method: 'POST' });
+    } catch (error) {
+      console.warn('Logout API call failed:', error);
+    } finally {
+      logout(); // Always clear local auth data
+    }
   },
 
   getUser: async () => {
     return apiRequest('/user');
   },
+
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    const authData = getAuthData();
+    return !!(authData && !isTokenExpired(authData.expires_at));
+  },
+
+  // Get current user from stored auth data
+  getCurrentUser: () => {
+    const authData = getAuthData();
+    return authData?.user || null;
+  },
+
+  // Start automatic token expiration checking
+  startTokenChecker: () => {
+    if (authAPI.isAuthenticated()) {
+      startTokenExpirationChecker();
+    }
+  },
+
+  // Stop automatic token expiration checking
+  stopTokenChecker: stopTokenExpirationChecker,
+
+  // Export utility functions
+  getAuthData,
+  isTokenExpired
 };
 
 // Menstrual Cycle API
