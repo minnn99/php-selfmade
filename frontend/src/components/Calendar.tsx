@@ -129,19 +129,33 @@ export const Calendar: React.FC = () => {
     try {
       const data = JSON.parse(storedData);
       // Check if any meaningful data exists (not just empty/default values)
-      const hasSymptoms = data.symptoms && data.symptoms.length > 0;
-      const hasMood = data.mood && data.mood.trim() !== "";
-      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
-      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd || data.hasPeriod;
+      const hasSymptoms = data.symptoms && Array.isArray(data.symptoms) && data.symptoms.length > 0;
+      const hasMood = data.mood && typeof data.mood === 'string' && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && typeof data.healthNotes === 'string' && data.healthNotes.trim() !== "";
+      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === 'number' && data.flowIntensity > 0;
+      const hasPeriodInfo = data.isPeriodStart === true || data.isPeriodEnd === true || data.hasPeriod === true;
 
-      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo;
+      // 黄色の点は症状・気分・健康ノート・経血量のみで判定（生理フラグは除外）
+      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
       
-      // 特定の日付についてのみデバッグログ
-      if (dateKey.endsWith('-21') || result) {
+      // 特定の日付についてのみデバッグログ（より詳細に）
+      if (dateKey.endsWith('-22') || result) {
         console.log(`hasUserInputForDate(${dateKey}):`, {
-          result, hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo,
-          storedData, parsedData: data
+          result, 
+          hasSymptoms, 
+          hasMood, 
+          hasHealthNotes, 
+          hasFlowIntensity, 
+          hasPeriodInfo,
+          'data.symptoms': data.symptoms,
+          'data.mood': data.mood,
+          'data.healthNotes': data.healthNotes,
+          'data.flowIntensity': data.flowIntensity,
+          'data.isPeriodStart': data.isPeriodStart,
+          'data.isPeriodEnd': data.isPeriodEnd,
+          'data.hasPeriod': data.hasPeriod,
+          storedData, 
+          parsedData: data
         });
       }
 

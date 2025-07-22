@@ -95,21 +95,26 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       // 既存のデータを取得
       const existingData = JSON.parse(localStorage.getItem(`daily-symptoms-${dateString}`) || '{}');
       
-      // 生理中のフラグを設定
-      const updatedData = {
-        ...existingData,
-        isPeriodStart: dateString === startDate,
-        isPeriodEnd: dateString === endDate,
-        hasPeriod: true,
-        symptoms: existingData.symptoms || [],
-        mood: existingData.mood || '',
-        healthNotes: existingData.healthNotes || '',
-        flowIntensity: existingData.flowIntensity || 2, // デフォルトは普通
-        timestamp: new Date().toISOString()
-      };
-      
-      // ローカルストレージに保存
-      localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+      // 既存のデータがある場合のみ生理フラグを追加更新
+      if (existingData && Object.keys(existingData).length > 0) {
+        const updatedData = {
+          ...existingData,
+          isPeriodStart: dateString === startDate,
+          isPeriodEnd: dateString === endDate,
+          hasPeriod: true,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+      } else {
+        // 既存のデータがない場合は生理フラグのみ設定
+        const updatedData = {
+          isPeriodStart: dateString === startDate,
+          isPeriodEnd: dateString === endDate,
+          hasPeriod: true,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+      }
       
       // 次の日へ
       currentDate.setDate(currentDate.getDate() + 1);
