@@ -387,7 +387,77 @@ export const Calendar: React.FC = () => {
     try {
       const dateStr = getLocalDateString(selectedDateForModal);
 
-      // 1. 日付別の症状・気分・メモ・経血量・生理情報をローカルストレージに保存
+      // データの存在チェック
+      const hasSymptoms = data.symptoms.length > 0;
+      const hasMood = data.mood && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
+      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd;
+
+      // 1. まず生理周期情報をAPIに保存（失敗したらローカル保存しない）
+      if (hasPeriodInfo) {
+        if (data.cycleId) {
+          // 既存の周期IDがある場合：周期の更新
+          const updateData: any = {};
+
+          if (data.isPeriodStart) {
+            updateData.start_date = dateStr;
+          } else if (data.isPeriodEnd) {
+            updateData.end_date = dateStr;
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
+            console.log(`API SUCCESS: Updated cycle ${data.cycleId}:`, updateData);
+          }
+        } else {
+          // 既存の周期IDがない場合
+          if (data.isPeriodStart) {
+            await menstrualCycleAPI.startCycle({
+              start_date: dateStr,
+            });
+            console.log(`API SUCCESS: Started new cycle on ${dateStr}`);
+          } else if (data.isPeriodEnd) {
+            // 終了日を設定する場合、既存のアクティブな周期を探す
+            await loadCalendarData();
+            
+            console.log(`Searching for active cycle to end on ${dateStr}`);
+            console.log('Current calendar data:', calendarApiData);
+            
+            let foundCycleId = null;
+            let foundStartDate = '';
+            
+            // アクティブな周期（isActive: trueまたは終了日が未設定）を探す
+            for (const [dateKey, dayData] of Object.entries(calendarApiData)) {
+              const apiData = dayData as any;
+              console.log(`Checking date ${dateKey}:`, apiData);
+              
+              if (apiData.cycleId && apiData.isPeriodStart === true && dateKey <= dateStr) {
+                // この開始日に対応する終了日があるかチェック
+                const hasEndDate = Object.values(calendarApiData).some(
+                  (d: any) => d.cycleId === apiData.cycleId && d.isPeriodEnd === true
+                );
+                
+                if (!hasEndDate || apiData.isActive === true) {
+                  foundCycleId = apiData.cycleId;
+                  foundStartDate = dateKey;
+                  console.log(`Found active cycle: ID=${foundCycleId}, start=${foundStartDate}`);
+                  break;
+                }
+              }
+            }
+            
+            if (foundCycleId) {
+              await menstrualCycleAPI.updateCycle(foundCycleId, { end_date: dateStr });
+              console.log(`API SUCCESS: Updated cycle ${foundCycleId} with end date ${dateStr}`);
+            } else {
+              throw new Error('終了する生理周期が見つかりません。先に生理開始日を設定してください。');
+            }
+          }
+        }
+      }
+
+      // 2. API成功後にローカルストレージに保存
       const dailyRecord = {
         date: dateStr,
         symptoms: data.symptoms,
@@ -400,50 +470,12 @@ export const Calendar: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // 症状、気分、メモ、経血量、生理情報のいずれかが入力されている場合のみ保存
-      const hasSymptoms = data.symptoms.length > 0;
-      const hasMood = data.mood && data.mood.trim() !== "";
-      const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
-      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd;
-
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo) {
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
-        console.log(`SAVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo}, dailyRecord);
+        console.log(`LOCAL SAVE: Saved data for ${dateStr}:`, dailyRecord);
       } else {
-        // データがない場合は削除
         localStorage.removeItem(`daily-symptoms-${dateStr}`);
-        console.log(`REMOVED data for ${dateStr}:`, {hasSymptoms, hasMood, hasHealthNotes, hasFlowIntensity, hasPeriodInfo});
-        console.log(`Verification after removal: exists = ${localStorage.getItem(`daily-symptoms-${dateStr}`) !== null}`);
-      }
-
-      // 2. 生理周期情報はAPIに保存（症状・経血量データは除く）
-      if (data.cycleId) {
-        // 既存の周期IDがある場合：周期の更新（症状・経血量データは送信しない）
-        const updateData: any = {};
-
-        if (data.isPeriodStart) {
-          // 開始日を更新
-          updateData.start_date = dateStr;
-        } else if (data.isPeriodEnd) {
-          // 終了日を更新
-          updateData.end_date = dateStr;
-        }
-
-        // 更新データがある場合のみAPI呼び出し
-        if (Object.keys(updateData).length > 0) {
-          await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
-        }
-      } else {
-        // 既存の周期IDがない場合：新規作成（症状・経血量データは送信しない）
-        if (data.isPeriodStart) {
-          await menstrualCycleAPI.startCycle({
-            start_date: dateStr,
-            // flow_intensity, symptoms, notes は送信しない
-          });
-        } else if (data.isPeriodEnd) {
-          await menstrualCycleAPI.endCycle(dateStr);
-        }
+        console.log(`LOCAL REMOVE: Removed data for ${dateStr}`);
       }
 
       await loadCalendarData();
@@ -468,8 +500,8 @@ export const Calendar: React.FC = () => {
     // まず calendarApiData から該当するサイクルの全ての日付を特定
     const cycleDates = [];
     for (const dateKey of Object.keys(calendarApiData)) {
-      const dayData = calendarApiData[dateKey];
-      if (dayData.cycle_id === cycleId) {
+      const dayData = calendarApiData[dateKey] as any;
+      if (dayData.cycleId === cycleId) {
         cycleDates.push(dateKey);
       }
     }
