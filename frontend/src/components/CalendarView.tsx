@@ -398,7 +398,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {
-    let baseStyle = "h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative ";
+    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation ";
 
     if (!day.isCurrentMonth) {
       baseStyle += "text-gray-300 ";
@@ -419,7 +419,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else {
       // 通常の日付
-      baseStyle += "text-gray-700 hover:bg-gray-100 rounded-lg ";
+      baseStyle += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
     }
 
     return baseStyle;
@@ -451,24 +451,24 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">{/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div>
-          <h2 className="text-xl font-semibold text-neutral-900">カレンダー</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">カレンダー</h2>
           <p className="text-sm text-neutral-600">生理周期と症状を確認</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-center sm:space-x-3">
           <div className="flex items-center space-x-1">
-            <button onClick={goToPreviousMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={goToPreviousMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="px-4 py-2 text-lg font-semibold text-gray-900 min-w-[120px] text-center">
+            <div className="px-3 py-2 sm:px-4 text-base sm:text-lg font-semibold text-gray-900 min-w-[100px] sm:min-w-[120px] text-center">
               {currentYear}年{monthNames[currentMonth]}
             </div>
-            <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -483,7 +483,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         {dayNames.map((dayName, index) => (
           <div
             key={dayName}
-            className={`h-10 flex items-center justify-center text-sm font-medium ${
+            className={`h-8 sm:h-10 flex items-center justify-center text-xs sm:text-sm font-medium ${
               index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-600"
             }`}
           >
@@ -503,21 +503,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       {/* Legend */}
       <div className="border-t border-gray-200 pt-4">
         <h3 className="text-sm font-medium text-gray-700 mb-3">凡例</h3>
-        <div className="grid grid-cols-2 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 border-2 border-red-400 rounded-full"></div>
+            <div className="w-3 h-3 border-2 border-red-400 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">予測生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">排卵日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">症状記録</span>
           </div>
         </div>

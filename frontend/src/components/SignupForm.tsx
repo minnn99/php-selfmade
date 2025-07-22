@@ -86,7 +86,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
                 placeholder="山田太郎"
               />
             </div>
@@ -102,7 +102,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 text-base"
+                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 text-base min-h-[44px] touch-manipulation"
               >
                 <option value="">選択してください</option>
                 <option value="female">女性</option>
@@ -123,7 +123,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
                 placeholder="090-1234-5678"
               />
             </div>
@@ -140,7 +140,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
                 placeholder="example@email.com"
               />
             </div>
@@ -158,7 +158,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
                   placeholder="8文字以上の英数字記号組み合わせ"
                 />
                 <button
@@ -193,7 +193,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
                   placeholder="パスワードを再入力"
                 />
                 <button
@@ -216,24 +216,24 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
             </div>
 
             {/* Terms and Privacy Policy Agreement */}
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
+            <div className="flex items-start space-x-3">
+              <div className="flex items-center h-6 mt-0.5">
                 <input
                   id="terms"
                   name="terms"
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-medical rounded touch-manipulation"
+                  className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 focus:ring-primary-500 border-medical rounded touch-manipulation min-h-[20px] min-w-[20px]"
                 />
               </div>
-              <div className="ml-3 text-sm">
-                <label htmlFor="terms" className="text-neutral-700">
+              <div className="text-sm sm:text-base leading-relaxed">
+                <label htmlFor="terms" className="text-neutral-700 cursor-pointer">
                   <span className="text-red-500">*</span> 
                   <button
                     type="button"
                     onClick={() => setShowTermsModal(true)}
-                    className="text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
+                    className="text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation underline font-medium"
                   >
                     利用規約
                   </button>
@@ -241,7 +241,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   <button
                     type="button"
                     onClick={() => setShowPrivacyModal(true)}
-                    className="text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
+                    className="text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation underline font-medium"
                   >
                     プライバシーポリシー
                   </button>

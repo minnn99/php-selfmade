@@ -175,9 +175,9 @@ export const Statistics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">統計データを読み込み中...</div>
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="flex items-center justify-center h-32 sm:h-64">
+          <div className="text-sm sm:text-base text-gray-500">統計データを読み込み中...</div>
         </div>
       </div>
     );
@@ -185,15 +185,15 @@ export const Statistics: React.FC = () => {
 
   if (!cycleStats) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
-        <div className="text-center py-12">
+      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="text-center py-8 sm:py-12">
           <div className="text-gray-500 mb-4">
-            <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">統計データがありません</h3>
-          <p className="text-gray-500">生理周期データが蓄積されると、ここに統計情報が表示されます。</p>
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">統計データがありません</h3>
+          <p className="text-sm sm:text-base text-gray-500 px-4">生理周期データが蓄積されると、ここに統計情報が表示されます。</p>
         </div>
       </div>
     );
@@ -212,7 +212,7 @@ export const Statistics: React.FC = () => {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px] w-full sm:w-auto"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px] w-full sm:w-auto touch-manipulation"
             >
               <option value="3months">過去3ヶ月</option>
               <option value="6months">過去6ヶ月</option>
@@ -223,26 +223,26 @@ export const Statistics: React.FC = () => {
         </div>
 
         {/* 周期統計概要 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <div className="text-center p-3 sm:p-4 bg-primary-50 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold text-primary-600">{cycleStats.averageCycleLength}</div>
-            <div className="text-xs sm:text-sm text-primary-700">平均周期長</div>
-            <div className="text-xs text-primary-600">日</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="text-center p-3 sm:p-4 bg-primary-50 rounded-lg min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
+            <div className="text-lg sm:text-2xl font-bold text-primary-600 mb-1">{cycleStats.averageCycleLength}</div>
+            <div className="text-xs sm:text-sm text-primary-700 leading-tight">平均周期長</div>
+            <div className="text-xs text-primary-600 mt-0.5">日</div>
           </div>
-          <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold text-red-600">{cycleStats.averagePeriodLength}</div>
-            <div className="text-xs sm:text-sm text-red-700">平均生理期間</div>
-            <div className="text-xs text-red-600">日</div>
+          <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
+            <div className="text-lg sm:text-2xl font-bold text-red-600 mb-1">{cycleStats.averagePeriodLength}</div>
+            <div className="text-xs sm:text-sm text-red-700 leading-tight">平均生理期間</div>
+            <div className="text-xs text-red-600 mt-0.5">日</div>
           </div>
-          <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold text-green-600">{cycleStats.totalCycles}</div>
-            <div className="text-xs sm:text-sm text-green-700">記録した周期</div>
-            <div className="text-xs text-green-600">回</div>
+          <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
+            <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1">{cycleStats.totalCycles}</div>
+            <div className="text-xs sm:text-sm text-green-700 leading-tight">記録した周期</div>
+            <div className="text-xs text-green-600 mt-0.5">回</div>
           </div>
-          <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg">
-            <div className="text-lg sm:text-2xl font-bold text-yellow-600">{cycleStats.irregularityScore}%</div>
-            <div className="text-xs sm:text-sm text-yellow-700">不規則性</div>
-            <div className="text-xs text-yellow-600">{getIrregularityLevel(cycleStats.irregularityScore)}</div>
+          <div className="text-center p-3 sm:p-4 bg-yellow-50 rounded-lg min-h-[80px] sm:min-h-[100px] flex flex-col justify-center">
+            <div className="text-lg sm:text-2xl font-bold text-yellow-600 mb-1">{cycleStats.irregularityScore}%</div>
+            <div className="text-xs sm:text-sm text-yellow-700 leading-tight">不規則性</div>
+            <div className="text-xs text-yellow-600 mt-0.5 truncate">{getIrregularityLevel(cycleStats.irregularityScore)}</div>
           </div>
         </div>
       </div>
@@ -254,19 +254,19 @@ export const Statistics: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">周期の詳細</h3>
           <div className="space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-gray-100">
               <span className="text-xs sm:text-sm text-gray-600">最短周期</span>
               <span className="text-sm sm:text-base font-medium">{cycleStats.shortestCycle}日</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-gray-100">
               <span className="text-xs sm:text-sm text-gray-600">最長周期</span>
               <span className="text-sm sm:text-base font-medium">{cycleStats.longestCycle}日</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <div className="flex justify-between items-center py-2 sm:py-3 border-b border-gray-100">
               <span className="text-xs sm:text-sm text-gray-600">前回の周期長</span>
               <span className="text-sm sm:text-base font-medium">{cycleStats.lastCycleLength}日</span>
             </div>
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-2 sm:py-3">
               <span className="text-xs sm:text-sm text-gray-600">周期の範囲</span>
               <span className="text-sm sm:text-base font-medium">{cycleStats.longestCycle - cycleStats.shortestCycle}日</span>
             </div>
@@ -278,23 +278,23 @@ export const Statistics: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">流量の傾向</h3>
             <div className="mb-3 sm:mb-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-base sm:text-lg font-bold text-blue-600">{flowStats.averageFlowIntensity}</div>
+              <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+                <div className="text-base sm:text-lg font-bold text-blue-600 mb-1">{flowStats.averageFlowIntensity}</div>
                 <div className="text-xs sm:text-sm text-blue-700">平均流量強度</div>
               </div>
             </div>
             <div className="space-y-2 sm:space-y-3">
               {flowStats.flowDistribution.map((flow) => (
-                <div key={flow.intensity} className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm text-gray-600 flex-shrink-0 mr-2">{getFlowIntensityLabel(flow.intensity)}</span>
+                <div key={flow.intensity} className="flex items-center justify-between gap-2 sm:gap-3">
+                  <span className="text-xs sm:text-sm text-gray-600 flex-shrink-0 w-16 sm:w-20 text-left">{getFlowIntensityLabel(flow.intensity)}</span>
                   <div className="flex items-center space-x-2 min-w-0 flex-1">
-                    <div className="w-16 sm:w-20 bg-gray-200 rounded-full h-2 flex-1">
+                    <div className="bg-gray-200 rounded-full h-2 flex-1 min-w-[40px]">
                       <div
                         className="bg-blue-500 h-2 rounded-full"
                         style={{ width: `${flow.percentage}%` }}
                       ></div>
                     </div>
-                    <span className="text-xs sm:text-sm font-medium w-6 sm:w-8 text-right flex-shrink-0">{flow.percentage}%</span>
+                    <span className="text-xs sm:text-sm font-medium w-8 sm:w-10 text-right flex-shrink-0">{flow.percentage}%</span>
                   </div>
                 </div>
               ))}
@@ -312,21 +312,21 @@ export const Statistics: React.FC = () => {
               <h4 className="text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">症状の頻度</h4>
               <div className="space-y-2 sm:space-y-3">
                 {symptomStats.mostCommonSymptoms.slice(0, 5).map((symptom, index) => (
-                  <div key={symptom.symptom} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 min-w-0 flex-1 mr-2">
+                  <div key={symptom.symptom} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">
                         {index + 1}
                       </div>
-                      <span className="text-xs sm:text-sm text-gray-700 truncate">{symptom.symptom}</span>
+                      <span className="text-xs sm:text-sm text-gray-700 truncate max-w-[80px] sm:max-w-none">{symptom.symptom}</span>
                     </div>
-                    <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                      <div className="w-12 sm:w-16 bg-gray-200 rounded-full h-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 min-w-[60px] sm:min-w-[80px]">
+                      <div className="bg-gray-200 rounded-full h-2 flex-1 min-w-[30px] sm:min-w-[40px]">
                         <div
                           className="bg-purple-500 h-2 rounded-full"
                           style={{ width: `${symptom.percentage}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs sm:text-sm font-medium w-6 sm:w-8 text-right">{symptom.percentage}%</span>
+                      <span className="text-xs sm:text-sm font-medium w-8 text-right">{symptom.percentage}%</span>
                     </div>
                   </div>
                 ))}
@@ -336,8 +336,8 @@ export const Statistics: React.FC = () => {
               <h4 className="text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">症状の回数</h4>
               <div className="space-y-1 sm:space-y-2">
                 {symptomStats.mostCommonSymptoms.slice(0, 5).map((symptom) => (
-                  <div key={symptom.symptom} className="flex justify-between items-center py-1">
-                    <span className="text-xs sm:text-sm text-gray-600 truncate mr-2">{symptom.symptom}</span>
+                  <div key={symptom.symptom} className="flex justify-between items-center py-1 gap-2">
+                    <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[100px] sm:max-w-none">{symptom.symptom}</span>
                     <span className="text-xs sm:text-sm font-medium flex-shrink-0">{symptom.frequency}回</span>
                   </div>
                 ))}

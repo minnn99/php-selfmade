@@ -34,11 +34,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth() + 1;
-      
+
       const data = await menstrualCycleAPI.getCalendarData(year, month);
-      const todayString = today.toISOString().split('T')[0];
+      const todayString = today.toISOString().split("T")[0];
       const todayData = data.data?.[todayString];
-      
+
       if (todayData) {
         if (todayData.hasPeriod) {
           return "menstrual";
@@ -62,7 +62,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           }
         }
       }
-      
+
       return "general";
     } catch (error) {
       console.error("今日の状態を取得できませんでした:", error);
@@ -89,14 +89,14 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
     };
 
     // カスタムイベントリスナーを追加
-    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
-    
+    window.addEventListener("menstrualDataUpdated", handleDataUpdate);
+
     // ローカルストレージの変更を監視
-    window.addEventListener('storage', handleDataUpdate);
+    window.addEventListener("storage", handleDataUpdate);
 
     return () => {
-      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
-      window.removeEventListener('storage', handleDataUpdate);
+      window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
+      window.removeEventListener("storage", handleDataUpdate);
     };
   }, []);
 
@@ -270,12 +270,10 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   ];
 
   const getFilteredAdvices = () => {
-    let filtered = selfCareAdvices.filter(advice => 
-      selectedSymptom === "all" || advice.category === selectedSymptom
-    );
+    let filtered = selfCareAdvices.filter((advice) => selectedSymptom === "all" || advice.category === selectedSymptom);
 
     if (selectedCategory !== "all") {
-      filtered = filtered.filter(advice => advice.type === selectedCategory);
+      filtered = filtered.filter((advice) => advice.type === selectedCategory);
     }
 
     return filtered;
@@ -283,19 +281,27 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "hard": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "easy":
+        return "bg-green-100 text-green-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "hard":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getDifficultyLabel = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "かんたん";
-      case "medium": return "ふつう";
-      case "hard": return "むずかしい";
-      default: return "";
+      case "easy":
+        return "かんたん";
+      case "medium":
+        return "ふつう";
+      case "hard":
+        return "むずかしい";
+      default:
+        return "";
     }
   };
 
@@ -305,11 +311,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
         <div className="flex items-center">
           <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">セルフケア提案</h2>
-          <span className="ml-2 sm:ml-3 text-xl sm:text-2xl">🌸</span>
         </div>
-        <p className="text-xs sm:text-sm text-neutral-600 mt-2">
-          あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案
-        </p>
+        <p className="text-xs sm:text-sm text-neutral-600 mt-2">あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案</p>
       </div>
 
       {/* Symptom Filter */}
@@ -319,7 +322,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           {todayStatus !== "general" && (
             <div className="flex items-center text-sm text-green-600">
               <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
               </svg>
               今日の状態を自動検出
             </div>
@@ -333,23 +340,17 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                 key={symptom.id}
                 onClick={() => setSelectedSymptom(symptom.id)}
                 className={`p-3 rounded-lg text-sm font-medium transition-all relative ${
-                  selectedSymptom === symptom.id
-                    ? symptom.color + " ring-2 ring-offset-2 ring-primary-500"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  selectedSymptom === symptom.id ? symptom.color + " ring-2 ring-offset-2 ring-primary-500" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
                 {symptom.label}
-                {isAutoDetected && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                )}
+                {isAutoDetected && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>}
               </button>
             );
           })}
         </div>
         {todayStatus !== "general" && (
-          <p className="text-xs text-gray-500 mt-2">
-            今日の日付に基づいて「{symptoms.find(s => s.id === todayStatus)?.label}」が自動選択されました
-          </p>
+          <p className="text-xs text-gray-500 mt-2">今日の日付に基づいて「{symptoms.find((s) => s.id === todayStatus)?.label}」が自動選択されました</p>
         )}
       </div>
 
@@ -395,7 +396,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
             </div>
           ))}
         </div>
-        
+
         {getFilteredAdvices().length === 0 && (
           <div className="text-center py-6 sm:py-8 text-gray-500">
             <div className="text-3xl sm:text-4xl mb-2">🌸</div>
@@ -411,7 +412,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           <span className="ml-2 text-lg sm:text-xl">💕</span>
         </div>
         <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {partnerAdvices.map((advice) => (
             <div key={advice.id} className="bg-white/70 backdrop-blur-sm border border-pink-200 rounded-lg p-4">
@@ -432,7 +433,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
         <div className="flex">
           <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
           </svg>
           <div className="text-xs sm:text-sm min-w-0">
             <p className="font-medium text-amber-800 mb-1 sm:mb-2">重要な注意事項</p>

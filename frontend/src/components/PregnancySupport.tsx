@@ -155,16 +155,16 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
   };
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-medical p-6 ${className}`}>
+    <div className={`bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6 ${className}`}>
       {/* Header with BETA Badge */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <h2 className="text-xl font-semibold text-neutral-900">妊娠サポート</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+        <div className="flex items-center justify-center sm:justify-start">
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">妊娠サポート</h2>
           <span className="ml-3 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
             BETA
           </span>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer">
+        <label className="relative inline-flex items-center cursor-pointer self-center sm:self-auto touch-manipulation">
           <input
             type="checkbox"
             checked={isPregnancyMode}
@@ -176,14 +176,14 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
       </div>
 
       {!isPregnancyMode ? (
-        <div className="text-center py-8">
-          <div className="text-6xl mb-4">🤱</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">妊娠希望モード</h3>
-          <p className="text-gray-600 mb-4">
-            妊娠を希望する場合、このモードを有効にすると<br />
-            排卵日予測や妊娠記録などの詳細機能をご利用いただけます
+        <div className="text-center py-6 sm:py-8">
+          <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🤱</div>
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">妊娠希望モード</h3>
+          <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
+            妊娠を希望する場合、このモードを有効にすると<br className="hidden sm:block" />
+            <span className="sm:inline">排卵日予測や妊娠記録などの詳細機能をご利用いただけます</span>
           </p>
-          <p className="text-sm text-orange-600">
+          <p className="text-xs sm:text-sm text-orange-600">
             ※ BETA機能のため、今後仕様が変更される可能性があります
           </p>
         </div>
@@ -191,42 +191,42 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
         <div className="space-y-6">
           {/* Pregnancy Status */}
           {!isPregnant ? (
-            <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-pink-900">妊娠希望モード有効</h3>
-                  <p className="text-pink-700 text-sm">排卵日予測と妊娠準備をサポートします</p>
+            <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                <div className="text-center sm:text-left">
+                  <h3 className="text-base sm:text-lg font-medium text-pink-900">妊娠希望モード有効</h3>
+                  <p className="text-pink-700 text-xs sm:text-sm">排卵日予測と妊娠準備をサポートします</p>
                 </div>
                 <button
                   onClick={handlePregnancyConfirm}
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 bg-pink-600 hover:bg-pink-700 active:bg-pink-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
                 >
                   妊娠確認
                 </button>
               </div>
             </div>
           ) : (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-blue-900">妊娠中</h3>
-                      <p className="text-blue-700 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                    <div className="text-center sm:text-left">
+                      <h3 className="text-base sm:text-lg font-medium text-blue-900">妊娠中</h3>
+                      <p className="text-blue-700 text-xs sm:text-sm">
                         妊娠 {calculatePregnancyWeeks().weeks}週 {calculatePregnancyWeeks().days}日
                       </p>
                     </div>
                     <button
                       onClick={() => setShowCancelPregnancyModal(true)}
-                      className="px-3 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                      className="px-3 py-1 text-xs text-red-600 hover:text-red-800 active:text-red-900 hover:bg-red-50 rounded-lg transition-colors min-h-[36px] touch-manipulation"
                       title="妊娠状態を取り消し"
                     >
                       取り消し
                     </button>
                   </div>
                 </div>
-                <div className="text-right ml-4">
-                  <div className="text-2xl font-bold text-blue-900">
+                <div className="text-center sm:text-right sm:ml-4">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-900">
                     {calculatePregnancyWeeks().weeks}w{calculatePregnancyWeeks().days}d
                   </div>
                   <div className="text-xs text-blue-700">妊娠週数</div>
@@ -237,18 +237,18 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
 
           {/* Ovulation Tracking */}
           {!isPregnant && ovulationData && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <h4 className="font-medium text-purple-900">排卵日予測</h4>
+                  <h4 className="text-sm sm:text-base font-medium text-purple-900">排卵日予測</h4>
                 </div>
-                <div className="text-2xl font-bold text-purple-900 mb-1">
+                <div className="text-lg sm:text-2xl font-bold text-purple-900 mb-1">
                   {formatDate(ovulationData.estimatedOvulationDate)}
                 </div>
-                <p className="text-sm text-purple-700">
+                <p className="text-xs sm:text-sm text-purple-700">
                   {getDaysUntilOvulation() !== null && getDaysUntilOvulation()! > 0
                     ? `あと${getDaysUntilOvulation()}日`
                     : getDaysUntilOvulation() === 0
@@ -257,14 +257,14 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                 </p>
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3 sm:p-4">
                 <div className="flex items-center mb-2">
-                  <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <h4 className="font-medium text-green-900">妊娠しやすい期間</h4>
+                  <h4 className="text-sm sm:text-base font-medium text-green-900">妊娠しやすい期間</h4>
                 </div>
-                <div className="text-sm text-green-900 font-medium">
+                <div className="text-xs sm:text-sm text-green-900 font-medium">
                   {formatDate(ovulationData.fertilityWindow.start)} 〜 {formatDate(ovulationData.fertilityWindow.end)}
                 </div>
                 <p className="text-xs text-green-700 mt-1">周期{ovulationData.cycleDay}日目</p>
@@ -274,13 +274,13 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
 
           {/* Pregnancy Records */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-gray-900">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <h4 className="text-sm sm:text-base font-medium text-gray-900 text-center sm:text-left">
                 {isPregnant ? "妊娠記録" : "妊活記録"}
               </h4>
               <button
                 onClick={() => setShowAddRecord(true)}
-                className="px-3 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm transition-colors"
+                className="w-full sm:w-auto px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
               >
                 記録追加
               </button>
@@ -288,12 +288,12 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
 
             {/* Add Record Form */}
             {showAddRecord && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <select
                     value={newRecord.type}
                     onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as any })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
                   >
                     <option value="symptom">症状</option>
                     <option value="test">検査</option>
@@ -305,7 +305,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                     placeholder="タイトル"
                     value={newRecord.title}
                     onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
                   />
                 </div>
                 <textarea
@@ -313,7 +313,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                   value={newRecord.description}
                   onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
                 />
                 {newRecord.type === "test" && (
                   <input
@@ -321,20 +321,20 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                     placeholder="検査結果"
                     value={newRecord.value || ""}
                     onChange={(e) => setNewRecord({ ...newRecord, value: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
                   />
                 )}
-                <div className="flex justify-end space-x-2">
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={() => setShowAddRecord(false)}
-                    className="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm"
+                    className="w-full sm:w-auto px-3 py-2 text-gray-600 hover:text-gray-800 active:text-gray-900 text-sm min-h-[44px] touch-manipulation"
                   >
                     キャンセル
                   </button>
                   <button
                     onClick={addPregnancyRecord}
                     disabled={!newRecord.title || !newRecord.description}
-                    className="px-3 py-1 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg text-sm transition-colors"
+                    className="w-full sm:w-auto px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-gray-400 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
                   >
                     保存
                   </button>
@@ -343,15 +343,15 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
             )}
 
             {/* Records List */}
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
               {pregnancyRecords.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-4">まだ記録がありません</p>
+                <p className="text-gray-500 text-xs sm:text-sm text-center py-4">まだ記録がありません</p>
               ) : (
                 pregnancyRecords.map((record) => (
                   <div key={record.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                       <div className="flex-1">
-                        <div className="flex items-center mb-1">
+                        <div className="flex flex-wrap items-center mb-1">
                           <span className={`
                             px-2 py-1 rounded-full text-xs font-medium mr-2
                             ${record.type === "symptom" ? "bg-orange-100 text-orange-800" : ""}
@@ -366,12 +366,12 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                           </span>
                           <h5 className="font-medium text-gray-900 text-sm">{record.title}</h5>
                         </div>
-                        <p className="text-gray-700 text-sm">{record.description}</p>
+                        <p className="text-gray-700 text-xs sm:text-sm">{record.description}</p>
                         {record.value && (
-                          <p className="text-primary-600 text-sm font-medium">結果: {record.value}</p>
+                          <p className="text-primary-600 text-xs sm:text-sm font-medium">結果: {record.value}</p>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500">{formatDate(record.date)}</span>
+                      <span className="text-xs text-gray-500 self-start sm:self-center">{formatDate(record.date)}</span>
                     </div>
                   </div>
                 ))
@@ -380,14 +380,14 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
           </div>
 
           {/* Tips Section */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex">
-              <svg className="w-5 h-5 text-amber-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row">
+              <svg className="w-5 h-5 text-amber-400 mr-0 sm:mr-2 mb-2 sm:mb-0 sm:mt-0.5 self-center sm:self-start" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <div className="text-sm">
-                <p className="font-medium text-amber-800">妊活・妊娠中のポイント</p>
-                <ul className="mt-1 text-amber-700 list-disc list-inside space-y-1">
+              <div className="text-xs sm:text-sm">
+                <p className="text-sm sm:text-base font-medium text-amber-800">妊活・妊娠中のポイント</p>
+                <ul className="mt-1 text-amber-700 list-disc list-inside space-y-1 text-xs sm:text-sm">
                   <li>規則正しい生活リズムを心がけましょう</li>
                   <li>葉酸サプリメントの摂取を検討しましょう</li>
                   <li>定期的な健康チェックを受けましょう</li>
@@ -402,16 +402,16 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
       {/* Cancel Pregnancy Confirmation Modal */}
       {showCancelPregnancyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-4 sm:p-6">
             <div className="flex items-center mb-4">
-              <svg className="w-6 h-6 text-amber-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-900">妊娠状態の取り消し</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900">妊娠状態の取り消し</h3>
             </div>
             
-            <div className="mb-6">
-              <p className="text-gray-700 mb-3">
+            <div className="mb-4 sm:mb-6">
+              <p className="text-sm sm:text-base text-gray-700 mb-3">
                 妊娠状態を取り消しますか？この操作により以下のデータが削除されます：
               </p>
               <ul className="text-sm text-gray-600 list-disc list-inside space-y-1 bg-gray-50 p-3 rounded-lg">
@@ -424,16 +424,16 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
               </p>
             </div>
 
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={() => setShowCancelPregnancyModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] touch-manipulation"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleCancelPregnancy}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg transition-colors min-h-[44px] touch-manipulation"
               >
                 取り消し実行
               </button>

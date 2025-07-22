@@ -602,7 +602,7 @@ export const Calendar: React.FC = () => {
   const days = useMemo(() => generateDays(), [currentYear, currentMonth, calendarApiData, refreshKey]);
 
   const getDayClassName = (day: DayData): string => {
-    let className = "w-10 h-10 flex items-center justify-center text-xs sm:text-sm font-medium transition-colors relative cursor-pointer ";
+    let className = "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs sm:text-sm font-medium transition-colors relative cursor-pointer touch-manipulation ";
 
     if (!day.isCurrentMonth) {
       className += "text-gray-300 ";
@@ -626,24 +626,24 @@ export const Calendar: React.FC = () => {
       className += "bg-purple-100 text-purple-700 rounded-lg ";
     } else {
       // 通常の日付
-      className += "text-gray-700 hover:bg-gray-100 rounded-lg ";
+      className += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
     }
 
     return className;
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
       {/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 text-center sm:text-left">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </h2>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-center sm:space-x-3">
           <div className="flex items-center space-x-1 sm:space-x-2">
             <button 
               onClick={() => navigateMonth("prev")} 
-              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -651,13 +651,13 @@ export const Calendar: React.FC = () => {
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-primary-600 hover:text-primary-700 transition-colors min-h-[44px] flex items-center justify-center"
+              className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-primary-600 hover:text-primary-700 active:text-primary-800 transition-colors min-h-[44px] flex items-center justify-center touch-manipulation"
             >
               今日
             </button>
             <button 
               onClick={() => navigateMonth("next")} 
-              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -672,7 +672,7 @@ export const Calendar: React.FC = () => {
         {weekdays.map((day, index) => (
           <div
             key={day}
-            className={`h-8 sm:h-10 flex items-center justify-center text-sm sm:text-base font-medium ${
+            className={`h-8 sm:h-10 flex items-center justify-center text-xs sm:text-sm font-medium ${
               index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
             }`}
           >
@@ -681,7 +681,7 @@ export const Calendar: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {days.map((day, index) => (
           <button key={index} className={getDayClassName(day)} onClick={() => handleDateClick(day)}>
             <span className="text-sm sm:text-base">{day.date}</span>
@@ -693,21 +693,21 @@ export const Calendar: React.FC = () => {
 
       {/* Legend */}
       <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <div className="w-3 h-3 bg-red-500 rounded flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded"></div>
+            <div className="w-3 h-3 bg-purple-500 rounded flex-shrink-0"></div>
             <span className="text-gray-600">排卵日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded"></div>
+            <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded flex-shrink-0"></div>
             <span className="text-gray-600">妊娠しやすい日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-100 border border-red-300 rounded"></div>
+            <div className="w-3 h-3 bg-red-100 border border-red-300 rounded flex-shrink-0"></div>
             <span className="text-gray-600">予測日</span>
           </div>
         </div>
