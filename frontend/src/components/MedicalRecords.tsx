@@ -249,85 +249,92 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     <div className="space-y-3 sm:space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">受診日 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">受診日 *</label>
           <input
             type="date"
             value={visitForm.date || ""}
             onChange={(e) => setVisitForm({ ...visitForm, date: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">病院名 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">病院名 *</label>
           <input
             type="text"
             value={visitForm.hospitalName || ""}
             onChange={(e) => setVisitForm({ ...visitForm, hospitalName: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            placeholder="中央医療センター"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">医師名</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">医師名</label>
           <input
             type="text"
             value={visitForm.doctorName || ""}
             onChange={(e) => setVisitForm({ ...visitForm, doctorName: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            placeholder="田中 太郎"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">診療科</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">診療科</label>
           <input
             type="text"
             value={visitForm.department || ""}
             onChange={(e) => setVisitForm({ ...visitForm, department: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            placeholder="婦人科"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">受診目的</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">受診目的</label>
         <input
           type="text"
           value={visitForm.purpose || ""}
           onChange={(e) => setVisitForm({ ...visitForm, purpose: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+          placeholder="定期検診、体調不良など"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">症状</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">症状</label>
         <textarea
           value={visitForm.symptoms || ""}
           onChange={(e) => setVisitForm({ ...visitForm, symptoms: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
+          placeholder="体調不良、痛みなどの症状を記入"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[88px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">診断結果</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">診断結果</label>
         <textarea
           value={visitForm.diagnosis || ""}
           onChange={(e) => setVisitForm({ ...visitForm, diagnosis: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
+          placeholder="医師からの診断や所見を記入"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[88px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">次回受診日</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">次回受診日</label>
         <input
           type="date"
           value={visitForm.nextVisit || ""}
           onChange={(e) => setVisitForm({ ...visitForm, nextVisit: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">メモ</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メモ</label>
         <textarea
           value={visitForm.notes || ""}
           onChange={(e) => setVisitForm({ ...visitForm, notes: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
+          placeholder="その他の特記事項や気づいたこと"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[88px] touch-manipulation"
         />
       </div>
     </div>
@@ -337,59 +344,63 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     <div className="space-y-3 sm:space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">検査日 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">検査日 *</label>
           <input
             type="date"
             value={testForm.date || ""}
             onChange={(e) => setTestForm({ ...testForm, date: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">検査種類 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">検査種類 *</label>
           <input
             type="text"
             value={testForm.testType || ""}
             onChange={(e) => setTestForm({ ...testForm, testType: e.target.value })}
             placeholder="血液検査、超音波検査など"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">検査機関</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">検査機関</label>
         <input
           type="text"
           value={testForm.hospitalName || ""}
           onChange={(e) => setTestForm({ ...testForm, hospitalName: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+          placeholder="中央クリニック、検査センターなど"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">検査結果</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">検査結果</label>
         <textarea
           value={testForm.results || ""}
           onChange={(e) => setTestForm({ ...testForm, results: e.target.value })}
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[112px] touch-manipulation"
+          placeholder="検査結果の数値や所見を詳細に記入"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[112px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">基準値</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">基準値</label>
         <textarea
           value={testForm.referenceValues || ""}
           onChange={(e) => setTestForm({ ...testForm, referenceValues: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[64px] touch-manipulation"
+          placeholder="正常範囲や基準値を記入"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[64px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">メモ</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メモ</label>
         <textarea
           value={testForm.notes || ""}
           onChange={(e) => setTestForm({ ...testForm, notes: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
+          placeholder="検査に関するその他の特記事項"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[88px] touch-manipulation"
         />
       </div>
     </div>
@@ -399,88 +410,93 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     <div className="space-y-3 sm:space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">薬名 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">薬名 *</label>
           <input
             type="text"
             value={medicationForm.name || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            placeholder="ロキソニン、アスピリンなど"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">処方日 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">処方日 *</label>
           <input
             type="date"
             value={medicationForm.prescribedDate || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, prescribedDate: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">用量</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">用量</label>
           <input
             type="text"
             value={medicationForm.dosage || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, dosage: e.target.value })}
             placeholder="1錠、5mg など"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">服用頻度</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">服用頻度</label>
           <input
             type="text"
             value={medicationForm.frequency || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, frequency: e.target.value })}
             placeholder="1日3回、食後など"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">服用期間</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">服用期間</label>
           <input
             type="text"
             value={medicationForm.duration || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, duration: e.target.value })}
             placeholder="7日間、継続など"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">処方医</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">処方医</label>
           <input
             type="text"
             value={medicationForm.prescribedBy || ""}
             onChange={(e) => setMedicationForm({ ...medicationForm, prescribedBy: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+            placeholder="田中 太郎 医師"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">処方目的</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">処方目的</label>
         <input
           type="text"
           value={medicationForm.purpose || ""}
           onChange={(e) => setMedicationForm({ ...medicationForm, purpose: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
+          placeholder="痛み止め、抵抗力向上など"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">副作用</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">副作用</label>
         <textarea
           value={medicationForm.sideEffects || ""}
           onChange={(e) => setMedicationForm({ ...medicationForm, sideEffects: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[64px] touch-manipulation"
+          placeholder="経験した副作用や注意事項"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[64px] touch-manipulation"
         />
       </div>
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">メモ</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メモ</label>
         <textarea
           value={medicationForm.notes || ""}
           onChange={(e) => setMedicationForm({ ...medicationForm, notes: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
+          placeholder="薬に関するその他の特記事項"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[88px] touch-manipulation"
         />
       </div>
     </div>
@@ -684,8 +700,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
               }`}
             >
               <span>{tab.icon}</span>
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.label.slice(0, 2)}</span>
+              <span className="text-xs sm:text-sm whitespace-nowrap">{tab.label}</span>
             </button>
           ))}
         </div>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI } from "../services/api";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { PregnancyRecords } from "./PregnancyRecords";
 
 interface PregnancySupportProps {
   className?: string;
@@ -30,19 +32,9 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
   const [pregnancyStartDate, setPregnancyStartDate] = useState("");
   const [ovulationData, setOvulationData] = useState<OvulationData | null>(null);
   const [pregnancyRecords, setPregnancyRecords] = useState<PregnancyRecord[]>([]);
-  const [newRecord, setNewRecord] = useState<{
-    type: "symptom" | "test" | "appointment" | "note";
-    title: string;
-    description: string;
-    value: string;
-  }>({
-    type: "symptom",
-    title: "",
-    description: "",
-    value: "",
-  });
-  const [showAddRecord, setShowAddRecord] = useState(false);
   const [showCancelPregnancyModal, setShowCancelPregnancyModal] = useState(false);
+  const [showPregnancyConfirmModal, setShowPregnancyConfirmModal] = useState(false);
+  const [showRecordsPage, setShowRecordsPage] = useState(false);
 
   useEffect(() => {
     const savedMode = localStorage.getItem("pregnancyMode");
@@ -59,6 +51,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
       loadOvulationData();
     }
   }, []);
+
 
   const loadOvulationData = async () => {
     try {
@@ -96,6 +89,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     setPregnancyStartDate(today);
     localStorage.setItem("isPregnant", JSON.stringify(true));
     localStorage.setItem("pregnancyStartDate", today);
+    setShowPregnancyConfirmModal(false);
   };
 
   const handleCancelPregnancy = () => {
@@ -120,29 +114,32 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     return { weeks, days };
   };
 
-  const addPregnancyRecord = () => {
-    const record: PregnancyRecord = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split("T")[0],
-      type: newRecord.type,
-      title: newRecord.title,
-      description: newRecord.description,
-      value: newRecord.value,
-    };
-
-    const updatedRecords = [record, ...pregnancyRecords];
-    setPregnancyRecords(updatedRecords);
-    localStorage.setItem("pregnancyRecords", JSON.stringify(updatedRecords));
-
-    setNewRecord({ type: "symptom", title: "", description: "", value: "" });
-    setShowAddRecord(false);
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ja-JP", {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const calculateWeeksFromDate = (recordDate: string) => {
+    if (!pregnancyStartDate) return { weeks: 0, days: 0 };
+    
+    const start = new Date(pregnancyStartDate);
+    const record = new Date(recordDate);
+    const diffTime = Math.abs(record.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const weeks = Math.floor(diffDays / 7);
+    const days = diffDays % 7;
+    
+    return { weeks, days };
+  };
+
+  const getRecentRecords = () => {
+    return pregnancyRecords
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 3);
   };
 
   const getDaysUntilOvulation = () => {
@@ -154,17 +151,22 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     return diffDays;
   };
 
+  // Show records page if requested
+  if (showRecordsPage) {
+    return <PregnancyRecords onBack={() => setShowRecordsPage(false)} />;
+  }
+
   return (
     <div className={`bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6 ${className}`}>
       {/* Header with BETA Badge */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-        <div className="flex items-center justify-center sm:justify-start">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center">
           <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">妊娠サポート</h2>
           <span className="ml-3 px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
             BETA
           </span>
         </div>
-        <label className="relative inline-flex items-center cursor-pointer self-center sm:self-auto touch-manipulation">
+        <label className="relative inline-flex items-center cursor-pointer touch-manipulation">
           <input
             type="checkbox"
             checked={isPregnancyMode}
@@ -198,7 +200,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                   <p className="text-pink-700 text-xs sm:text-sm">排卵日予測と妊娠準備をサポートします</p>
                 </div>
                 <button
-                  onClick={handlePregnancyConfirm}
+                  onClick={() => setShowPregnancyConfirmModal(true)}
                   className="w-full sm:w-auto px-4 py-2 bg-pink-600 hover:bg-pink-700 active:bg-pink-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
                 >
                   妊娠確認
@@ -216,13 +218,6 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                         妊娠 {calculatePregnancyWeeks().weeks}週 {calculatePregnancyWeeks().days}日
                       </p>
                     </div>
-                    <button
-                      onClick={() => setShowCancelPregnancyModal(true)}
-                      className="px-3 py-1 text-xs text-red-600 hover:text-red-800 active:text-red-900 hover:bg-red-50 rounded-lg transition-colors min-h-[36px] touch-manipulation"
-                      title="妊娠状態を取り消し"
-                    >
-                      取り消し
-                    </button>
                   </div>
                 </div>
                 <div className="text-center sm:text-right sm:ml-4">
@@ -230,6 +225,13 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                     {calculatePregnancyWeeks().weeks}w{calculatePregnancyWeeks().days}d
                   </div>
                   <div className="text-xs text-blue-700">妊娠週数</div>
+                  <button
+                    onClick={() => setShowCancelPregnancyModal(true)}
+                    className="px-3 py-1 text-xs text-red-600 hover:text-red-800 active:text-red-900 hover:bg-red-50 rounded-lg transition-colors min-h-[36px] touch-manipulation mt-2"
+                    title="妊娠状態を取り消し"
+                  >
+                    取り消し
+                  </button>
                 </div>
               </div>
             </div>
@@ -272,109 +274,82 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
             </div>
           )}
 
-          {/* Pregnancy Records */}
+          {/* Recent Records Overview */}
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-              <h4 className="text-sm sm:text-base font-medium text-gray-900 text-center sm:text-left">
-                {isPregnant ? "妊娠記録" : "妊活記録"}
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm sm:text-base font-medium text-gray-900">
+                {isPregnant ? "最近の妊娠記録" : "最近の妊活記録"}
               </h4>
               <button
-                onClick={() => setShowAddRecord(true)}
-                className="w-full sm:w-auto px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
+                onClick={() => setShowRecordsPage(true)}
+                className="px-3 py-2 text-sm text-primary-600 hover:text-primary-700 active:text-primary-800 hover:bg-primary-50 rounded-lg transition-colors min-h-[40px] touch-manipulation"
               >
-                記録追加
+                すべて見る
               </button>
             </div>
 
-            {/* Add Record Form */}
-            {showAddRecord && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <select
-                    value={newRecord.type}
-                    onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as any })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
-                  >
-                    <option value="symptom">症状</option>
-                    <option value="test">検査</option>
-                    <option value="appointment">診察</option>
-                    <option value="note">メモ</option>
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="タイトル"
-                    value={newRecord.title}
-                    onChange={(e) => setNewRecord({ ...newRecord, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
-                  />
-                </div>
-                <textarea
-                  placeholder="詳細内容"
-                  value={newRecord.description}
-                  onChange={(e) => setNewRecord({ ...newRecord, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[88px] touch-manipulation"
-                />
-                {newRecord.type === "test" && (
-                  <input
-                    type="text"
-                    placeholder="検査結果"
-                    value={newRecord.value || ""}
-                    onChange={(e) => setNewRecord({ ...newRecord, value: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
-                  />
-                )}
-                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
-                  <button
-                    onClick={() => setShowAddRecord(false)}
-                    className="w-full sm:w-auto px-3 py-2 text-gray-600 hover:text-gray-800 active:text-gray-900 text-sm min-h-[44px] touch-manipulation"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    onClick={addPregnancyRecord}
-                    disabled={!newRecord.title || !newRecord.description}
-                    className="w-full sm:w-auto px-3 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-gray-400 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
-                  >
-                    保存
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Records List */}
-            <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
+            {/* Recent Records List */}
+            <div className="space-y-2">
               {pregnancyRecords.length === 0 ? (
-                <p className="text-gray-500 text-xs sm:text-sm text-center py-4">まだ記録がありません</p>
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <div className="text-2xl mb-2">📝</div>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-3">まだ記録がありません</p>
+                  <button
+                    onClick={() => setShowRecordsPage(true)}
+                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm transition-colors min-h-[40px] touch-manipulation"
+                  >
+                    最初の記録を追加
+                  </button>
+                </div>
               ) : (
-                pregnancyRecords.map((record) => (
-                  <div key={record.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center mb-1">
-                          <span className={`
-                            px-2 py-1 rounded-full text-xs font-medium mr-2
-                            ${record.type === "symptom" ? "bg-orange-100 text-orange-800" : ""}
-                            ${record.type === "test" ? "bg-blue-100 text-blue-800" : ""}
-                            ${record.type === "appointment" ? "bg-green-100 text-green-800" : ""}
-                            ${record.type === "note" ? "bg-gray-100 text-gray-800" : ""}
-                          `}>
-                            {record.type === "symptom" && "症状"}
-                            {record.type === "test" && "検査"}
-                            {record.type === "appointment" && "診察"}
-                            {record.type === "note" && "メモ"}
-                          </span>
-                          <h5 className="font-medium text-gray-900 text-sm">{record.title}</h5>
+                <>
+                  {getRecentRecords().map((record) => {
+                    const weekData = calculateWeeksFromDate(record.date);
+                    return (
+                      <div key={record.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center mb-1">
+                              <span className={`
+                                px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1
+                                ${record.type === "symptom" ? "bg-orange-100 text-orange-800" : ""}
+                                ${record.type === "test" ? "bg-blue-100 text-blue-800" : ""}
+                                ${record.type === "appointment" ? "bg-green-100 text-green-800" : ""}
+                                ${record.type === "note" ? "bg-gray-100 text-gray-800" : ""}
+                              `}>
+                                {record.type === "symptom" && "症状"}
+                                {record.type === "test" && "検査"}
+                                {record.type === "appointment" && "診察"}
+                                {record.type === "note" && "メモ"}
+                              </span>
+                              <h6 className="font-medium text-gray-900 text-sm">{record.title}</h6>
+                            </div>
+                            <p className="text-gray-700 text-xs sm:text-sm line-clamp-2">{record.description}</p>
+                            {record.value && (
+                              <p className="text-primary-600 text-xs sm:text-sm font-medium mt-1">結果: {record.value}</p>
+                            )}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="text-xs text-gray-500">{formatDate(record.date)}</div>
+                            {isPregnant && (
+                              <div className="text-xs text-primary-600 font-medium">{weekData.weeks}w{weekData.days}d</div>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-gray-700 text-xs sm:text-sm">{record.description}</p>
-                        {record.value && (
-                          <p className="text-primary-600 text-xs sm:text-sm font-medium">結果: {record.value}</p>
-                        )}
                       </div>
-                      <span className="text-xs text-gray-500 self-start sm:self-center">{formatDate(record.date)}</span>
+                    );
+                  })}
+                  {pregnancyRecords.length > 3 && (
+                    <div className="text-center pt-2">
+                      <button
+                        onClick={() => setShowRecordsPage(true)}
+                        className="text-sm text-primary-600 hover:text-primary-700 active:text-primary-800"
+                      >
+                        他 {pregnancyRecords.length - 3} 件の記録を見る
+                      </button>
                     </div>
-                  </div>
-                ))
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -397,6 +372,21 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Pregnancy Confirmation Modal */}
+      {showPregnancyConfirmModal && (
+        <ConfirmationModal
+          message={`妊娠を確認しますか？
+
+この操作により妊娠モードに切り替わり、
+妊娠週数の計算と記録が開始されます。`}
+          onConfirm={handlePregnancyConfirm}
+          onCancel={() => setShowPregnancyConfirmModal(false)}
+          confirmButtonText="確認"
+          cancelButtonText="キャンセル"
+          confirmButtonClass="px-4 sm:px-6 py-3 rounded-md bg-pink-600 text-white hover:bg-pink-700 active:bg-pink-800 transition-colors text-sm sm:text-base font-medium min-h-[44px] flex items-center justify-center"
+        />
       )}
 
       {/* Cancel Pregnancy Confirmation Modal */}

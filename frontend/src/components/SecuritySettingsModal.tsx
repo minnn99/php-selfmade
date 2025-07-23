@@ -142,82 +142,82 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* パスワード設定 */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">パスワード設定</h3>
-              <p className="text-sm text-gray-500">パスワード変更と強度設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">パスワード設定</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">パスワード変更と強度設定</p>
             </div>
             
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-start sm:items-center justify-between">
+                <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">パスワード</span>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 mt-1">
                     最終変更: {settings.passwordPolicy.lastChanged || "未設定"}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowPasswordForm(!showPasswordForm)}
-                  className="px-3 py-2 text-xs sm:text-sm bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+                  className="px-3 py-2 text-sm bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors min-h-[44px] flex items-center justify-center flex-shrink-0"
                 >
                   {showPasswordForm ? "キャンセル" : "変更"}
                 </button>
               </div>
 
               {showPasswordForm && (
-                <div className="space-y-3 border-t pt-4">
+                <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">現在のパスワード</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在のパスワード</label>
                     <input
                       type="password"
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード</label>
                     <input
                       type="password"
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">新しいパスワード（確認）</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード（確認）</label>
                     <input
                       type="password"
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <button
                     onClick={handlePasswordChange}
-                    className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors text-sm sm:text-base min-h-[44px] flex items-center justify-center"
+                    className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"
                   >
                     パスワードを変更
                   </button>
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-2 sm:space-y-3">
                 <label className="block text-sm font-medium text-gray-700">パスワード要件</label>
-                <div className="text-xs text-gray-600 space-y-1">
-                  <div className="flex items-center">
+                <div className="text-xs sm:text-sm text-gray-600 space-y-2">
+                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <span className={`mr-2 ${settings.passwordPolicy.minLength >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
                       {settings.passwordPolicy.minLength >= 8 ? '✓' : '○'}
                     </span>
                     最低{settings.passwordPolicy.minLength}文字
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <span className={`mr-2 ${settings.passwordPolicy.requireUppercase ? 'text-green-600' : 'text-gray-400'}`}>
                       {settings.passwordPolicy.requireUppercase ? '✓' : '○'}
                     </span>
                     大文字を含む
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <span className={`mr-2 ${settings.passwordPolicy.requireNumbers ? 'text-green-600' : 'text-gray-400'}`}>
                       {settings.passwordPolicy.requireNumbers ? '✓' : '○'}
                     </span>
@@ -229,17 +229,17 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
           </div>
 
           {/* 2段階認証 */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">2段階認証</h3>
-              <p className="text-sm text-gray-500">ログイン時の追加セキュリティ</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">2段階認証</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン時の追加セキュリティ</p>
             </div>
             
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-start sm:items-center justify-between">
+                <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">2段階認証</span>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 mt-1">
                     {settings.twoFactorAuth.enabled ? "有効" : "無効"}
                   </p>
                 </div>
@@ -248,10 +248,10 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                     ? updateSetting("twoFactorAuth", "enabled", false)
                     : enable2FA()
                   }
-                  className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-lg transition-colors min-h-[44px] flex items-center justify-center flex-shrink-0 ${
                     settings.twoFactorAuth.enabled
-                      ? "bg-red-600 hover:bg-red-700 text-white"
-                      : "bg-primary-600 hover:bg-primary-700 text-white"
+                      ? "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white"
+                      : "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white"
                   }`}
                 >
                   {settings.twoFactorAuth.enabled ? "無効にする" : "有効にする"}
@@ -259,13 +259,13 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               </div>
 
               {settings.twoFactorAuth.enabled && (
-                <div className="space-y-3 border-t pt-4">
+                <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">認証方法</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">認証方法</label>
                     <select
                       value={settings.twoFactorAuth.method}
                       onChange={(e) => updateSetting("twoFactorAuth", "method", e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     >
                       <option value="email">メール</option>
                       <option value="sms">SMS</option>
@@ -300,49 +300,49 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
           </div>
 
           {/* ログインセキュリティ */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">ログインセキュリティ</h3>
-              <p className="text-sm text-gray-500">ログイン関連のセキュリティ設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">ログインセキュリティ</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン関連のセキュリティ設定</p>
             </div>
             
-            <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <label className="flex items-center justify-between">
-                <div>
+            <div className="space-y-2 sm:space-y-3">
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">ログイン通知</span>
-                  <p className="text-xs text-gray-500">新しいデバイスからのログイン通知</p>
+                  <p className="text-xs text-gray-500 mt-1">新しいデバイスからのログイン通知</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.loginNotifications}
                   onChange={(e) => updateSetting("loginSecurity", "loginNotifications", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
 
-              <label className="flex items-center justify-between">
-                <div>
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">デバイス記憶</span>
-                  <p className="text-xs text-gray-500">信頼できるデバイスを記憶</p>
+                  <p className="text-xs text-gray-500 mt-1">信頼できるデバイスを記憶</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.deviceRemembering}
                   onChange={(e) => updateSetting("loginSecurity", "deviceRemembering", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
 
-              <label className="flex items-center justify-between">
-                <div>
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">不審なアクティビティ通知</span>
-                  <p className="text-xs text-gray-500">異常なアクセスパターンの検知</p>
+                  <p className="text-xs text-gray-500 mt-1">異常なアクセスパターンの検知</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.suspiciousActivityAlerts}
                   onChange={(e) => updateSetting("loginSecurity", "suspiciousActivityAlerts", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
             </div>

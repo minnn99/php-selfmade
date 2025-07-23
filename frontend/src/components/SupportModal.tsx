@@ -122,29 +122,29 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
   ];
 
   const renderFAQ = () => (
-    <div className="space-y-4">
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">よくある質問</h3>
-        <p className="text-sm text-gray-600">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">よくある質問</h3>
+        <p className="text-xs sm:text-sm text-gray-600 leading-tight">
           Pairiodの使い方や機能について、よく寄せられる質問をまとめました。
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {faqItems.map((item, index) => (
           <div key={index} className="border border-gray-200 rounded-lg">
             <button
               onClick={() => toggleFAQ(index)}
-              className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+              className="w-full px-3 sm:px-4 py-3 text-left flex items-start sm:items-center justify-between hover:bg-gray-50 transition-colors min-h-[44px] touch-manipulation"
             >
-              <div>
-                <span className="inline-block px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full mr-2">
+              <div className="flex-1 mr-3">
+                <span className="inline-block px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full mr-2 mb-1 sm:mb-0">
                   {item.category}
                 </span>
-                <span className="text-sm font-medium text-gray-900">{item.question}</span>
+                <span className="text-sm font-medium text-gray-900 break-words">{item.question}</span>
               </div>
               <svg
-                className={`w-5 h-5 text-gray-400 transition-transform ${
+                className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${
                   expandedFAQ === index ? "rotate-180" : ""
                 }`}
                 fill="none"
@@ -155,8 +155,8 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
               </svg>
             </button>
             {expandedFAQ === index && (
-              <div className="px-4 pb-3 text-sm text-gray-600 border-t border-gray-100">
-                <p className="pt-3">{item.answer}</p>
+              <div className="px-3 sm:px-4 pb-3 text-xs sm:text-sm text-gray-600 border-t border-gray-100">
+                <p className="pt-3 leading-relaxed">{item.answer}</p>
               </div>
             )}
           </div>
@@ -166,43 +166,43 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
   );
 
   const renderContact = () => (
-    <div className="space-y-4">
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">お問い合わせ</h3>
-        <p className="text-sm text-gray-600">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">お問い合わせ</h3>
+        <p className="text-xs sm:text-sm text-gray-600 leading-tight">
           ご質問やご要望がございましたら、下記フォームよりお気軽にお問い合わせください。
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">お名前 *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">お名前 *</label>
           <input
             type="text"
             value={contactForm.name}
             onChange={(e) => updateContactForm("name", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
             placeholder="山田 花子"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メールアドレス *</label>
           <input
             type="email"
             value={contactForm.email}
             onChange={(e) => updateContactForm("email", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
             placeholder="example@email.com"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">カテゴリ</label>
         <select
           value={contactForm.category}
           onChange={(e) => updateContactForm("category", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
         >
           <option value="">選択してください</option>
           {contactCategories.map((category) => (
@@ -214,37 +214,37 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">件名</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">件名</label>
         <input
           type="text"
           value={contactForm.subject}
           onChange={(e) => updateContactForm("subject", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           placeholder="お問い合わせの件名を入力してください"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">お問い合わせ内容 *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">お問い合わせ内容 *</label>
         <textarea
           value={contactForm.message}
           onChange={(e) => updateContactForm("message", e.target.value)}
           rows={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[120px] touch-manipulation"
           placeholder="詳細をお聞かせください..."
         />
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          📋 <strong>回答時間について：</strong><br/>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+        <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
+          📋 <strong>回答時間について：</strong><br className="hidden sm:block"/><span className="sm:hidden"> </span>
           お問い合わせから1-2営業日以内にご回答いたします。お急ぎの場合は、よくある質問もご確認ください。
         </p>
       </div>
 
       <button
         onClick={handleSubmitContact}
-        className="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+        className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"
       >
         送信
       </button>
@@ -252,37 +252,37 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
   );
 
   const renderInfo = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
-        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">🌺</span>
+        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <span className="text-xl sm:text-2xl">🌺</span>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Pairiod</h3>
-        <p className="text-sm text-gray-600">女性の健康をサポートする生理管理アプリ</p>
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Pairiod</h3>
+        <p className="text-xs sm:text-sm text-gray-600 px-4 sm:px-0">女性の健康をサポートする生理管理アプリ</p>
       </div>
 
-      <div className="bg-gradient-to-r from-primary-50 to-pink-50 rounded-lg p-6">
-        <h4 className="font-medium text-gray-900 mb-3">アプリについて</h4>
-        <p className="text-sm text-gray-700 leading-relaxed">
+      <div className="bg-gradient-to-r from-primary-50 to-pink-50 rounded-lg p-4 sm:p-6">
+        <h4 className="text-sm sm:text-base font-medium text-gray-900 mb-3">アプリについて</h4>
+        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
           Pairiodは、女性の生理周期管理を通じて健康な生活をサポートするアプリです。
           生理記録だけでなく、症状記録、妊娠サポート、パートナーとの情報共有など、
           女性の様々なライフステージに寄り添う機能を提供しています。
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h5 className="font-medium text-gray-900 mb-2">バージョン情報</h5>
-          <div className="space-y-1 text-sm text-gray-600">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+          <h5 className="text-sm font-medium text-gray-900 mb-2 sm:mb-3">バージョン情報</h5>
+          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
             <p>アプリバージョン: v1.0.0</p>
             <p>リリース日: 2025年1月</p>
             <p>最終更新: 2025年1月20日</p>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h5 className="font-medium text-gray-900 mb-2">開発者情報</h5>
-          <div className="space-y-1 text-sm text-gray-600">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+          <h5 className="text-sm font-medium text-gray-900 mb-2 sm:mb-3">開発者情報</h5>
+          <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-600">
             <p>開発: Pairiod Team</p>
             <p>サポート: support@pairiod.com</p>
             <p>公式サイト: www.pairiod.com</p>
@@ -290,27 +290,27 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
         </div>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <h5 className="font-medium text-amber-900 mb-2">📋 利用規約・プライバシーポリシー</h5>
-        <div className="space-y-2">
+      <div className="border-t border-gray-200 pt-4 sm:pt-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6">
           <button 
             onClick={() => setShowTermsModal(true)}
-            className="text-sm text-amber-700 hover:text-amber-900 underline block"
+            className="text-xs sm:text-sm text-gray-600 hover:text-primary-600 active:text-primary-700 transition-colors min-h-[40px] flex items-center touch-manipulation"
           >
-            利用規約を確認する
+            利用規約
           </button>
+          <span className="hidden sm:inline text-gray-300">|</span>
           <button 
             onClick={() => setShowPrivacyModal(true)}
-            className="text-sm text-amber-700 hover:text-amber-900 underline block"
+            className="text-xs sm:text-sm text-gray-600 hover:text-primary-600 active:text-primary-700 transition-colors min-h-[40px] flex items-center touch-manipulation"
           >
-            プライバシーポリシーを確認する
+            プライバシーポリシー
           </button>
         </div>
       </div>
 
-      <div className="text-center text-xs text-gray-500">
+      <div className="text-center text-xs sm:text-sm text-gray-500 px-4 sm:px-0">
         <p>© 2025 Pairiod. All rights reserved.</p>
-        <p className="mt-1">女性の健康と幸せのために</p>
+        <p className="mt-1 sm:mt-2">女性の健康と幸せのために</p>
       </div>
     </div>
   );
@@ -340,15 +340,14 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 flex items-center justify-center space-x-1 sm:space-x-2 py-2 sm:py-3 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
+                className={`flex-1 flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 py-2 sm:py-3 px-1 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[60px] sm:min-h-[44px] ${
                   activeTab === tab.id
                     ? "bg-white text-primary-700 shadow-sm"
                     : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                <span className="text-sm sm:text-base">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden text-xs">{tab.label.slice(0, 3)}</span>
+                <span className="text-base sm:text-base">{tab.icon}</span>
+                <span className="text-xs sm:text-sm whitespace-nowrap leading-tight text-center">{tab.label}</span>
               </button>
             ))}
           </div>

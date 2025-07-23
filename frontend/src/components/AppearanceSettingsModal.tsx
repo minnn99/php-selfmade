@@ -76,15 +76,15 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* テーマ・色設定 */}
-          <div className="space-y-6">
+          <div className="space-y-3 sm:space-y-4">
             <div>
               <h3 className="text-base sm:text-lg font-medium text-gray-900">テーマ・言語設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500">アプリのテーマモードと言語を設定</p>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">アプリのテーマモードと言語を設定</p>
             </div>
 
             {/* テーマモード */}
-            <div className="space-y-3">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700">テーマモード</label>
+            <div className="space-y-3 sm:space-y-4">
+              <label className="block text-sm font-medium text-gray-700 whitespace-nowrap">テーマモード</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { value: "light", label: "ライト", icon: "☀️" },
@@ -112,18 +112,18 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
           </div>
 
           {/* 言語設定 */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
               <h3 className="text-base sm:text-lg font-medium text-gray-900">言語設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500">アプリで使用する言語を選択</p>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">アプリで使用する言語を選択</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700">表示言語</label>
+            <div className="space-y-2 sm:space-y-3">
+              <label className="block text-sm font-medium text-gray-700 whitespace-nowrap">表示言語</label>
               <select
                 value={settings.language.locale}
                 onChange={(e) => updateSetting("language", "locale", e.target.value)}
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
               >
                 {languageOptions.map((lang) => (
                   <option key={lang.value} value={lang.value}>

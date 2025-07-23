@@ -144,13 +144,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           </div>
 
           {/* 排卵日リマインド設定 */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">排卵日リマインド</h3>
-                <p className="text-sm text-gray-500">予測される排卵日の通知設定</p>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-start sm:items-center justify-between">
+              <div className="flex-1 mr-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">排卵日リマインド</h3>
+                <p className="text-xs sm:text-sm text-gray-500 leading-tight">予測される排卵日の通知設定</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
                   type="checkbox"
                   checked={settings.ovulationReminder.enabled}
@@ -162,13 +162,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
             </div>
 
             {settings.ovulationReminder.enabled && (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <label className="text-sm font-medium text-gray-700 min-w-0 flex-shrink-0">通知タイミング　:</label>
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知タイミング:</label>
                   <select
                     value={settings.ovulationReminder.daysBeforeOvulation}
                     onChange={(e) => updateSetting("ovulationReminder", "daysBeforeOvulation", parseInt(e.target.value))}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
                   >
                     <option value={0}>当日</option>
                     <option value={1}>1日前</option>
@@ -180,13 +180,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                     <option value={7}>7日前</option>
                   </select>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <label className="text-sm font-medium text-gray-700 min-w-0 flex-shrink-0">通知時刻　:</label>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知時刻:</label>
                   <input
                     type="time"
                     value={settings.ovulationReminder.time}
                     onChange={(e) => updateSetting("ovulationReminder", "time", e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
                   />
                 </div>
               </div>
@@ -194,13 +194,13 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           </div>
 
           {/* パートナー向け通知設定 */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">パートナー向け通知</h3>
-                <p className="text-sm text-gray-500">パートナーに重要な情報を共有</p>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-start sm:items-center justify-between">
+              <div className="flex-1 mr-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向け通知</h3>
+                <p className="text-xs sm:text-sm text-gray-500 leading-tight">パートナーに重要な情報を共有</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
                   type="checkbox"
                   checked={settings.partnerNotifications.enabled}
@@ -212,34 +212,34 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
             </div>
 
             {settings.partnerNotifications.enabled && (
-              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                <div className="space-y-3 sm:space-y-4">
+                  <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                    <span className="text-sm font-medium text-gray-700">生理開始時の通知</span>
                     <input
                       type="checkbox"
                       checked={settings.partnerNotifications.menstrualStart}
                       onChange={(e) => updateSetting("partnerNotifications", "menstrualStart", e.target.checked)}
-                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-700">生理開始時の通知</span>
                   </label>
-                  <label className="flex items-center space-x-3">
+                  <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                    <span className="text-sm font-medium text-gray-700">排卵期の通知</span>
                     <input
                       type="checkbox"
                       checked={settings.partnerNotifications.ovulationPeriod}
                       onChange={(e) => updateSetting("partnerNotifications", "ovulationPeriod", e.target.checked)}
-                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-700">排卵期の通知</span>
                   </label>
-                  <label className="flex items-center space-x-3">
+                  <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                    <span className="text-sm font-medium text-gray-700">気分の変化に関する通知</span>
                     <input
                       type="checkbox"
                       checked={settings.partnerNotifications.moodChanges}
                       onChange={(e) => updateSetting("partnerNotifications", "moodChanges", e.target.checked)}
-                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                     />
-                    <span className="text-sm text-gray-700">気分の変化に関する通知</span>
                   </label>
                 </div>
               </div>
@@ -247,28 +247,28 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           </div>
 
           {/* 一般設定 */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">一般設定</h3>
-              <p className="text-sm text-gray-500">プッシュ通知と音声設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">一般設定</h3>
+              <p className="text-xs sm:text-sm text-gray-500 leading-tight">プッシュ通知と音声設定</p>
             </div>
-            <div className="space-y-3">
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">プッシュ通知</span>
+            <div className="space-y-2 sm:space-y-3">
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <span className="text-sm font-medium text-gray-700">プッシュ通知</span>
                 <input
                   type="checkbox"
                   checked={settings.generalSettings.pushNotifications}
                   onChange={(e) => updateSetting("generalSettings", "pushNotifications", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
-              <label className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">通知音</span>
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <span className="text-sm font-medium text-gray-700">通知音</span>
                 <input
                   type="checkbox"
                   checked={settings.generalSettings.soundEnabled}
                   onChange={(e) => updateSetting("generalSettings", "soundEnabled", e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
             </div>

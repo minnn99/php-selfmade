@@ -317,7 +317,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-neutral-500 mt-1 leading-tight">{item.description}</p>
+                  <p className="text-xs sm:text-sm text-neutral-500 mt-1 leading-relaxed break-words">{item.description}</p>
                 </div>
                 <div className="flex-shrink-0 ml-2">
                   <svg

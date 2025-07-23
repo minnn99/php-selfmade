@@ -105,88 +105,90 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
 
   const renderBasicInfo = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">ニックネーム</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">ニックネーム</label>
           <input
             type="text"
             value={profileData.nickname}
             onChange={(e) => updateField("nickname", e.target.value)}
             placeholder="表示用の名前"
-            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px]"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">本名</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">本名</label>
           <input
             type="text"
             value={profileData.fullName}
             onChange={(e) => updateField("fullName", e.target.value)}
-            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px]"
+            placeholder="ミンジェ"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
-        <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メールアドレス</label>
           <input
             type="email"
             value={profileData.email}
             onChange={(e) => updateField("email", e.target.value)}
-            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px]"
+            placeholder="minjae@test.com"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">電話番号</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">電話番号</label>
           <input
             type="tel"
             value={profileData.phone}
             onChange={(e) => updateField("phone", e.target.value)}
-            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px]"
+            placeholder="090-1234-5678"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">生年月日</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">生年月日</label>
           <input
             type="date"
             value={profileData.birthDate}
             onChange={(e) => updateField("birthDate", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
-          {calculateAge() && <p className="text-sm text-gray-500 mt-1">年齢: {calculateAge()}歳</p>}
+          {calculateAge() && <p className="text-sm text-gray-500 mt-2">年齢: {calculateAge()}歳</p>}
         </div>
       </div>
-      
     </div>
   );
 
   const renderHealthInfo = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">身長 (cm)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">身長 (cm)</label>
           <input
             type="number"
             value={profileData.height}
             onChange={(e) => updateField("height", e.target.value)}
             placeholder="160"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">体重 (kg)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">体重 (kg)</label>
           <input
             type="number"
             value={profileData.weight}
             onChange={(e) => updateField("weight", e.target.value)}
             placeholder="50"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">血液型</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">血液型</label>
           <select
             value={profileData.bloodType}
             onChange={(e) => updateField("bloodType", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           >
             <option value="">選択してください</option>
             <option value="A">A型</option>
@@ -204,35 +206,35 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">アレルギー</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">アレルギー</label>
         <textarea
           value={profileData.allergies}
           onChange={(e) => updateField("allergies", e.target.value)}
           rows={3}
           placeholder="食物アレルギー、薬物アレルギーなど"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[80px] touch-manipulation"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">現在服用中の薬</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在服用中の薬</label>
         <textarea
           value={profileData.medications}
           onChange={(e) => updateField("medications", e.target.value)}
           rows={3}
           placeholder="薬名、用量、服用理由など"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[80px] touch-manipulation"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">既往歴</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">既往歴</label>
         <textarea
           value={profileData.medicalHistory}
           onChange={(e) => updateField("medicalHistory", e.target.value)}
           rows={4}
           placeholder="過去の病気、手術歴、入院歴など"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[100px] touch-manipulation"
         />
       </div>
     </div>
@@ -271,8 +273,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
                 }`}
               >
                 <span className="text-sm sm:text-base">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden text-xs">{tab.label.split('')[0]}</span>
+                <span className="text-xs sm:text-sm whitespace-nowrap">{tab.label}</span>
               </button>
             ))}
           </div>
