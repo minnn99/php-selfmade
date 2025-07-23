@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MainLayout } from "./components/MainLayout";
 import { LoginPage } from "./components/LoginPage";
+import { SignupPage } from "./components/SignupPage";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { authAPI } from "./services/api";
@@ -8,7 +9,7 @@ import { authAPI } from "./services/api";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<"welcome" | "login" | "main">("login");
+  const [currentView, setCurrentView] = useState<"welcome" | "login" | "signup" | "main">("login");
 
   useEffect(() => {
     // 初回起動チェック
@@ -31,6 +32,11 @@ function App() {
     setIsLoading(false);
   }, []);
 
+  // ページ遷移時にスクロール位置をトップに戻す
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+
   const handleLogout = async () => {
     // 新しい認証システムを使用してログアウト
     await authAPI.logout();
@@ -40,9 +46,9 @@ function App() {
   };
 
   const handleGetStarted = () => {
-    // 訪問フラグをセットして登録ページへ
+    // 訪問フラグをセットして新規登録ページへ
     localStorage.setItem("has_visited", "true");
-    setCurrentView("login");
+    setCurrentView("signup");
   };
 
   const handleWelcomeLogin = () => {
@@ -79,6 +85,10 @@ function App() {
       window.location.href = redirectUrl;
     }
   };
+
+  if (currentView === "signup") {
+    return <SignupPage onShowLogin={() => setCurrentView("login")} />;
+  }
 
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;

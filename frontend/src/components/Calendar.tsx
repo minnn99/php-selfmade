@@ -2,14 +2,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
 import { menstrualCycleAPI } from "../services/api";
 
-interface DayData {
+interface CalendarDay {
+  year: number;
+  month: number; // 0-indexed (JS標準)
   date: number;
   isCurrentMonth: boolean;
   isToday: boolean;
   hasPeriod: boolean;
   hasSymptoms: boolean;
   isOvulation: boolean;
-  isFertile: boolean;
   isPredictedPeriod: boolean;
   isPeriodStart: boolean;
   isPeriodEnd: boolean;
@@ -27,7 +28,7 @@ export const Calendar: React.FC = () => {
 
   const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
-  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
   // 現在の月の年と月を取得
   const currentYear = currentDate.getFullYear();
@@ -165,19 +166,18 @@ export const Calendar: React.FC = () => {
     }
   };
 
-  const generateDays = () => {
-    const year = currentYear;
-    const month = currentMonth;
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
+  const generateCalendarDays = (): CalendarDay[] => {
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
     const firstDayWeekday = firstDayOfMonth.getDay();
     const daysInMonth = lastDayOfMonth.getDate();
-    const days: DayData[] = [];
+
+    const days: CalendarDay[] = [];
     const today = new Date();
 
     // 前月の情報
-    const prevMonth = month === 0 ? 11 : month - 1;
-    const prevMonthYear = month === 0 ? year - 1 : year;
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
     const prevMonthLastDay = new Date(prevMonthYear, prevMonth + 1, 0);
     const prevMonthLastDate = prevMonthLastDay.getDate();
 
@@ -186,106 +186,76 @@ export const Calendar: React.FC = () => {
       const date = prevMonthLastDate - firstDayWeekday + 1 + i;
       const dateKey = `${prevMonthYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
-      
-      // ローカルストレージからのデータも統合
-      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-      let localParsedData = null;
-      try {
-        localParsedData = localData ? JSON.parse(localData) : null;
-      } catch (error) {
-        console.error(`Failed to parse local data for ${dateKey}:`, error);
-      }
-      
       days.push({
+        year: prevMonthYear,
+        month: prevMonth,
         date,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: dayData?.isOvulation || false,
-        isFertile: dayData?.isFertile || false,
         isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
     }
 
     // 今月分
     for (let date = 1; date <= daysInMonth; date++) {
-      const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === date;
-      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
+      const isToday = today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === date;
+      const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
-      
-      // ローカルストレージからのデータも統合
-      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-      let localParsedData = null;
-      try {
-        localParsedData = localData ? JSON.parse(localData) : null;
-      } catch (error) {
-        console.error(`Failed to parse local data for ${dateKey}:`, error);
-      }
-      
       days.push({
+        year: currentYear,
+        month: currentMonth,
         date,
         isCurrentMonth: true,
         isToday,
-        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: dayData?.isOvulation || false,
-        isFertile: dayData?.isFertile || false,
         isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
     }
 
     // 次月分
-    const nextMonth = month === 11 ? 0 : month + 1;
-    const nextMonthYear = month === 11 ? year + 1 : year;
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    const nextMonthYear = currentMonth === 11 ? currentYear + 1 : currentYear;
     let nextMonthDate = 1;
     while (days.length < 42) {
       const dateKey = `${nextMonthYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(nextMonthDate).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
-      
-      // ローカルストレージからのデータも統合
-      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-      let localParsedData = null;
-      try {
-        localParsedData = localData ? JSON.parse(localData) : null;
-      } catch (error) {
-        console.error(`Failed to parse local data for ${dateKey}:`, error);
-      }
-      
       days.push({
+        year: nextMonthYear,
+        month: nextMonth,
         date: nextMonthDate,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || localParsedData?.hasPeriod || false,
+        hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
         isOvulation: dayData?.isOvulation || false,
-        isFertile: dayData?.isFertile || false,
         isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || localParsedData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || localParsedData?.isPeriodEnd || false,
+        isPeriodStart: dayData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
       });
       nextMonthDate++;
     }
+
     return days;
   };
 
-  const navigateMonth = (direction: "prev" | "next") => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      if (direction === "prev") {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setMonth(newDate.getMonth() + 1);
-      }
-      return newDate;
-    });
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
   // ローカルタイムゾーンで日付文字列を取得
@@ -363,9 +333,9 @@ export const Calendar: React.FC = () => {
   };
 
   // 日付がクリックされた時の処理
-  const handleDateClick = async (day: DayData) => {
+  const handleDateClick = async (day: CalendarDay) => {
     if (day.isCurrentMonth && !loading) {
-      const clickedDate = new Date(currentYear, currentMonth, day.date);
+      const clickedDate = new Date(day.year, day.month, day.date);
       setSelectedDateForModal(clickedDate);
 
       try {
@@ -599,67 +569,82 @@ export const Calendar: React.FC = () => {
     setExistingDataForModal(undefined);
   };
 
-  const days = useMemo(() => generateDays(), [currentYear, currentMonth, calendarApiData, refreshKey]);
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, refreshKey]);
 
-  const getDayClassName = (day: DayData): string => {
-    let className = "w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs sm:text-sm font-medium transition-colors relative cursor-pointer touch-manipulation ";
+  // 日付セルのスタイルを決定
+  const getDayStyle = (day: CalendarDay) => {
+    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation ";
 
     if (!day.isCurrentMonth) {
-      className += "text-gray-300 ";
+      baseStyle += "text-gray-300 ";
     } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
       // 今日かつ生理関連の場合
-      className += "bg-red-600 text-white rounded-lg ";
+      baseStyle += "bg-red-600 text-white rounded-lg ";
     } else if (day.isToday) {
       // 今日のみの場合
-      className += "bg-primary-600 text-white rounded-lg ";
+      baseStyle += "bg-primary-600 text-white rounded-lg ";
     } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
       // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
-      className += "bg-red-500 text-white rounded-lg ";
+      baseStyle += "bg-red-500 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
-      className += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
+      baseStyle += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
     } else if (day.isOvulation) {
       // 排卵日の場合
-      className += "bg-pink-500 text-white rounded-lg ";
-    } else if (day.isFertile) {
-      // 妊娠しやすい日の場合
-      className += "bg-purple-100 text-purple-700 rounded-lg ";
+      baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else {
       // 通常の日付
-      className += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
+      baseStyle += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
     }
 
-    return className;
+    return baseStyle;
+  };
+
+  // 日付セルの装飾を決定
+  const getDayDecorations = (day: CalendarDay) => {
+    const decorations = [];
+
+    // 生理日は背景色で表示するため、ドットは不要
+    // 予測生理日の場合のみドット表示
+    if (day.isPredictedPeriod && !day.hasPeriod) {
+      decorations.push(
+        <div key="predicted" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 border-2 border-red-400 rounded-full bg-white"></div>
+      );
+    }
+
+    // 排卵日も背景色で表示するため、生理日と重複しない場合のみ
+    if (day.isOvulation && !day.hasPeriod) {
+      decorations.push(<div key="ovulation" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-pink-500 rounded-full"></div>);
+    }
+
+    // 症状がある場合は小さなドットを表示
+    if (day.hasSymptoms) {
+      decorations.push(<div key="symptoms" className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>);
+    }
+
+    return decorations;
   };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-      {/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-        <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 text-center sm:text-left">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </h2>
+        <div>
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">カレンダー</h2>
+          <p className="text-sm text-neutral-600">生理周期と症状を確認</p>
+        </div>
         <div className="flex items-center justify-center sm:space-x-3">
-          <div className="flex items-center space-x-1 sm:space-x-2">
-            <button 
-              onClick={() => navigateMonth("prev")} 
-              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center space-x-1">
+            <button onClick={goToPreviousMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-primary-600 hover:text-primary-700 active:text-primary-800 transition-colors min-h-[44px] flex items-center justify-center touch-manipulation"
-            >
-              今日
-            </button>
-            <button 
-              onClick={() => navigateMonth("next")} 
-              className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="px-3 py-2 sm:px-4 text-base sm:text-lg font-semibold text-gray-900 min-w-[100px] sm:min-w-[120px] text-center">
+              {currentYear}年{monthNames[currentMonth]}
+            </div>
+            <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -669,46 +654,46 @@ export const Calendar: React.FC = () => {
 
       {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-1 mb-4">
-        {weekdays.map((day, index) => (
+        {/* Day Headers */}
+        {dayNames.map((dayName, index) => (
           <div
-            key={day}
+            key={dayName}
             className={`h-8 sm:h-10 flex items-center justify-center text-xs sm:text-sm font-medium ${
-              index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-500"
+              index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-600"
             }`}
           >
-            {day}
+            {dayName}
           </div>
         ))}
-      </div>
 
-      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
-        {days.map((day, index) => (
-          <button key={index} className={getDayClassName(day)} onClick={() => handleDateClick(day)}>
-            <span className="text-sm sm:text-base">{day.date}</span>
-            {/* 症状がある場合は小さなドットを表示 */}
-            {day.hasSymptoms && <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>}
-          </button>
+        {/* Calendar Days */}
+        {calendarDays.map((day, index) => (
+          <div key={index} className={getDayStyle(day)} onClick={() => handleDateClick(day)}>
+            {day.date}
+            {getDayDecorations(day)}
+          </div>
         ))}
       </div>
 
       {/* Legend */}
-      <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-100">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-xs sm:text-sm">
+      <div className="border-t border-gray-200 pt-4">
+        <h3 className="text-sm font-medium text-gray-700 mb-3">凡例</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-500 rounded flex-shrink-0"></div>
+            <div className="w-3 h-3 border-2 border-red-400 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600">予測生理日</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">排卵日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-purple-100 border border-purple-300 rounded flex-shrink-0"></div>
-            <span className="text-gray-600">妊娠しやすい日</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-100 border border-red-300 rounded flex-shrink-0"></div>
-            <span className="text-gray-600">予測日</span>
+            <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600">症状記録</span>
           </div>
         </div>
       </div>

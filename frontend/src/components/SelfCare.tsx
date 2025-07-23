@@ -34,19 +34,53 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       const today = new Date();
       const year = today.getFullYear();
       const month = today.getMonth() + 1;
-
-      const data = await menstrualCycleAPI.getCalendarData(year, month);
       const todayString = today.toISOString().split("T")[0];
-      const todayData = data.data?.[todayString];
 
-      if (todayData) {
-        if (todayData.hasPeriod) {
-          return "menstrual";
-        } else if (todayData.isOvulation || todayData.isFertile) {
-          return "ovulation";
+      // APIデータとローカルストレージデータの両方を取得
+      const apiData = await menstrualCycleAPI.getCalendarData(year, month);
+      const todayApiData = apiData.data?.[todayString];
+      
+      // ローカルストレージから今日の症状データを取得
+      const localData = localStorage.getItem(`daily-symptoms-${todayString}`);
+      let localParsedData = null;
+      try {
+        localParsedData = localData ? JSON.parse(localData) : null;
+      } catch (error) {
+        console.error(`Failed to parse local data for ${todayString}:`, error);
+      }
+
+      // 生理中の判定（APIデータまたはローカルデータ）
+      const hasPeriod = todayApiData?.hasPeriod || localParsedData?.hasPeriod || 
+                       todayApiData?.isPeriodStart || localParsedData?.isPeriodStart ||
+                       todayApiData?.isPeriodEnd || localParsedData?.isPeriodEnd;
+      
+      if (hasPeriod) {
+        console.log("SelfCare - Today status: menstrual (period detected)");
+        return "menstrual";
+      }
+
+      // 排卵期の判定
+      if (todayApiData?.isOvulation || todayApiData?.isFertile) {
+        console.log("SelfCare - Today status: ovulation");
+        return "ovulation";
+      }
+
+      // ローカルデータから症状を確認してPMSかどうか判定
+      if (localParsedData) {
+        const hasSymptoms = localParsedData.symptoms && Array.isArray(localParsedData.symptoms) && localParsedData.symptoms.length > 0;
+        const hasMoodIssues = localParsedData.mood && typeof localParsedData.mood === 'string' && 
+                             (localParsedData.mood.includes("イライラ") || localParsedData.mood.includes("不安") || 
+                              localParsedData.mood.includes("憂鬱") || localParsedData.mood.includes("落ち込み"));
+        
+        if (hasSymptoms || hasMoodIssues) {
+          console.log("SelfCare - Today status: pms (symptoms detected)");
+          return "pms";
         }
-        // PMS期間の判定（生理予定日の7日前から）
-        const keys = Object.keys(data.data).sort();
+      }
+
+      // PMS期間の判定（生理予定日の7日前から）
+      if (apiData.data) {
+        const keys = Object.keys(apiData.data).sort();
         const todayIndex = keys.indexOf(todayString);
         if (todayIndex !== -1) {
           // 今後7日以内に生理予定日があるかチェック
@@ -54,8 +88,9 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
             const futureIndex = todayIndex + i;
             if (futureIndex < keys.length) {
               const futureDate = keys[futureIndex];
-              const futureData = data.data[futureDate];
+              const futureData = apiData.data[futureDate];
               if (futureData?.isPredictedPeriod || futureData?.hasPeriod) {
+                console.log("SelfCare - Today status: pms (predicted period within 7 days)");
                 return "pms";
               }
             }
@@ -63,6 +98,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
         }
       }
 
+      console.log("SelfCare - Today status: general");
       return "general";
     } catch (error) {
       console.error("今日の状態を取得できませんでした:", error);
@@ -350,7 +386,20 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           })}
         </div>
         {todayStatus !== "general" && (
-          <p className="text-xs text-gray-500 mt-2">今日の日付に基づいて「{symptoms.find((s) => s.id === todayStatus)?.label}」が自動選択されました</p>
+          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-green-800">自動検出</p>
+                <p className="text-xs text-green-700 mt-1">
+                  カレンダーデータと症状記録から「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。
+                  お体の状態に合わせたセルフケアをお試しください。
+                </p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

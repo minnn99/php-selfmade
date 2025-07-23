@@ -405,7 +405,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
                             </div>
                             <div className="text-right flex-shrink-0 sm:ml-4">
                               <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(record.date)}</div>
-                              <div className="text-xs text-primary-600 font-medium">
+                              <div className="text-xs text-primary-600 font-medium whitespace-nowrap sm:mb-2">
                                 {weekData.weeks}w{weekData.days}d
                               </div>
                             </div>
@@ -444,7 +444,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
                           </div>
 
                           {/* Desktop Action Buttons */}
-                          <div className="hidden sm:flex sm:absolute sm:top-3 sm:right-3 space-x-1">
+                          <div className="hidden sm:flex sm:absolute sm:bottom-3 sm:right-3 space-x-1">
                             <button
                               onClick={() => openEditModal(record)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"

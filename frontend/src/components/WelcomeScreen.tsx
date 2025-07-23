@@ -15,14 +15,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
             Pairiod
           </h1>
           <p className="text-base sm:text-lg lg:text-xl text-neutral-600 max-w-2xl mx-auto leading-relaxed px-2">
-            あなたの健康管理をサポートする
+            パートナーと一緒に支え合う
             <br />
-            パーソナルヘルスケアアプリ
+            健康管理アプリ
           </p>
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
           <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,8 +36,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
           </div>
 
           <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-accent-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -48,14 +48,26 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
           </div>
 
           <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-2">パーソナル分析</h3>
             <p className="text-neutral-600 text-xs sm:text-sm">
               蓄積されたデータから個人に最適な健康アドバイスを提供します
+            </p>
+          </div>
+
+          <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <h3 className="text-base sm:text-lg font-semibold text-neutral-900 mb-2">パートナー連動</h3>
+            <p className="text-neutral-600 text-xs sm:text-sm">
+              パートナーと健康情報を共有し、お互いをサポートし合えます
             </p>
           </div>
         </div>
@@ -84,6 +96,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
               </div>
               <p className="text-neutral-700 text-sm sm:text-base">
                 <span className="font-medium">プライバシー保護</span> - あなたのデータは安全に保護されます
+              </p>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 bg-primary-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-neutral-700 text-sm sm:text-base">
+                <span className="font-medium">パートナーと共有</span> - 大切な人と健康情報を安全に共有
               </p>
             </div>
             <div className="flex items-start space-x-3">

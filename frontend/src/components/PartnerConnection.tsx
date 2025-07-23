@@ -21,7 +21,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         const userData = await authAPI.getUser();
         const gender = userData.data?.gender || "";
         setUserGender(gender);
-        
+
         // 男性ユーザーで招待タブが選択されている場合、自動的にconnectタブに切り替え
         const isMale = gender === "male" || gender === "男性";
         if (isMale && activeTab === "invite") {
@@ -48,13 +48,21 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
   // 招待コード入力処理（仮実装）
   const handleJoinPartner = () => {
-    if (inviteCode.length === 6) {
+    if (inviteCode.length !== 6) {
+      alert("正しい招待コードを入力してください");
+      return;
+    }
+
+    // 確認ダイアログを表示
+    const isConfirmed = confirm(
+      `招待コード「${inviteCode}」でパートナーと連携しますか？\n\n連携すると以下の情報が共有されます：\n・生理周期データ\n・症状記録\n・健康状態\n\n信頼できるパートナーとのみ連携してください。`
+    );
+
+    if (isConfirmed) {
       setIsConnected(true);
       setPartnerName("サンプルパートナー");
       setActiveTab("status");
-      alert("パートナーと連携しました！");
-    } else {
-      alert("正しい招待コードを入力してください");
+      alert("パートナーと連携しました！\n今後、健康データがパートナーと共有されます。");
     }
   };
 
@@ -105,7 +113,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
               activeTab === "invite" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
             }`}
           >
-            <span className="hidden sm:inline">招待コード生成</span><span className="sm:hidden">招待</span>
+            <span className="hidden sm:inline">招待コード生成</span>
+            <span className="sm:hidden">招待</span>
           </button>
         )}
         <button
@@ -114,7 +123,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
             activeTab === "connect" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
           }`}
         >
-          <span className="hidden sm:inline">パートナーに参加</span><span className="sm:hidden">参加</span>
+          <span className="hidden sm:inline">パートナーに参加</span>
+          <span className="sm:hidden">参加</span>
         </button>
       </div>
 
@@ -180,11 +190,18 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
               <div className="text-center bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                   <svg className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-base sm:text-lg font-medium text-amber-900 mb-2">招待コード生成は利用できません</h3>
-                <p className="text-sm sm:text-base text-amber-700 mb-4 px-2">男性アカウントでは招待コードの生成機能をご利用いただけません。パートナーから招待コードを受け取って参加してください。</p>
+                <p className="text-sm sm:text-base text-amber-700 mb-4 px-2">
+                  男性アカウントでは招待コードの生成機能をご利用いただけません。パートナーから招待コードを受け取って参加してください。
+                </p>
                 <button
                   onClick={() => setActiveTab("connect")}
                   className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
@@ -197,34 +214,34 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                 <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナーを招待</h3>
                 <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 px-2">招待コードを生成してパートナーに共有してください</p>
 
-              {generatedCode ? (
-                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 sm:p-6 mb-4">
-                  <div className="text-center">
-                    <p className="text-xs sm:text-sm text-primary-600 mb-2">招待コード</p>
-                    <div className="text-2xl sm:text-3xl font-mono font-bold text-primary-900 tracking-widest mb-3 sm:mb-4">{generatedCode}</div>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(generatedCode)}
-                      className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
-                    >
-                      コードをコピー
-                    </button>
+                {generatedCode ? (
+                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 sm:p-6 mb-4">
+                    <div className="text-center">
+                      <p className="text-xs sm:text-sm text-primary-600 mb-2">招待コード</p>
+                      <div className="text-2xl sm:text-3xl font-mono font-bold text-primary-900 tracking-widest mb-3 sm:mb-4">{generatedCode}</div>
+                      <button
+                        onClick={() => navigator.clipboard.writeText(generatedCode)}
+                        className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
+                      >
+                        コードをコピー
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-lg p-6 sm:p-8 mb-4">
-                  <div className="text-center">
-                    <svg className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                      />
-                    </svg>
-                    <p className="text-sm sm:text-base text-neutral-600">招待コードを生成してください</p>
+                ) : (
+                  <div className="bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-lg p-6 sm:p-8 mb-4">
+                    <div className="text-center">
+                      <svg className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                      </svg>
+                      <p className="text-sm sm:text-base text-neutral-600">招待コードを生成してください</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
                 <button
                   onClick={generateInviteCode}
@@ -268,23 +285,6 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
               >
                 パートナーに参加
               </button>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-start">
-                <svg className="w-5 h-5 text-amber-600 mb-2 sm:mb-0 sm:mt-0.5 sm:mr-3 flex-shrink-0 self-center sm:self-start" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-                <div className="text-center sm:text-left">
-                  <h4 className="text-xs sm:text-sm font-medium text-amber-800">注意事項</h4>
-                  <p className="text-xs sm:text-sm text-amber-700 mt-1">パートナーと連携すると、健康データが共有されます。信頼できる相手とのみ連携してください。</p>
-                </div>
-              </div>
             </div>
           </div>
         )}
