@@ -13,7 +13,7 @@ interface ProfileData {
   email: string;
   phone: string;
   birthDate: string;
-  
+
   // 健康情報
   height: string;
   weight: string;
@@ -48,13 +48,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   const loadProfileData = () => {
     const savedProfile = localStorage.getItem("userProfile");
     const userData = localStorage.getItem("user");
-    
+
     if (savedProfile) {
       setProfileData(JSON.parse(savedProfile));
     } else if (userData) {
       // 既存のユーザーデータから初期値を設定
       const user = JSON.parse(userData);
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
         fullName: user.name || "",
         email: user.email || "",
@@ -69,7 +69,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   };
 
   const updateField = (field: keyof ProfileData, value: string | boolean) => {
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -198,7 +198,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           </select>
         </div>
       </div>
-      
+
       {calculateBMI() && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-800">BMI: {calculateBMI()}</p>
@@ -240,17 +240,18 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     </div>
   );
 
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-4xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">プロフィール設定</h2>
-            <span className="ml-2 text-lg sm:text-xl">👤</span>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,9 +268,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 flex items-center justify-center space-x-1 sm:space-x-2 py-2 sm:py-3 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
-                  activeTab === tab.id
-                    ? "bg-white text-primary-700 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  activeTab === tab.id ? "bg-white text-primary-700 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
                 <span className="text-sm sm:text-base">{tab.icon}</span>

@@ -75,7 +75,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
   };
 
   const updateSetting = (category: keyof SecuritySettings, field: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       [category]: {
         ...prev[category],
@@ -119,19 +119,25 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
   const enable2FA = () => {
     updateSetting("twoFactorAuth", "enabled", true);
     generateBackupCodes();
-    alert(`${settings.twoFactorAuth.method === "sms" ? "SMS" : settings.twoFactorAuth.method === "email" ? "メール" : "認証アプリ"}による2段階認証が有効になりました`);
+    alert(
+      `${
+        settings.twoFactorAuth.method === "sms" ? "SMS" : settings.twoFactorAuth.method === "email" ? "メール" : "認証アプリ"
+      }による2段階認証が有効になりました`
+    );
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">セキュリティ設定</h2>
-            <span className="ml-2 text-lg sm:text-xl">🔒</span>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,14 +153,12 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               <h3 className="text-base sm:text-lg font-medium text-gray-900">パスワード設定</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">パスワード変更と強度設定</p>
             </div>
-            
+
             <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
               <div className="flex items-start sm:items-center justify-between">
                 <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">パスワード</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    最終変更: {settings.passwordPolicy.lastChanged || "未設定"}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">最終変更: {settings.passwordPolicy.lastChanged || "未設定"}</p>
                 </div>
                 <button
                   onClick={() => setShowPasswordForm(!showPasswordForm)}
@@ -171,7 +175,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                     <input
                       type="password"
                       value={passwordForm.currentPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
@@ -180,7 +184,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                     <input
                       type="password"
                       value={passwordForm.newPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
@@ -189,7 +193,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                     <input
                       type="password"
                       value={passwordForm.confirmPassword}
-                      onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
@@ -206,20 +210,20 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                 <label className="block text-sm font-medium text-gray-700">パスワード要件</label>
                 <div className="text-xs sm:text-sm text-gray-600 space-y-2">
                   <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.minLength >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
-                      {settings.passwordPolicy.minLength >= 8 ? '✓' : '○'}
+                    <span className={`mr-2 ${settings.passwordPolicy.minLength >= 8 ? "text-green-600" : "text-gray-400"}`}>
+                      {settings.passwordPolicy.minLength >= 8 ? "✓" : "○"}
                     </span>
                     最低{settings.passwordPolicy.minLength}文字
                   </div>
                   <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.requireUppercase ? 'text-green-600' : 'text-gray-400'}`}>
-                      {settings.passwordPolicy.requireUppercase ? '✓' : '○'}
+                    <span className={`mr-2 ${settings.passwordPolicy.requireUppercase ? "text-green-600" : "text-gray-400"}`}>
+                      {settings.passwordPolicy.requireUppercase ? "✓" : "○"}
                     </span>
                     大文字を含む
                   </div>
                   <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.requireNumbers ? 'text-green-600' : 'text-gray-400'}`}>
-                      {settings.passwordPolicy.requireNumbers ? '✓' : '○'}
+                    <span className={`mr-2 ${settings.passwordPolicy.requireNumbers ? "text-green-600" : "text-gray-400"}`}>
+                      {settings.passwordPolicy.requireNumbers ? "✓" : "○"}
                     </span>
                     数字を含む
                   </div>
@@ -234,20 +238,15 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               <h3 className="text-base sm:text-lg font-medium text-gray-900">2段階認証</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン時の追加セキュリティ</p>
             </div>
-            
+
             <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
               <div className="flex items-start sm:items-center justify-between">
                 <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700">2段階認証</span>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {settings.twoFactorAuth.enabled ? "有効" : "無効"}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{settings.twoFactorAuth.enabled ? "有効" : "無効"}</p>
                 </div>
                 <button
-                  onClick={() => settings.twoFactorAuth.enabled 
-                    ? updateSetting("twoFactorAuth", "enabled", false)
-                    : enable2FA()
-                  }
+                  onClick={() => (settings.twoFactorAuth.enabled ? updateSetting("twoFactorAuth", "enabled", false) : enable2FA())}
                   className={`px-3 py-2 text-sm rounded-lg transition-colors min-h-[44px] flex items-center justify-center flex-shrink-0 ${
                     settings.twoFactorAuth.enabled
                       ? "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white"
@@ -276,9 +275,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                   {settings.twoFactorAuth.backupCodes.length > 0 && (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <p className="text-sm font-medium text-yellow-800 mb-2">バックアップコード</p>
-                      <p className="text-xs text-yellow-700 mb-2">
-                        デバイスにアクセスできない場合に使用してください
-                      </p>
+                      <p className="text-xs text-yellow-700 mb-2">デバイスにアクセスできない場合に使用してください</p>
                       <div className="grid grid-cols-2 gap-1 text-xs font-mono">
                         {settings.twoFactorAuth.backupCodes.slice(0, 4).map((code, index) => (
                           <span key={index} className="bg-yellow-100 px-2 py-1 rounded">
@@ -286,10 +283,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                           </span>
                         ))}
                       </div>
-                      <button
-                        onClick={generateBackupCodes}
-                        className="mt-2 text-xs text-yellow-700 hover:text-yellow-900 underline"
-                      >
+                      <button onClick={generateBackupCodes} className="mt-2 text-xs text-yellow-700 hover:text-yellow-900 underline">
                         新しいコードを生成
                       </button>
                     </div>
@@ -305,7 +299,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               <h3 className="text-base sm:text-lg font-medium text-gray-900">ログインセキュリティ</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン関連のセキュリティ設定</p>
             </div>
-            
+
             <div className="space-y-2 sm:space-y-3">
               <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <div className="flex-1 mr-4">
@@ -347,7 +341,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               </label>
             </div>
           </div>
-
         </div>
 
         {/* Footer */}

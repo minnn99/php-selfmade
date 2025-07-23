@@ -116,16 +116,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
   // CSV形式に変換
   const convertToCSV = (cycles: any[]) => {
-    const headers = [
-      "開始日",
-      "終了日",
-      "周期長",
-      "生理期間",
-      "出血量",
-      "症状",
-      "メモ",
-      "作成日",
-    ];
+    const headers = ["開始日", "終了日", "周期長", "生理期間", "出血量", "症状", "メモ", "作成日"];
 
     const rows = cycles.map((cycle) => [
       cycle.start_date || "",
@@ -138,9 +129,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
       cycle.created_at || "",
     ]);
 
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((field) => `"${field}"`).join(","))
-      .join("\n");
+    const csvContent = [headers, ...rows].map((row) => row.map((field) => `"${field}"`).join(",")).join("\n");
 
     return "\ufeff" + csvContent; // BOM for UTF-8
   };
@@ -257,13 +246,15 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">データ管理</h2>
-            <span className="ml-2 text-lg sm:text-xl">📁</span>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +276,12 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
               className="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-gray-400 text-white rounded-lg transition-colors min-h-[44px]"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                />
               </svg>
               <span className="text-sm sm:text-base">{isExporting ? "作成中..." : "完全バックアップを作成"}</span>
             </button>
@@ -383,7 +379,12 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                 className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-gray-400 text-white rounded-lg transition-colors min-h-[44px]"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <span className="text-sm sm:text-base">{isExporting ? "エクスポート中..." : "エクスポート実行"}</span>
               </button>
@@ -431,7 +432,11 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex">
               <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
               <div className="text-xs sm:text-sm">
                 <p className="font-medium text-yellow-800">注意事項</p>
@@ -447,7 +452,10 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
         {/* Footer */}
         <div className="flex items-center justify-center sm:justify-end p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
-          <button onClick={onClose} className="w-full sm:w-auto px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center">
+          <button
+            onClick={onClose}
+            className="w-full sm:w-auto px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+          >
             閉じる
           </button>
         </div>
