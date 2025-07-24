@@ -13,6 +13,7 @@ import { SelfCare } from "./SelfCare";
 import { MedicalRecords } from "./MedicalRecords";
 import { NotificationPopup } from "./NotificationPopup";
 import { NotificationBadge } from "./NotificationBadge";
+import { ConfirmationModal } from "./ConfirmationModal";
 import { MobileActions } from "./MobileActions";
 
 interface MainLayoutProps {
@@ -26,6 +27,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
+    onLogout();
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
+  };
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -86,7 +101,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               
               {/* Desktop Logout Button */}
               <button
-                onClick={onLogout}
+                onClick={handleLogoutClick}
                 className="hidden lg:flex p-2 sm:p-3 text-gray-400 hover:text-red-600 transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
                 title="ログアウト"
               >
@@ -201,6 +216,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         onClose={() => setIsSettingsOpen(false)}
         onDataDeleted={handleDataDeleted} // 追加
       />
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <ConfirmationModal
+          message="ログアウトしますか？"
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
+      )}
     </div>
   );
 };

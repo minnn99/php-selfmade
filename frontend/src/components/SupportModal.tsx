@@ -220,15 +220,6 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
         />
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-        <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
-          📋 <strong>回答時間について：</strong>
-          <br className="hidden sm:block" />
-          <span className="sm:hidden"> </span>
-          お問い合わせから1-2営業日以内にご回答いたします。お急ぎの場合は、よくある質問もご確認ください。
-        </p>
-      </div>
-
       <button
         onClick={handleSubmitContact}
         className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"

@@ -102,10 +102,20 @@ class MenstrualStatusManager {
 export const menstrualStatusManager = new MenstrualStatusManager();
 
 // Initialize the manager when the module is imported
-menstrualStatusManager.loadStatus();
+menstrualStatusManager.loadStatus().then(() => {
+  // Auto-update period status after loading
+  import('../utils/periodStatusHelper').then(({ autoUpdatePeriodStatusForActiveCycle }) => {
+    autoUpdatePeriodStatusForActiveCycle();
+  });
+});
 
 // Listen for menstrualDataUpdated events globally
 window.addEventListener('menstrualDataUpdated', () => {
   console.log('MenstrualStatusManager - Received menstrualDataUpdated event, reloading status...');
-  menstrualStatusManager.loadStatus();
+  menstrualStatusManager.loadStatus().then(() => {
+    // Auto-update period status after reloading
+    import('../utils/periodStatusHelper').then(({ autoUpdatePeriodStatusForActiveCycle }) => {
+      autoUpdatePeriodStatusForActiveCycle();
+    });
+  });
 });

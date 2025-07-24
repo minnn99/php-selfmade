@@ -203,6 +203,13 @@ export const authAPI = {
   // Stop automatic token expiration checking
   stopTokenChecker: stopTokenExpirationChecker,
 
+  // Delete user account
+  deleteAccount: async () => {
+    return apiRequest('/user', {
+      method: 'DELETE',
+    });
+  },
+
   // Export utility functions
   getAuthData,
   isTokenExpired

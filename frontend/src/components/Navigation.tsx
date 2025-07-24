@@ -89,14 +89,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         start_date: today
       });
       
-      // 生理開始から今日まで（つまり今日だけ）を生理中として設定
-      await updateCalendarForPeriod(today, today);
+      // Reload status first to get the new active cycle
+      await menstrualStatusManager.forceReloadStatus();
       
       // カスタムイベントを発火してカレンダーとセルフケアを更新
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
-      // Reload status after starting
-      await menstrualStatusManager.forceReloadStatus();
       alert('生理が開始されました');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);

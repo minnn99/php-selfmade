@@ -5,6 +5,7 @@ import { SignupPage } from "./components/SignupPage";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { authAPI } from "./services/api";
+import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,6 +24,8 @@ function App() {
       setCurrentView("main");
       // Start automatic token expiration checking
       authAPI.startTokenChecker();
+      // Initialize today's period status when authenticated
+      initializeTodayPeriodStatus();
     } else if (!hasVisited) {
       setCurrentView("welcome");
     } else {
@@ -77,6 +80,9 @@ function App() {
     setIsAuthenticated(true);
     setCurrentView("main");
     authAPI.startTokenChecker();
+    
+    // Initialize today's period status after login
+    initializeTodayPeriodStatus();
     
     // Check for redirect URL after login
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');

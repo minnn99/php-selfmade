@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI } from "../services/api";
+import { menstrualCycleAPI, authAPI } from "../services/api";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
@@ -33,6 +33,9 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [showAccountDeleteModal, setShowAccountDeleteModal] = useState(false);
+  const [showAccountDeleteConfirmModal, setShowAccountDeleteConfirmModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleInitialDeleteClick = () => {
     setShowConfirmModal(true);
@@ -135,6 +138,68 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
   const handleProfileSave = (profileData: any) => {
     console.log('Profile data saved:', profileData);
     // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
+  };
+
+  const handleAccountDeleteClick = () => {
+    setShowAccountDeleteModal(true);
+  };
+
+  const handleAccountDeleteConfirm = () => {
+    setShowAccountDeleteModal(false);
+    setShowAccountDeleteConfirmModal(true);
+  };
+
+  const handleAccountDeleteFinal = async () => {
+    setShowAccountDeleteConfirmModal(false);
+    try {
+      // アカウント削除API呼び出し
+      await authAPI.deleteAccount();
+      
+      // ローカルストレージを完全にクリア
+      localStorage.clear();
+      
+      // ログアウト処理
+      authAPI.stopTokenChecker();
+      
+      alert('アカウントが正常に削除されました。ご利用ありがとうございました。');
+      
+      // ページをリロードしてログイン画面へ
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Failed to delete account:', error);
+      
+      let errorMessage = 'アカウント削除に失敗しました。';
+      if (error.response) {
+        const errorData = error.response.data;
+        if (errorData.message) {
+          errorMessage += `\nエラー: ${errorData.message}`;
+        }
+        errorMessage += `\nステータス: ${error.response.status}`;
+      } else if (error.message) {
+        errorMessage += `\nエラー: ${error.message}`;
+      }
+      alert(errorMessage);
+    }
+  };
+
+  const handleAccountDeleteCancel = () => {
+    setShowAccountDeleteModal(false);
+    setShowAccountDeleteConfirmModal(false);
+  };
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setShowLogoutModal(false);
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   const settingItems: SettingItem[] = [
@@ -266,6 +331,17 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       ),
       onClick: handleInitialDeleteClick,
     },
+    {
+      id: "delete_account",
+      title: "アカウント削除",
+      description: "アカウントと全データを完全に削除します",
+      icon: (
+        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      onClick: handleAccountDeleteClick,
+    },
   ];
 
   // Add logout item if onLogout is provided (mobile only)
@@ -279,7 +355,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
       ),
-      onClick: onLogout,
+      onClick: handleLogoutClick,
     });
   }
 
@@ -405,6 +481,32 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
         isOpen={showSecurityModal}
         onClose={() => setShowSecurityModal(false)}
       />
+
+      {/* Account Delete Confirmation Modals */}
+      {showAccountDeleteModal && (
+        <ConfirmationModal
+          message="アカウントを削除しますか？この操作により、アカウントと全てのデータが完全に削除され、復元できません。"
+          onConfirm={handleAccountDeleteConfirm}
+          onCancel={handleAccountDeleteCancel}
+        />
+      )}
+
+      {showAccountDeleteConfirmModal && (
+        <ConfirmationModal
+          message="⚠️ 最終確認 ⚠️&#10;&#10;アカウント削除を実行します。この操作は永続的で、一切復元できません。&#10;&#10;本当にアカウントを削除しますか？"
+          onConfirm={handleAccountDeleteFinal}
+          onCancel={handleAccountDeleteCancel}
+        />
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <ConfirmationModal
+          message="ログアウトしますか？"
+          onConfirm={handleLogoutConfirm}
+          onCancel={handleLogoutCancel}
+        />
+      )}
     </>
   );
 };

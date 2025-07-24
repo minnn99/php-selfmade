@@ -532,7 +532,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </div>
                         <div className="text-right flex-shrink-0 sm:ml-4">
                           <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(visit.date)}</div>
-                          <div className="hidden sm:flex sm:flex-col sm:mt-2 sm:space-y-1">
+                          <div className="hidden sm:flex sm:flex-row sm:mt-2 sm:space-x-1">
                             <button
                               onClick={() => handleEditRecord(visit.id)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
@@ -634,7 +634,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </div>
                         <div className="text-right flex-shrink-0 sm:ml-4">
                           <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(test.date)}</div>
-                          <div className="hidden sm:flex sm:flex-col sm:mt-2 sm:space-y-1">
+                          <div className="hidden sm:flex sm:flex-row sm:mt-2 sm:space-x-1">
                             <button
                               onClick={() => handleEditRecord(test.id)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
@@ -741,7 +741,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </div>
                         <div className="text-right flex-shrink-0 sm:ml-4">
                           <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(medication.prescribedDate)}</div>
-                          <div className="hidden sm:flex sm:flex-col sm:mt-2 sm:space-y-1">
+                          <div className="hidden sm:flex sm:flex-row sm:mt-2 sm:space-x-1">
                             <button
                               onClick={() => handleEditRecord(medication.id)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
