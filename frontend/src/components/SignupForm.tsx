@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 import { TermsOfServiceModal } from './TermsOfServiceModal';
 
@@ -11,6 +11,7 @@ interface SignupFormProps {
 
 interface SignupData {
   name: string;
+  furigana: string;
   gender: string;
   phone: string;
   email: string;
@@ -18,9 +19,27 @@ interface SignupData {
   confirmPassword: string;
 }
 
+interface PasswordValidation {
+  length: boolean;
+  uppercase: boolean;
+  number: boolean;
+  isValid: boolean;
+}
+
+interface ValidationErrors {
+  name?: string;
+  furigana?: string;
+  gender?: string;
+  phone?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = false, onShowLogin, initialData }) => {
   const [formData, setFormData] = useState<SignupData>({
     name: initialData?.name || '',
+    furigana: initialData?.furigana || '',
     gender: initialData?.gender || '',
     phone: initialData?.phone || '',
     email: initialData?.email || '',
@@ -32,6 +51,110 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [passwordValidation, setPasswordValidation] = useState<PasswordValidation>({
+    length: false,
+    uppercase: false,
+    number: false,
+    isValid: false
+  });
+  const [touched, setTouched] = useState({
+    name: false,
+    furigana: false,
+    gender: false,
+    phone: false,
+    email: false,
+    password: false,
+    confirmPassword: false
+  });
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  // initialDataがある場合（修正ボタンから戻ってきた場合）にパスワードバリデーション状態を復元
+  useEffect(() => {
+    if (initialData?.password) {
+      setPasswordValidation(validatePassword(initialData.password));
+    }
+  }, [initialData]);
+
+  const validateName = (name: string): string | undefined => {
+    if (!name.trim()) {
+      return "お名前は必須です";
+    }
+    if (name.trim().length < 1 || name.trim().length > 50) {
+      return "お名前は1文字以上50文字以内で入力してください";
+    }
+    if (!/^[\u3041-\u3096\u30A1-\u30FC\u4E00-\u9FAFa-zA-Z\s]+$/.test(name.trim())) {
+      return "お名前は日本語・英語のみ使用できます";
+    }
+    return undefined;
+  };
+
+  const validateFurigana = (furigana: string): string | undefined => {
+    if (!furigana.trim()) {
+      return "フリガナは必須です";
+    }
+    if (furigana.trim().length < 1 || furigana.trim().length > 50) {
+      return "フリガナは1文字以上50文字以内で入力してください";
+    }
+    // カタカナ（全角）のみ許可、長音符（ー）、濁点・半濁点も含む
+    if (!/^[\u30A1-\u30FC\u30FC\s]+$/.test(furigana.trim())) {
+      return "フリガナは全角カタカナのみ入力してください";
+    }
+    return undefined;
+  };
+
+  const validateGender = (gender: string): string | undefined => {
+    if (!gender) {
+      return "性別を選択してください";
+    }
+    if (!['male', 'female', 'other'].includes(gender)) {
+      return "正しい性別を選択してください";
+    }
+    return undefined;
+  };
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (!phone.trim()) {
+      return "電話番号は必須です";
+    }
+    const phoneRegex = /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{10,11})$/;
+    if (!phoneRegex.test(phone.replace(/[^\d-]/g, ''))) {
+      return "正しい電話番号を入力してください（例：090-1234-5678）";
+    }
+    return undefined;
+  };
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) {
+      return "メールアドレスは必須です";
+    }
+    if (email.length > 255) {
+      return "メールアドレスは255文字以内で入力してください";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "正しいメールアドレス形式で入力してください";
+    }
+    return undefined;
+  };
+
+  const validatePassword = (password: string): PasswordValidation => {
+    const length = password.length >= 8;
+    const uppercase = /[A-Z]/.test(password);
+    const number = /[0-9]/.test(password);
+    const isValid = length && uppercase && number;
+    
+    return { length, uppercase, number, isValid };
+  };
+
+  const validateConfirmPassword = (password: string, confirmPassword: string): string | undefined => {
+    if (!confirmPassword) {
+      return "パスワード確認は必須です";
+    }
+    if (password !== confirmPassword) {
+      return "パスワードが一致しません";
+    }
+    return undefined;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -39,13 +162,93 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
       ...prev,
       [name]: value
     }));
+
+    if (name === 'password') {
+      setPasswordValidation(validatePassword(value));
+    }
+
+    // リアルタイムバリデーション（タッチされた項目のみ）
+    if (touched[name as keyof typeof touched] && name !== 'confirmPassword') {
+      validateField(name, value);
+    } else if (name === 'confirmPassword' && touched.confirmPassword) {
+      validateField(name, value);
+    }
+  };
+
+  const validateField = (fieldName: string, value: string, currentFormData?: SignupData) => {
+    try {
+      let error: string | undefined;
+      const dataToUse = currentFormData || formData;
+      
+      switch (fieldName) {
+        case 'name':
+          error = validateName(value);
+          break;
+        case 'furigana':
+          error = validateFurigana(value);
+          break;
+        case 'gender':
+          error = validateGender(value);
+          break;
+        case 'phone':
+          error = validatePhone(value);
+          break;
+        case 'email':
+          error = validateEmail(value);
+          break;
+        case 'confirmPassword':
+          error = validateConfirmPassword(dataToUse.password || '', value);
+          break;
+      }
+
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: error
+      }));
+    } catch (err) {
+      console.error('Validation error:', err);
+    }
+  };
+
+  const handleBlur = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+    const currentValue = formData[fieldName as keyof SignupData];
+    if (currentValue !== undefined) {
+      validateField(fieldName, currentValue);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      alert('パスワードが一致しません');
+    // 全フィールドをバリデーション
+    const nameError = validateName(formData.name);
+    const furiganaError = validateFurigana(formData.furigana);
+    const genderError = validateGender(formData.gender);
+    const phoneError = validatePhone(formData.phone);
+    const emailError = validateEmail(formData.email);
+    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
+    
+    const hasErrors = nameError || furiganaError || genderError || phoneError || emailError || !passwordValidation.isValid || confirmPasswordError;
+    
+    if (hasErrors) {
+      setErrors({
+        name: nameError,
+        furigana: furiganaError,
+        gender: genderError,
+        phone: phoneError,
+        email: emailError,
+        confirmPassword: confirmPasswordError
+      });
+      setTouched({
+        name: true,
+        furigana: true,
+        gender: true,
+        phone: true,
+        email: true,
+        password: true,
+        confirmPassword: true
+      });
       return;
     }
     
@@ -86,9 +289,42 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
+                onBlur={() => handleBlur('name')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  errors.name && touched.name
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
                 placeholder="山田太郎"
               />
+              {errors.name && touched.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
+            </div>
+
+            {/* Furigana Field */}
+            <div>
+              <label htmlFor="furigana" className="block text-sm font-medium text-neutral-700 mb-2">
+                フリガナ <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="furigana"
+                name="furigana"
+                type="text"
+                required
+                value={formData.furigana}
+                onChange={handleChange}
+                onBlur={() => handleBlur('furigana')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  errors.furigana && touched.furigana
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
+                placeholder="ヤマダタロウ"
+              />
+              {errors.furigana && touched.furigana && (
+                <p className="mt-1 text-sm text-red-600">{errors.furigana}</p>
+              )}
             </div>
 
             {/* Gender Field */}
@@ -102,13 +338,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 text-base min-h-[44px] touch-manipulation"
+                onBlur={() => handleBlur('gender')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 text-base min-h-[44px] touch-manipulation ${
+                  errors.gender && touched.gender
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
               >
                 <option value="">選択してください</option>
                 <option value="female">女性</option>
                 <option value="male">男性</option>
                 <option value="other">その他</option>
               </select>
+              {errors.gender && touched.gender && (
+                <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+              )}
             </div>
 
             {/* Phone Field */}
@@ -123,9 +367,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
+                onBlur={() => handleBlur('phone')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  errors.phone && touched.phone
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
                 placeholder="090-1234-5678"
               />
+              {errors.phone && touched.phone && (
+                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+              )}
             </div>
 
             {/* Email Field */}
@@ -140,9 +392,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
+                onBlur={() => handleBlur('email')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  errors.email && touched.email
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
                 placeholder="example@email.com"
               />
+              {errors.email && touched.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -158,8 +418,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
-                  placeholder="8文字以上の英数字記号組み合わせ"
+                  onBlur={() => handleBlur('password')}
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                    touched.password && !passwordValidation.isValid
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-medical focus:ring-primary-500'
+                  }`}
+                  placeholder="大文字・数字を含む8文字以上"
                 />
                 <button
                   type="button"
@@ -178,6 +443,30 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   )}
                 </button>
               </div>
+              
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center space-x-2 text-xs">
+                    <div className={`w-2 h-2 rounded-full ${passwordValidation.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className={passwordValidation.length ? 'text-green-600' : 'text-red-600'}>
+                      8文字以上
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs">
+                    <div className={`w-2 h-2 rounded-full ${passwordValidation.uppercase ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-600'}>
+                      大文字を含む
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs">
+                    <div className={`w-2 h-2 rounded-full ${passwordValidation.number ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className={passwordValidation.number ? 'text-green-600' : 'text-red-600'}>
+                      数字を含む
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Confirm Password Field */}
@@ -193,7 +482,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation"
+                  onBlur={() => handleBlur('confirmPassword')}
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                    errors.confirmPassword && touched.confirmPassword
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-medical focus:ring-primary-500'
+                  }`}
                   placeholder="パスワードを再入力"
                 />
                 <button
@@ -213,6 +507,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   )}
                 </button>
               </div>
+              {errors.confirmPassword && touched.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+              )}
             </div>
 
             {/* Terms and Privacy Policy Agreement */}
@@ -253,7 +550,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={
+                isLoading || 
+                !passwordValidation.isValid || 
+                formData.password !== formData.confirmPassword || 
+                !agreedToTerms ||
+                !formData.name.trim() ||
+                !formData.furigana.trim() ||
+                !formData.gender ||
+                !formData.phone.trim() ||
+                !formData.email.trim()
+              }
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 touch-manipulation min-h-[48px]"
             >
               {isLoading ? (

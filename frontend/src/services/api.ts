@@ -98,12 +98,6 @@ const apiRequest = async (
   const response = await fetch(`${API_BASE}${endpoint}`, config);
   
   if (!response.ok) {
-    // 401 Unauthorized - トークンが無効または期限切れ
-    if (response.status === 401) {
-      logout();
-      throw new Error('認証が切れました。再度ログインしてください。');
-    }
-    
     const error = await response.json().catch(() => ({ message: 'Request failed' }));
     console.error('API Error:', {
       status: response.status,
@@ -112,7 +106,10 @@ const apiRequest = async (
       endpoint,
       token: !!token
     });
-    throw new Error(error.message || `Request failed: ${response.status} ${response.statusText}`);
+    
+    const apiError = new Error(error.message || `Request failed: ${response.status} ${response.statusText}`);
+    (apiError as any).response = { status: response.status, data: error };
+    throw apiError;
   }
 
   const result = await response.json();

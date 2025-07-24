@@ -17,15 +17,59 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'min:1',
+                'max:50',
+                'regex:/^[ぁ-んァ-ヶ一-龯a-zA-Z\s]+$/u'
+            ],
+            'furigana' => [
+                'required',
+                'string',
+                'min:1',
+                'max:50',
+                'regex:/^[ァ-ヶ\s]+$/u'
+            ],
             'gender' => 'required|string|in:male,female,other',
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{10,11})$/'
+            ],
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[A-Z]/', // 大文字を含む
+                'regex:/[0-9]/'  // 数字を含む
+            ],
+        ], [
+            'name.required' => 'お名前は必須です。',
+            'name.min' => 'お名前は1文字以上で入力してください。',
+            'name.max' => 'お名前は50文字以内で入力してください。',
+            'name.regex' => 'お名前は日本語・英語のみ使用できます。',
+            'furigana.required' => 'フリガナは必須です。',
+            'furigana.min' => 'フリガナは1文字以上で入力してください。',
+            'furigana.max' => 'フリガナは50文字以内で入力してください。',
+            'furigana.regex' => 'フリガナは全角カタカナのみ入力してください。',
+            'gender.required' => '性別を選択してください。',
+            'gender.in' => '正しい性別を選択してください。',
+            'phone.required' => '電話番号は必須です。',
+            'phone.regex' => '正しい電話番号を入力してください。',
+            'email.required' => 'メールアドレスは必須です。',
+            'email.email' => '正しいメールアドレス形式で入力してください。',
+            'email.max' => 'メールアドレスは255文字以内で入力してください。',
+            'email.unique' => 'このメールアドレスは既に登録されています。',
+            'password.min' => 'パスワードは8文字以上で入力してください。',
+            'password.regex' => 'パスワードは大文字と数字を含む必要があります。',
         ]);
 
         $user = new User();
         $user->name = $request->name;
+        $user->furigana = $request->furigana;
         $user->gender = $request->gender;
         $user->phone = $request->phone;
         $user->email = $request->email;
@@ -62,20 +106,22 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-            'remember_me' => 'boolean', // ログイン状態を保持するかどうか
+            'email' => 'required|email|max:255',
+            'password' => 'required|string|min:8',
+            'remember_me' => 'boolean',
         ]);
 
         $user = User::where('email', $request->email)->first();
         
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['メールアドレスまたはパスワードが正しくありません。'],
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'メールアドレスまたはパスワードが正しくありません。',
+                'errors' => [
+                    'email' => ['メールアドレスまたはパスワードが正しくありません。']
+                ]
+            ], 401);
         }
-
-        $user = User::where('email', $request->email)->first();
 
         // 既存のトークンを削除（オプション）
         $user->tokens()->delete();
@@ -96,6 +142,8 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'gender' => $user->gender,
+                    'phone' => $user->phone,
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -131,6 +179,8 @@ class AuthController extends Controller
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
+                    'gender' => $request->user()->gender,
+                    'phone' => $request->user()->phone,
                     'created_at' => $request->user()->created_at,
                 ]
             ]
@@ -152,6 +202,25 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'パスワードリセットのメールを送信しました。'
+        ]);
+    }
+
+    /**
+     * アカウント削除
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        // 関連するトークンを全て削除
+        $user->tokens()->delete();
+        
+        // ユーザーアカウントを削除（関連データは外部キー制約により自動削除）
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'アカウントが正常に削除されました。'
         ]);
     }
 }

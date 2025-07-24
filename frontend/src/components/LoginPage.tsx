@@ -13,26 +13,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelc
   const [isLoading, setIsLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [serverError, setServerError] = useState<string>('');
 
   const handleLogin = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
+    setServerError('');
     
     try {
       const response = await authAPI.login(email, password, rememberMe);
 
       if (response.success) {
-        // ログイン成功
-        alert(`${response.data.user.name}さん、ログインに成功しました！`);
-        onLoginSuccess(); // App.tsxの状態を更新
+        onLoginSuccess();
       } else {
-        // エラーメッセージの表示
         const errorMessage = response.message || 'ログインに失敗しました。';
-        alert(errorMessage);
+        setServerError(errorMessage);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      alert('ネットワークエラーが発生しました。再度お試しください。');
+      
+      if (error.response?.status === 422) {
+        const validationErrors = error.response.data.errors;
+        if (validationErrors) {
+          const errorMessages = Object.values(validationErrors).flat();
+          setServerError(errorMessages.join(', '));
+        } else {
+          setServerError('入力内容に誤りがあります。');
+        }
+      } else if (error.response?.status === 401) {
+        setServerError('メールアドレスまたはパスワードが正しくありません。');
+      } else {
+        setServerError('ネットワークエラーが発生しました。再度お試しください。');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -53,6 +65,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelc
       onShowSignup={() => setShowSignup(true)}
       onShowForgotPassword={() => setShowForgotPassword(true)}
       onShowWelcome={onShowWelcome}
+      serverError={serverError}
     />
   );
 };

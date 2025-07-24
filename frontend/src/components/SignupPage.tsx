@@ -4,6 +4,7 @@ import { SignupConfirmPage } from './SignupConfirmPage';
 
 interface SignupData {
   name: string;
+  furigana: string;
   gender: string;
   phone: string;
   email: string;
@@ -43,6 +44,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
         },
         body: JSON.stringify({
           name: signupData.name,
+          furigana: signupData.furigana,
           gender: signupData.gender,
           phone: signupData.phone,
           email: signupData.email,

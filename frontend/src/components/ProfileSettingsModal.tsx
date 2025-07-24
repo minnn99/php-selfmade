@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { authAPI } from "../services/api";
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ProfileData {
   email: string;
   phone: string;
   birthDate: string;
+  gender: string;
 
   // 健康情報
   height: string;
@@ -31,6 +33,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     email: "",
     phone: "",
     birthDate: "",
+    gender: "",
     height: "",
     weight: "",
     bloodType: "",
@@ -45,20 +48,39 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     }
   }, [isOpen]);
 
-  const loadProfileData = () => {
+  const loadProfileData = async () => {
     const savedProfile = localStorage.getItem("userProfile");
-    const userData = localStorage.getItem("user");
-
-    if (savedProfile) {
-      setProfileData(JSON.parse(savedProfile));
-    } else if (userData) {
-      // 既存のユーザーデータから初期値を設定
-      const user = JSON.parse(userData);
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: user.name || "",
-        email: user.email || "",
-      }));
+    
+    try {
+      // APIから最新のユーザー情報を取得
+      const response = await authAPI.getUser();
+      const user = response.data.user;
+      
+      if (savedProfile) {
+        const profile = JSON.parse(savedProfile);
+        setProfileData({
+          ...profile,
+          fullName: user.name || profile.fullName,
+          email: user.email || profile.email,
+          phone: user.phone || profile.phone,
+          gender: user.gender || profile.gender,
+        });
+      } else {
+        // 初期値をAPIデータから設定
+        setProfileData((prev) => ({
+          ...prev,
+          fullName: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          gender: user.gender || "",
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+      // APIエラー時はlocalStorageのデータのみ使用
+      if (savedProfile) {
+        setProfileData(JSON.parse(savedProfile));
+      }
     }
   };
 
@@ -73,6 +95,15 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       ...prev,
       [field]: value,
     }));
+  };
+
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case 'male': return '男性';
+      case 'female': return '女性';
+      case 'other': return 'その他';
+      default: return '未設定';
+    }
   };
 
   const calculateAge = () => {
@@ -155,6 +186,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
           {calculateAge() && <p className="text-sm text-gray-500 mt-2">年齢: {calculateAge()}歳</p>}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">性別</label>
+          <div className="w-full px-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm min-h-[44px] flex items-center text-gray-600">
+            {getGenderDisplay(profileData.gender)}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">性別は変更できません</p>
         </div>
       </div>
     </div>

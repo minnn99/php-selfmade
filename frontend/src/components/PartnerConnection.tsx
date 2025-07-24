@@ -19,11 +19,14 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
     const loadUserData = async () => {
       try {
         const userData = await authAPI.getUser();
-        const gender = userData.data?.gender || "";
+        const gender = userData.data?.user?.gender || "";
+        console.log("User data:", userData.data);
+        console.log("Gender:", gender);
         setUserGender(gender);
 
         // 男性ユーザーで招待タブが選択されている場合、自動的にconnectタブに切り替え
         const isMale = gender === "male" || gender === "男性";
+        console.log("Is male user:", isMale);
         if (isMale && activeTab === "invite") {
           setActiveTab("connect");
         }

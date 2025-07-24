@@ -6,17 +6,112 @@ interface LoginFormProps {
   onShowSignup?: () => void;
   onShowForgotPassword?: () => void;
   onShowWelcome?: () => void;
+  serverError?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword, onShowWelcome }) => {
+interface ValidationErrors {
+  email?: string;
+  password?: string;
+}
+
+export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword, onShowWelcome, serverError }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<{email: boolean, password: boolean}>({
+    email: false,
+    password: false
+  });
+
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) {
+      return "メールアドレスは必須です";
+    }
+    if (email.length > 255) {
+      return "メールアドレスは255文字以内で入力してください";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "正しいメールアドレス形式で入力してください";
+    }
+    return undefined;
+  };
+
+  const validatePassword = (password: string): string | undefined => {
+    if (!password) {
+      return "パスワードは必須です";
+    }
+    if (password.length < 8) {
+      return "パスワードは8文字以上で入力してください";
+    }
+    return undefined;
+  };
+
+  const validateForm = (): boolean => {
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    setErrors({
+      email: emailError,
+      password: passwordError
+    });
+
+    setTouched({
+      email: true,
+      password: true
+    });
+
+    return !emailError && !passwordError;
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    if (touched.email) {
+      setErrors(prev => ({
+        ...prev,
+        email: validateEmail(value)
+      }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    if (touched.password) {
+      setErrors(prev => ({
+        ...prev,
+        password: validatePassword(value)
+      }));
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setTouched(prev => ({ ...prev, email: true }));
+    setErrors(prev => ({
+      ...prev,
+      email: validateEmail(email)
+    }));
+  };
+
+  const handlePasswordBlur = () => {
+    setTouched(prev => ({ ...prev, password: true }));
+    setErrors(prev => ({
+      ...prev,
+      password: validatePassword(password)
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password, rememberMe);
+    
+    if (validateForm()) {
+      onLogin(email, password, rememberMe);
+    }
   };
 
   return (
@@ -35,6 +130,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
             <p className="text-sm sm:text-base text-neutral-600 text-center mt-2">アカウントにサインインしてください</p>
           </div>
 
+          {serverError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{serverError}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Email Field */}
             <div>
@@ -49,8 +150,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   autoComplete="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
+                    errors.email && touched.email
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-medical focus:ring-primary-500'
+                  }`}
                   placeholder="example@email.com"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -64,6 +170,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   </svg>
                 </div>
               </div>
+              {errors.email && touched.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -79,8 +188,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   autoComplete="current-password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-3 sm:px-4 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base"
+                  onChange={handlePasswordChange}
+                  onBlur={handlePasswordBlur}
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
+                    errors.password && touched.password
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-medical focus:ring-primary-500'
+                  }`}
                   placeholder="パスワードを入力"
                 />
                 <button
@@ -120,6 +234,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   )}
                 </button>
               </div>
+              {errors.password && touched.password && (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              )}
             </div>
 
             {/* Remember Me & Forgot Password */}
@@ -151,7 +268,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !!(errors.email && touched.email) || !!(errors.password && touched.password)}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 touch-manipulation min-h-[48px]"
             >
               {isLoading ? (
