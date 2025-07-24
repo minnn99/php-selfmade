@@ -6,9 +6,10 @@ import { authAPI } from '../services/api';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
+  onShowWelcome?: () => void;
 }
 
-export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelcome }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -51,6 +52,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       isLoading={isLoading} 
       onShowSignup={() => setShowSignup(true)}
       onShowForgotPassword={() => setShowForgotPassword(true)}
+      onShowWelcome={onShowWelcome}
     />
   );
 };

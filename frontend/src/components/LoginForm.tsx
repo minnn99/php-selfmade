@@ -5,9 +5,10 @@ interface LoginFormProps {
   isLoading?: boolean;
   onShowSignup?: () => void;
   onShowForgotPassword?: () => void;
+  onShowWelcome?: () => void;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword, onShowWelcome }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -184,6 +185,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
             </p>
           </div>
         </div>
+
+        {/* Test Link - Development Only */}
+        {onShowWelcome && (
+        <div className="text-center mb-4">
+          <button
+            onClick={onShowWelcome}
+            className="text-xs text-blue-500 hover:text-blue-700 underline"
+          >
+            [テスト] ウェルカム画面を表示
+          </button>
+        </div>
+        )}
 
         {/* Footer */}
         <div className="text-center">

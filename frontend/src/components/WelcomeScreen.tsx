@@ -7,7 +7,7 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLogin }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-medical/5 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-100 via-primary-200/50 to-primary-300/30 flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-4xl w-full space-y-8 sm:space-y-12">
         {/* Header */}
         <div className="text-center">
@@ -23,7 +23,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
 
         {/* Features */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
-          <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
+          <div className="text-center p-4 sm:p-6 bg-white/85 rounded-xl border border-medical/30 shadow-md touch-manipulation">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -35,7 +35,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
             </p>
           </div>
 
-          <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
+          <div className="text-center p-4 sm:p-6 bg-white/85 rounded-xl border border-medical/30 shadow-md touch-manipulation">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -47,7 +47,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
             </p>
           </div>
 
-          <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
+          <div className="text-center p-4 sm:p-6 bg-white/85 rounded-xl border border-medical/30 shadow-md touch-manipulation">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -59,7 +59,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
             </p>
           </div>
 
-          <div className="text-center p-4 sm:p-6 bg-white/50 rounded-xl border border-medical/20 shadow-sm touch-manipulation">
+          <div className="text-center p-4 sm:p-6 bg-white/85 rounded-xl border border-medical/30 shadow-md touch-manipulation">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -73,7 +73,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLo
         </div>
 
         {/* Benefits */}
-        <div className="bg-white/70 rounded-2xl p-4 sm:p-6 md:p-8 border border-medical/20 shadow-sm max-w-3xl mx-auto">
+        <div className="bg-white/85 rounded-2xl p-4 sm:p-6 md:p-8 border border-medical/30 shadow-md max-w-3xl mx-auto">
           <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-neutral-900 text-center mb-4 sm:mb-6">
             Pairiodで始める健康習慣
           </h2>

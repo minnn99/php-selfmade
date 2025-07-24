@@ -96,8 +96,13 @@ function App() {
     return <SignupPage onShowLogin={() => setCurrentView("login")} />;
   }
 
+  const handleShowWelcome = () => {
+    localStorage.removeItem("has_visited");
+    setCurrentView("welcome");
+  };
+
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return <LoginPage onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />;
   }
 
   return (
