@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenstrualCycleController;
+use App\Http\Controllers\UserDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,4 +29,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/menstrual-cycles/{cycle}', [MenstrualCycleController::class, 'update']);
     Route::delete('/menstrual-cycles/{cycle}', [MenstrualCycleController::class, 'destroy']);
     Route::post('/menstrual-cycles/end', [MenstrualCycleController::class, 'end']);
+    
+    // User Data routes
+    Route::get('/user-data/settings', [UserDataController::class, 'getSettings']);
+    Route::post('/user-data/settings', [UserDataController::class, 'saveSettings']);
+    Route::get('/user-data/daily-symptoms', [UserDataController::class, 'getDailySymptoms']);
+    Route::post('/user-data/daily-symptoms', [UserDataController::class, 'saveDailySymptoms']);
+    Route::get('/user-data/pregnancy-records', [UserDataController::class, 'getPregnancyRecords']);
+    Route::post('/user-data/pregnancy-records', [UserDataController::class, 'savePregnancyRecords']);
+    Route::get('/user-data/medical-records', [UserDataController::class, 'getMedicalRecords']);
+    Route::post('/user-data/medical-records', [UserDataController::class, 'saveMedicalRecords']);
 });

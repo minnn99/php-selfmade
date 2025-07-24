@@ -288,3 +288,69 @@ export const menstrualCycleAPI = {
     });
   },
 };
+
+// User Data API
+export const userDataAPI = {
+  // Get user settings
+  getSettings: async () => {
+    return apiRequest('/user-data/settings');
+  },
+
+  // Save user settings
+  saveSettings: async (settings: Record<string, any>) => {
+    return apiRequest('/user-data/settings', {
+      method: 'POST',
+      body: JSON.stringify({ settings }),
+    });
+  },
+
+  // Get daily symptoms
+  getDailySymptoms: async (date?: string) => {
+    const url = date ? `/user-data/daily-symptoms?date=${date}` : '/user-data/daily-symptoms';
+    return apiRequest(url);
+  },
+
+  // Save daily symptoms
+  saveDailySymptoms: async (date: string, symptomsData: any) => {
+    return apiRequest('/user-data/daily-symptoms', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        date, 
+        symptoms_data: symptomsData 
+      }),
+    });
+  },
+
+  // Get pregnancy records
+  getPregnancyRecords: async () => {
+    return apiRequest('/user-data/pregnancy-records');
+  },
+
+  // Save pregnancy records
+  savePregnancyRecords: async (startDate: string | null, recordsData: any, isActive: boolean = true) => {
+    return apiRequest('/user-data/pregnancy-records', {
+      method: 'POST',
+      body: JSON.stringify({
+        start_date: startDate,
+        records_data: recordsData,
+        is_active: isActive
+      }),
+    });
+  },
+
+  // Get medical records
+  getMedicalRecords: async () => {
+    return apiRequest('/user-data/medical-records');
+  },
+
+  // Save medical records
+  saveMedicalRecords: async (type: 'hospitalVisits' | 'testResults' | 'medications', data: any[]) => {
+    return apiRequest('/user-data/medical-records', {
+      method: 'POST',
+      body: JSON.stringify({
+        type,
+        data
+      }),
+    });
+  },
+};

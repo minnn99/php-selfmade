@@ -26,9 +26,16 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
         // 男性ユーザーで招待タブが選択されている場合、自動的にconnectタブに切り替え
         const isMale = gender === "male" || gender === "男性";
+        const isFemale = gender === "female" || gender === "女性";
         console.log("Is male user:", isMale);
+        console.log("Is female user:", isFemale);
+        
         if (isMale && activeTab === "invite") {
           setActiveTab("connect");
+        }
+        // 女性ユーザーで参加タブが選択されている場合、自動的に招待タブに切り替え
+        if (isFemale && activeTab === "connect") {
+          setActiveTab("invite");
         }
       } catch (error) {
         console.error("Failed to load user data:", error);
@@ -42,6 +49,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
   // 男性ユーザーかどうかをチェック
   const isMaleUser = userGender === "male" || userGender === "男性";
+  // 女性ユーザーかどうかをチェック
+  const isFemaleUser = userGender === "female" || userGender === "女性";
 
   // 招待コード生成（仮実装）
   const generateInviteCode = () => {
@@ -120,15 +129,17 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
             <span className="sm:hidden">招待</span>
           </button>
         )}
-        <button
-          onClick={() => setActiveTab("connect")}
-          className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${
-            activeTab === "connect" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
-          }`}
-        >
-          <span className="hidden sm:inline">パートナーに参加</span>
-          <span className="sm:hidden">参加</span>
-        </button>
+        {!isFemaleUser && (
+          <button
+            onClick={() => setActiveTab("connect")}
+            className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${
+              activeTab === "connect" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
+            }`}
+          >
+            <span className="hidden sm:inline">パートナーに参加</span>
+            <span className="sm:hidden">参加</span>
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
@@ -174,12 +185,14 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                       招待コード生成
                     </button>
                   )}
-                  <button
-                    onClick={() => setActiveTab("connect")}
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 transition-colors min-h-[44px] touch-manipulation"
-                  >
-                    パートナーに参加
-                  </button>
+                  {!isFemaleUser && (
+                    <button
+                      onClick={() => setActiveTab("connect")}
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 transition-colors min-h-[44px] touch-manipulation"
+                    >
+                      パートナーに参加
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -260,35 +273,62 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         {/* パートナーに参加タブ */}
         {activeTab === "connect" && (
           <div className="space-y-4">
-            <div className="text-center">
-              <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナーに参加</h3>
-              <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 px-2">パートナーから受け取った招待コードを入力してください</p>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="inviteCode" className="block text-xs sm:text-sm font-medium text-neutral-700 mb-2">
-                  招待コード
-                </label>
-                <input
-                  id="inviteCode"
-                  type="text"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  placeholder="例: ABC123"
-                  maxLength={6}
-                  className="w-full px-4 py-3 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-center text-xl sm:text-2xl font-mono tracking-widest min-h-[48px] touch-manipulation"
-                />
+            {isFemaleUser ? (
+              <div className="text-center bg-pink-50 border border-pink-200 rounded-lg p-4 sm:p-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-pink-200 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-base sm:text-lg font-medium text-pink-900 mb-2">パートナー参加機能は利用できません</h3>
+                <p className="text-sm sm:text-base text-pink-700 mb-4 px-2">
+                  女性アカウントではパートナーへの参加機能をご利用いただけません。招待コードを生成してパートナーを招待してください。
+                </p>
+                <button
+                  onClick={() => setActiveTab("invite")}
+                  className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
+                >
+                  招待コードを生成する
+                </button>
               </div>
+            ) : (
+              <>
+                <div className="text-center">
+                  <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナーに参加</h3>
+                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 px-2">パートナーから受け取った招待コードを入力してください</p>
+                </div>
 
-              <button
-                onClick={handleJoinPartner}
-                disabled={inviteCode.length !== 6}
-                className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
-              >
-                パートナーに参加
-              </button>
-            </div>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="inviteCode" className="block text-xs sm:text-sm font-medium text-neutral-700 mb-2">
+                      招待コード
+                    </label>
+                    <input
+                      id="inviteCode"
+                      type="text"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                      placeholder="例: ABC123"
+                      maxLength={6}
+                      className="w-full px-4 py-3 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-center text-xl sm:text-2xl font-mono tracking-widest min-h-[48px] touch-manipulation"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleJoinPartner}
+                    disabled={inviteCode.length !== 6}
+                    className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
+                  >
+                    パートナーに参加
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

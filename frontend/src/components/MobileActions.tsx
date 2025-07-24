@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { menstrualCycleAPI } from '../services/api';
+import { menstrualCycleAPI, userDataAPI } from '../services/api';
 import { menstrualStatusManager } from '../services/menstrualStatusManager';
 
 export const MobileActions: React.FC = () => {
@@ -25,7 +25,7 @@ export const MobileActions: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // 生理期間中の日付をローカルストレージに保存してカレンダーに反映
+  // 生理期間中の日付をMySQLに保存してカレンダーに反映
   const updateCalendarForPeriod = async (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -35,28 +35,33 @@ export const MobileActions: React.FC = () => {
     while (currentDate <= end) {
       const dateString = getLocalDateString(currentDate);
       
-      // 既存のデータを取得
-      const existingData = JSON.parse(localStorage.getItem(`daily-symptoms-${dateString}`) || '{}');
-      
-      // 既存のデータがある場合のみ生理フラグを追加更新
-      if (existingData && Object.keys(existingData).length > 0) {
-        const updatedData = {
-          ...existingData,
-          isPeriodStart: dateString === startDate,
-          isPeriodEnd: dateString === endDate,
-          hasPeriod: true,
-          timestamp: new Date().toISOString()
-        };
-        localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
-      } else {
-        // 既存のデータがない場合は生理フラグのみ設定
-        const updatedData = {
-          isPeriodStart: dateString === startDate,
-          isPeriodEnd: dateString === endDate,
-          hasPeriod: true,
-          timestamp: new Date().toISOString()
-        };
-        localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+      try {
+        // 既存のデータを取得
+        const response = await userDataAPI.getDailySymptoms(dateString);
+        const existingData = response.data || {};
+        
+        // 既存のデータがある場合のみ生理フラグを追加更新
+        if (existingData && Object.keys(existingData).length > 0) {
+          const updatedData = {
+            ...existingData,
+            isPeriodStart: dateString === startDate,
+            isPeriodEnd: dateString === endDate,
+            hasPeriod: true,
+            timestamp: new Date().toISOString()
+          };
+          await userDataAPI.saveDailySymptoms(dateString, updatedData);
+        } else {
+          // 既存のデータがない場合は生理フラグのみ設定
+          const updatedData = {
+            isPeriodStart: dateString === startDate,
+            isPeriodEnd: dateString === endDate,
+            hasPeriod: true,
+            timestamp: new Date().toISOString()
+          };
+          await userDataAPI.saveDailySymptoms(dateString, updatedData);
+        }
+      } catch (error) {
+        console.error(`Failed to update symptoms for ${dateString}:`, error);
       }
       
       // 次の日へ

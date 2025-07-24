@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { userDataAPI } from '../services/api';
 
 interface PregnancyRecord {
   id: string;
@@ -36,12 +37,29 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
   });
 
   useEffect(() => {
-    const savedRecords = localStorage.getItem("pregnancyRecords");
-    const savedStartDate = localStorage.getItem("pregnancyStartDate");
-
-    if (savedRecords) setPregnancyRecords(JSON.parse(savedRecords));
-    if (savedStartDate) setPregnancyStartDate(savedStartDate);
+    loadPregnancyData();
   }, []);
+
+  const loadPregnancyData = async () => {
+    try {
+      const response = await userDataAPI.getPregnancyRecords();
+      if (response.success && response.data) {
+        setPregnancyRecords(response.data.records_data || []);
+        setPregnancyStartDate(response.data.start_date || "");
+      }
+    } catch (error) {
+      console.error('Failed to load pregnancy data:', error);
+    }
+  };
+
+  const savePregnancyData = async (records: PregnancyRecord[], startDate: string = pregnancyStartDate) => {
+    try {
+      await userDataAPI.savePregnancyRecords(startDate || null, records);
+    } catch (error) {
+      console.error('Failed to save pregnancy data:', error);
+      alert('データの保存に失敗しました。');
+    }
+  };
 
   // クリック外でドロップダウンを閉じる
   useEffect(() => {
@@ -112,7 +130,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
       }));
   };
 
-  const addPregnancyRecord = () => {
+  const addPregnancyRecord = async () => {
     const record: PregnancyRecord = {
       id: Date.now().toString(),
       date: new Date().toISOString().split("T")[0],
@@ -124,16 +142,16 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
 
     const updatedRecords = [record, ...pregnancyRecords];
     setPregnancyRecords(updatedRecords);
-    localStorage.setItem("pregnancyRecords", JSON.stringify(updatedRecords));
+    await savePregnancyData(updatedRecords);
 
     setNewRecord({ type: "symptom", title: "", description: "", value: "" });
     setShowAddRecord(false);
   };
 
-  const updateRecord = (updatedRecord: PregnancyRecord) => {
+  const updateRecord = async (updatedRecord: PregnancyRecord) => {
     const updatedRecords = pregnancyRecords.map((record) => (record.id === updatedRecord.id ? updatedRecord : record));
     setPregnancyRecords(updatedRecords);
-    localStorage.setItem("pregnancyRecords", JSON.stringify(updatedRecords));
+    await savePregnancyData(updatedRecords);
     setEditingRecord(null);
     setShowEditModal(false);
   };
@@ -148,11 +166,11 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     setShowEditModal(false);
   };
 
-  const deleteRecord = (recordId: string) => {
+  const deleteRecord = async (recordId: string) => {
     if (confirm("この記録を削除しますか？")) {
       const updatedRecords = pregnancyRecords.filter((record) => record.id !== recordId);
       setPregnancyRecords(updatedRecords);
-      localStorage.setItem("pregnancyRecords", JSON.stringify(updatedRecords));
+      await savePregnancyData(updatedRecords);
     }
   };
 

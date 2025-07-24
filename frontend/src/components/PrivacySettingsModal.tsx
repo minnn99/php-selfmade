@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { userDataAPI } from '../services/api';
 
 interface PrivacySettingsModalProps {
   isOpen: boolean;
@@ -28,19 +29,40 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
       predictionDataSharing: false
     }
   });
+  const [loading, setLoading] = useState(false);
 
-  // ローカルストレージから設定を読み込み
+  // MySQLから設定を読み込み
   useEffect(() => {
-    const savedSettings = localStorage.getItem('privacySettings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []);
+    const loadSettings = async () => {
+      try {
+        const response = await userDataAPI.getSettings();
+        if (response.success && response.data.privacySettings) {
+          setSettings(response.data.privacySettings);
+        }
+      } catch (error) {
+        console.error('Failed to load privacy settings:', error);
+      }
+    };
 
-  const handleSave = () => {
-    localStorage.setItem('privacySettings', JSON.stringify(settings));
-    onSave(settings);
-    onClose();
+    if (isOpen) {
+      loadSettings();
+    }
+  }, [isOpen]);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await userDataAPI.saveSettings({
+        privacySettings: settings
+      });
+      onSave(settings);
+      onClose();
+    } catch (error) {
+      console.error('Failed to save privacy settings:', error);
+      alert('設定の保存に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateSetting = (field: string, value: any) => {
@@ -148,9 +170,10 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+            disabled={loading}
+            className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            保存
+            {loading ? '保存中...' : '保存'}
           </button>
         </div>
       </div>

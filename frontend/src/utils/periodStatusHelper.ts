@@ -64,7 +64,7 @@ export const getTodayPeriodStatus = () => {
 /**
  * Update local storage for a date with period status based on active cycle
  */
-export const updateDailyDataWithPeriodStatus = (dateString: string) => {
+export const updateDailyDataWithPeriodStatus = async (dateString: string) => {
   const periodStatus = isDateInActivePeriod(dateString);
   
   if (!periodStatus) {
@@ -79,19 +79,27 @@ export const updateDailyDataWithPeriodStatus = (dateString: string) => {
   const startDate = activeCycle.start_date;
   const endDate = activeCycle.end_date;
   
-  // Get existing data
-  const existingData = JSON.parse(localStorage.getItem(`daily-symptoms-${dateString}`) || '{}');
-  
-  // Create updated data with period status
-  const updatedData = {
-    ...existingData,
-    isPeriodStart: dateString === startDate,
-    isPeriodEnd: endDate ? dateString === endDate : false,
-    hasPeriod: true,
-    timestamp: new Date().toISOString()
-  };
-  
-  localStorage.setItem(`daily-symptoms-${dateString}`, JSON.stringify(updatedData));
+  try {
+    // Import userDataAPI dynamically to avoid circular imports
+    const { userDataAPI } = await import('../services/api');
+    
+    // Get existing data
+    const response = await userDataAPI.getDailySymptoms(dateString);
+    const existingData = response.data || {};
+    
+    // Create updated data with period status
+    const updatedData = {
+      ...existingData,
+      isPeriodStart: dateString === startDate,
+      isPeriodEnd: endDate ? dateString === endDate : false,
+      hasPeriod: true,
+      timestamp: new Date().toISOString()
+    };
+    
+    await userDataAPI.saveDailySymptoms(dateString, updatedData);
+  } catch (error) {
+    console.error('Failed to update period status for date:', dateString, error);
+  }
 };
 
 /**

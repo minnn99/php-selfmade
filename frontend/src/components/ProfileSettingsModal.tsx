@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { authAPI } from "../services/api";
+import { authAPI, userDataAPI } from "../services/api";
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -41,6 +41,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     medications: "",
     medicalHistory: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,21 +50,23 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   }, [isOpen]);
 
   const loadProfileData = async () => {
-    const savedProfile = localStorage.getItem("userProfile");
-    
     try {
       // APIから最新のユーザー情報を取得
-      const response = await authAPI.getUser();
-      const user = response.data.user;
+      const [userResponse, settingsResponse] = await Promise.all([
+        authAPI.getUser(),
+        userDataAPI.getSettings()
+      ]);
+      
+      const user = userResponse.data.user;
+      const savedProfile = settingsResponse.success ? settingsResponse.data.userProfile : null;
       
       if (savedProfile) {
-        const profile = JSON.parse(savedProfile);
         setProfileData({
-          ...profile,
-          fullName: user.name || profile.fullName,
-          email: user.email || profile.email,
-          phone: user.phone || profile.phone,
-          gender: user.gender || profile.gender,
+          ...savedProfile,
+          fullName: user.name || savedProfile.fullName,
+          email: user.email || savedProfile.email,
+          phone: user.phone || savedProfile.phone,
+          gender: user.gender || savedProfile.gender,
         });
       } else {
         // 初期値をAPIデータから設定
@@ -76,18 +79,24 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
         }));
       }
     } catch (error) {
-      console.error('Failed to load user data:', error);
-      // APIエラー時はlocalStorageのデータのみ使用
-      if (savedProfile) {
-        setProfileData(JSON.parse(savedProfile));
-      }
+      console.error('Failed to load profile data:', error);
     }
   };
 
-  const handleSave = () => {
-    localStorage.setItem("userProfile", JSON.stringify(profileData));
-    onSave(profileData);
-    onClose();
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await userDataAPI.saveSettings({
+        userProfile: profileData
+      });
+      onSave(profileData);
+      onClose();
+    } catch (error) {
+      console.error('Failed to save profile data:', error);
+      alert('プロフィールの保存に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateField = (field: keyof ProfileData, value: string | boolean) => {
@@ -332,9 +341,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+            disabled={loading}
+            className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            保存
+            {loading ? '保存中...' : '保存'}
           </button>
         </div>
       </div>

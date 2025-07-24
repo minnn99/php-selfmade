@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { userDataAPI } from '../services/api';
 
 interface NotificationSettingsModalProps {
   isOpen: boolean;
@@ -52,19 +53,40 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       soundEnabled: true,
     },
   });
+  const [loading, setLoading] = useState(false);
 
-  // ローカルストレージから設定を読み込み
+  // MySQLから設定を読み込み
   useEffect(() => {
-    const savedSettings = localStorage.getItem("notificationSettings");
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []);
+    const loadSettings = async () => {
+      try {
+        const response = await userDataAPI.getSettings();
+        if (response.success && response.data.notificationSettings) {
+          setSettings(response.data.notificationSettings);
+        }
+      } catch (error) {
+        console.error('Failed to load notification settings:', error);
+      }
+    };
 
-  const handleSave = () => {
-    localStorage.setItem("notificationSettings", JSON.stringify(settings));
-    onSave(settings);
-    onClose();
+    if (isOpen) {
+      loadSettings();
+    }
+  }, [isOpen]);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await userDataAPI.saveSettings({
+        notificationSettings: settings
+      });
+      onSave(settings);
+      onClose();
+    } catch (error) {
+      console.error('Failed to save notification settings:', error);
+      alert('設定の保存に失敗しました。');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateSetting = (category: keyof NotificationSettings, field: string, value: any) => {
@@ -280,8 +302,12 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           <button onClick={onClose} className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center">
             キャンセル
           </button>
-          <button onClick={handleSave} className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-lg transition-colors min-h-[44px] flex items-center justify-center">
-            保存
+          <button 
+            onClick={handleSave} 
+            disabled={loading}
+            className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+          >
+            {loading ? '保存中...' : '保存'}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { userDataAPI } from '../services/api';
 
 interface MedicalRecordsProps {
   className?: string;
@@ -63,30 +64,40 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     loadRecords();
   }, []);
 
-  const loadRecords = () => {
-    const savedVisits = localStorage.getItem("hospitalVisits");
-    const savedTests = localStorage.getItem("testResults");
-    const savedMedications = localStorage.getItem("medications");
-
-    if (savedVisits) setHospitalVisits(JSON.parse(savedVisits));
-    if (savedTests) setTestResults(JSON.parse(savedTests));
-    if (savedMedications) setMedications(JSON.parse(savedMedications));
+  const loadRecords = async () => {
+    try {
+      const response = await userDataAPI.getMedicalRecords();
+      if (response.success) {
+        setHospitalVisits(response.data.hospitalVisits || []);
+        setTestResults(response.data.testResults || []);
+        setMedications(response.data.medications || []);
+      }
+    } catch (error) {
+      console.error('Failed to load medical records:', error);
+    }
   };
 
-  const saveToStorage = (type: RecordType, data: any[]) => {
-    switch (type) {
-      case "visit":
-        localStorage.setItem("hospitalVisits", JSON.stringify(data));
-        setHospitalVisits(data);
-        break;
-      case "test":
-        localStorage.setItem("testResults", JSON.stringify(data));
-        setTestResults(data);
-        break;
-      case "medication":
-        localStorage.setItem("medications", JSON.stringify(data));
-        setMedications(data);
-        break;
+  const saveToStorage = async (type: RecordType, data: any[]) => {
+    try {
+      let apiType: 'hospitalVisits' | 'testResults' | 'medications';
+      switch (type) {
+        case "visit":
+          apiType = 'hospitalVisits';
+          setHospitalVisits(data);
+          break;
+        case "test":
+          apiType = 'testResults';
+          setTestResults(data);
+          break;
+        case "medication":
+          apiType = 'medications';
+          setMedications(data);
+          break;
+      }
+      await userDataAPI.saveMedicalRecords(apiType, data);
+    } catch (error) {
+      console.error('Failed to save medical records:', error);
+      alert('データの保存に失敗しました。');
     }
   };
 
