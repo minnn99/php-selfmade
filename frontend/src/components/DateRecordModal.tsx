@@ -19,6 +19,13 @@ export interface RecordData {
   flowIntensity?: number;
   cycleId?: number;
   existingCycleData?: any;
+  partnerData?: {
+    symptoms: string[];
+    mood: string;
+    healthNotes: string;
+    flowIntensity?: number;
+    partnerName?: string;
+  };
 }
 
 export const DateRecordModal: React.FC<DateRecordModalProps> = ({
@@ -274,6 +281,62 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-sm sm:text-base"
             />
           </div>
+
+          {/* パートナーの記録セクション */}
+          {existingData?.partnerData && (
+            <div className="space-y-4 bg-pink-50 rounded-lg p-4 border border-pink-200">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-pink-400 rounded-full"></div>
+                <h3 className="text-lg font-medium text-pink-800">
+                  {existingData.partnerData.partnerName || 'パートナー'}の記録
+                </h3>
+              </div>
+              
+              {/* パートナーの経血量 */}
+              {existingData.partnerData.flowIntensity && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-pink-700">経血量</label>
+                  <div className="text-sm text-pink-600">
+                    {flowIntensityOptions.find(option => option.value === existingData.partnerData?.flowIntensity)?.label || '記録なし'}
+                  </div>
+                </div>
+              )}
+              
+              {/* パートナーの症状 */}
+              {existingData.partnerData.symptoms && existingData.partnerData.symptoms.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-pink-700">症状</label>
+                  <div className="flex flex-wrap gap-2">
+                    {existingData.partnerData.symptoms.map((symptom, index) => (
+                      <span key={index} className="px-2 py-1 bg-pink-200 text-pink-800 rounded-full text-xs">
+                        {symptom}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* パートナーの気分 */}
+              {existingData.partnerData.mood && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-pink-700">気分</label>
+                  <div className="text-sm text-pink-600">
+                    {moodOptions.find(option => option.value === existingData.partnerData?.mood)?.label || '記録なし'}
+                  </div>
+                </div>
+              )}
+              
+              {/* パートナーの健康メモ */}
+              {existingData.partnerData.healthNotes && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-pink-700">健康メモ</label>
+                  <div className="text-sm text-pink-600 bg-white p-3 rounded border border-pink-200">
+                    {existingData.partnerData.healthNotes}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

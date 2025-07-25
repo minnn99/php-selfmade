@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenstrualCycleController;
 use App\Http\Controllers\UserDataController;
+use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\DailySymptomController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,4 +41,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user-data/pregnancy-records', [UserDataController::class, 'savePregnancyRecords']);
     Route::get('/user-data/medical-records', [UserDataController::class, 'getMedicalRecords']);
     Route::post('/user-data/medical-records', [UserDataController::class, 'saveMedicalRecords']);
+    
+    // Partner Connection routes
+    Route::post('/partner/generate-invite', [PartnerController::class, 'generateInvite']);
+    Route::post('/partner/join', [PartnerController::class, 'joinPartner']);
+    Route::get('/partner/status', [PartnerController::class, 'getStatus']);
+    Route::delete('/partner/disconnect', [PartnerController::class, 'disconnect']);
+    Route::get('/partner/calendar', [PartnerController::class, 'getPartnerCalendar']);
+    
+    // Daily Symptoms routes
+    Route::post('/daily-symptoms', [DailySymptomController::class, 'saveSymptoms']);
+    Route::post('/daily-symptoms/bulk', [DailySymptomController::class, 'bulkSaveSymptoms']);
+    Route::get('/daily-symptoms', [DailySymptomController::class, 'getSymptoms']);
 });

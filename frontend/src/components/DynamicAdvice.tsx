@@ -34,27 +34,41 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   }, []);
 
   const updateAdviceBasedOnStatus = (status: any) => {
-    // 生理中の場合
-    if (status?.hasActiveCycle) {
-      setCurrentAdvice({
-        title: "生理中のケア",
-        message: "生理中です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。",
-        icon: "🌺",
-        bgColor: "from-red-50 to-pink-50",
-        textColor: "text-red-600",
-      });
+    console.log('DynamicAdvice - Status received for advice update:', status);
+    
+    if (!status) {
+      setDefaultAdvice();
       return;
     }
 
-    // 周期に基づいた予測
     const today = new Date();
     const cycleDay = getCycleDay(status, today);
+    
+    console.log('DynamicAdvice - Calculated cycle day:', cycleDay, 'hasActiveCycle:', status?.hasActiveCycle);
 
+    // 実際に生理中（アクティブな周期があり、かつその周期が現在進行中）の場合
+    if (status?.hasActiveCycle && status?.activeCycle && !status?.activeCycle?.end_date) {
+      const activeCycleStart = new Date(status.activeCycle.start_date);
+      const daysSinceStart = Math.floor((today.getTime() - activeCycleStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      
+      if (daysSinceStart >= 1 && daysSinceStart <= 7) {
+        setCurrentAdvice({
+          title: "生理中のケア",
+          message: `生理開始から${daysSinceStart}日目です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。`,
+          icon: "🌺",
+          bgColor: "from-red-50 to-pink-50",
+          textColor: "text-red-600",
+        });
+        return;
+      }
+    }
+
+    // 周期に基づいた予測（生理中でない場合）
     if (cycleDay >= 1 && cycleDay <= 5) {
-      // 生理期間
+      // 生理期間（予測）
       setCurrentAdvice({
-        title: "生理期間",
-        message: "生理期間です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
+        title: "生理期間の予測",
+        message: "生理予定期間です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
         icon: "🌺",
         bgColor: "from-red-50 to-pink-50",
         textColor: "text-red-600",
@@ -86,25 +100,44 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         bgColor: "from-yellow-50 to-orange-50",
         textColor: "text-yellow-600",
       });
+    } else if (cycleDay >= 25 && cycleDay <= 28) {
+      // 黄体期後期（PMS期間）
+      setCurrentAdvice({
+        title: "PMS期間",
+        message: "生理前の時期です。イライラや体調不良を感じやすい時期なので、リラックスを心がけ、カフェインを控えめにしましょう。",
+        icon: "🌙",
+        bgColor: "from-purple-50 to-indigo-50",
+        textColor: "text-purple-600",
+      });
     } else {
-      // 黄体期後期（PMS期間）または状態不明の場合はデフォルトアドバイス
+      // 状態不明の場合はデフォルトアドバイス
       setDefaultAdvice();
     }
   };
 
   const getCycleDay = (status: any, currentDate: Date): number => {
-    // 実際のAPI レスポンス構造に応じて調整が必要
-    // ここでは仮の実装
-    if (!status?.lastCycle?.start_date) {
-      return 1; // デフォルト値
+    // アクティブな周期がある場合、その開始日からの日数を返す
+    if (status?.hasActiveCycle && status?.activeCycle?.start_date) {
+      const activeCycleStart = new Date(status.activeCycle.start_date);
+      const diffTime = currentDate.getTime() - activeCycleStart.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      return diffDays;
     }
 
-    const lastCycleStart = new Date(status.lastCycle.start_date);
-    const diffTime = currentDate.getTime() - lastCycleStart.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // 28日周期と仮定
-    return ((diffDays - 1) % 28) + 1;
+    // アクティブな周期がない場合、最後の周期から予測
+    if (status?.lastCycle?.start_date) {
+      const lastCycleStart = new Date(status.lastCycle.start_date);
+      const diffTime = currentDate.getTime() - lastCycleStart.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      // 最後の周期の長さを取得（デフォルト28日）
+      const cycleLength = status?.lastCycle?.cycle_length || 28;
+      
+      // 周期内の日数を計算
+      return ((diffDays % cycleLength) + 1);
+    }
+
+    return 1; // デフォルト値
   };
 
   const setDefaultAdvice = () => {

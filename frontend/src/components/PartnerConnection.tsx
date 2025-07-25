@@ -1,5 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { authAPI } from "../services/api";
+import { authAPI, partnerAPI } from "../services/api";
+
+interface PartnerStatus {
+  is_connected: boolean;
+  partner?: {
+    id: number;
+    name: string;
+    gender: string;
+  };
+  connected_at?: string;
+  user_role?: string;
+}
+
+interface GenerateInviteResponse {
+  success: boolean;
+  data?: {
+    invite_code: string;
+    expires_at: string;
+  };
+  message: string;
+}
+
+interface JoinPartnerResponse {
+  success: boolean;
+  data?: {
+    partner: {
+      id: number;
+      name: string;
+      gender: string;
+    };
+    connected_at: string;
+  };
+  message: string;
+}
 
 interface PartnerConnectionProps {
   // 将来的にAPI連携時に使用予定
@@ -10,25 +43,26 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
   const [inviteCode, setInviteCode] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [partnerName, setPartnerName] = useState("");
+  const [partnerInfo, setPartnerInfo] = useState<{ name: string; gender: string } | null>(null);
   const [userGender, setUserGender] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // ユーザー情報を取得してロード
+  // ユーザー情報とパートナー状況を取得してロード
   useEffect(() => {
-    const loadUserData = async () => {
+    const loadData = async () => {
       try {
+        // ユーザー情報を取得
         const userData = await authAPI.getUser();
         const gender = userData.data?.user?.gender || "";
-        console.log("User data:", userData.data);
-        console.log("Gender:", gender);
         setUserGender(gender);
+
+        // パートナー状況を取得
+        await loadPartnerStatus();
 
         // 男性ユーザーで招待タブが選択されている場合、自動的にconnectタブに切り替え
         const isMale = gender === "male" || gender === "男性";
         const isFemale = gender === "female" || gender === "女性";
-        console.log("Is male user:", isMale);
-        console.log("Is female user:", isFemale);
         
         if (isMale && activeTab === "invite") {
           setActiveTab("connect");
@@ -38,28 +72,62 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
           setActiveTab("invite");
         }
       } catch (error) {
-        console.error("Failed to load user data:", error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserData();
+    loadData();
   }, [activeTab]);
+
+  // パートナー状況を取得
+  const loadPartnerStatus = async () => {
+    try {
+      const response = await partnerAPI.getStatus();
+      
+      if (response.success && response.data) {
+        setIsConnected(response.data.is_connected);
+        if (response.data.partner) {
+          setPartnerInfo({
+            name: response.data.partner.name,
+            gender: response.data.partner.gender
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load partner status:', error);
+    }
+  };
 
   // 男性ユーザーかどうかをチェック
   const isMaleUser = userGender === "male" || userGender === "男性";
   // 女性ユーザーかどうかをチェック
   const isFemaleUser = userGender === "female" || userGender === "女性";
 
-  // 招待コード生成（仮実装）
-  const generateInviteCode = () => {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setGeneratedCode(code);
+  // 招待コード生成
+  const generateInviteCode = async () => {
+    setActionLoading(true);
+    try {
+      const response = await partnerAPI.generateInvite();
+      
+      if (response.success && response.data) {
+        setGeneratedCode(response.data.invite_code);
+        alert('招待コードが生成されました！\nパートナーにコードを共有してください。');
+      } else {
+        alert(response.message || '招待コードの生成に失敗しました。');
+      }
+    } catch (error: any) {
+      console.error('Failed to generate invite code:', error);
+      const errorMessage = error.response?.data?.message || error.message || '招待コードの生成に失敗しました。';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  // 招待コード入力処理（仮実装）
-  const handleJoinPartner = () => {
+  // 招待コード入力処理
+  const handleJoinPartner = async () => {
     if (inviteCode.length !== 6) {
       alert("正しい招待コードを入力してください");
       return;
@@ -70,21 +138,56 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
       `招待コード「${inviteCode}」でパートナーと連携しますか？\n\n連携すると以下の情報が共有されます：\n・生理周期データ\n・症状記録\n・健康状態\n\n信頼できるパートナーとのみ連携してください。`
     );
 
-    if (isConfirmed) {
-      setIsConnected(true);
-      setPartnerName("サンプルパートナー");
-      setActiveTab("status");
-      alert("パートナーと連携しました！\n今後、健康データがパートナーと共有されます。");
+    if (!isConfirmed) return;
+
+    setActionLoading(true);
+    try {
+      const response = await partnerAPI.joinPartner(inviteCode);
+      
+      if (response.success && response.data) {
+        setIsConnected(true);
+        setPartnerInfo({
+          name: response.data.partner.name,
+          gender: response.data.partner.gender
+        });
+        setActiveTab("status");
+        setInviteCode("");
+        alert("パートナーと連携しました！\n今後、健康データがパートナーと共有されます。");
+      } else {
+        alert(response.message || 'パートナー連携に失敗しました。');
+      }
+    } catch (error: any) {
+      console.error('Failed to join partner:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'パートナー連携に失敗しました。';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // パートナー連携解除（仮実装）
-  const handleDisconnect = () => {
-    if (confirm("パートナーとの連携を解除しますか？")) {
-      setIsConnected(false);
-      setPartnerName("");
-      setInviteCode("");
-      setGeneratedCode("");
+  // パートナー連携解除
+  const handleDisconnect = async () => {
+    if (!confirm("パートナーとの連携を解除しますか？")) return;
+
+    setActionLoading(true);
+    try {
+      const response = await partnerAPI.disconnect();
+      
+      if (response.success) {
+        setIsConnected(false);
+        setPartnerInfo(null);
+        setInviteCode("");
+        setGeneratedCode("");
+        alert('パートナーとの連携を解除しました。');
+      } else {
+        alert(response.message || '連携解除に失敗しました。');
+      }
+    } catch (error: any) {
+      console.error('Failed to disconnect partner:', error);
+      const errorMessage = error.response?.data?.message || error.message || '連携解除に失敗しました。';
+      alert(errorMessage);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -152,7 +255,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                   <div className="text-center sm:text-left">
                     <h3 className="text-base sm:text-lg font-medium text-green-900">連携中</h3>
-                    <p className="text-sm sm:text-base text-green-700">パートナー: {partnerName}</p>
+                    <p className="text-sm sm:text-base text-green-700">パートナー: {partnerInfo?.name}</p>
                     <p className="text-xs sm:text-sm text-green-600 mt-1">健康データを共有しています</p>
                   </div>
                   <div className="flex items-center justify-center sm:justify-end">
@@ -162,9 +265,10 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                 </div>
                 <button
                   onClick={handleDisconnect}
-                  className="mt-3 sm:mt-4 w-full sm:w-auto px-4 py-2 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-700 rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
+                  disabled={actionLoading}
+                  className="mt-3 sm:mt-4 w-full sm:w-auto px-4 py-2 bg-red-100 hover:bg-red-200 active:bg-red-300 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
                 >
-                  連携を解除
+                  {actionLoading ? '処理中...' : '連携を解除'}
                 </button>
               </div>
             ) : (
@@ -261,9 +365,10 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
                 <button
                   onClick={generateInviteCode}
-                  className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
+                  disabled={actionLoading}
+                  className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
                 >
-                  招待コードを生成
+                  {actionLoading ? '生成中...' : '招待コードを生成'}
                 </button>
               </div>
             )}
@@ -321,10 +426,10 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
                   <button
                     onClick={handleJoinPartner}
-                    disabled={inviteCode.length !== 6}
+                    disabled={inviteCode.length !== 6 || actionLoading}
                     className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
                   >
-                    パートナーに参加
+                    {actionLoading ? '連携中...' : 'パートナーに参加'}
                   </button>
                 </div>
               </>

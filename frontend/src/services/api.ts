@@ -354,3 +354,74 @@ export const userDataAPI = {
     });
   },
 };
+
+// Partner API
+export const partnerAPI = {
+  // Generate invite code (female users only)
+  generateInvite: async () => {
+    return apiRequest('/partner/generate-invite', {
+      method: 'POST',
+    });
+  },
+
+  // Join partner with invite code (male users only)
+  joinPartner: async (inviteCode: string) => {
+    return apiRequest('/partner/join', {
+      method: 'POST',
+      body: JSON.stringify({ invite_code: inviteCode }),
+    });
+  },
+
+  // Get partner status
+  getStatus: async () => {
+    return apiRequest('/partner/status');
+  },
+
+  // Disconnect from partner
+  disconnect: async () => {
+    return apiRequest('/partner/disconnect', {
+      method: 'DELETE',
+    });
+  },
+
+  // Get partner's calendar data
+  getPartnerCalendar: async (year: number, month: number) => {
+    return apiRequest(`/partner/calendar?year=${year}&month=${month}`);
+  },
+};
+
+// Daily Symptoms API
+export const dailySymptomsAPI = {
+  // Save daily symptoms data
+  saveSymptoms: async (data: {
+    date: string;
+    symptoms: string[];
+    mood: string;
+    healthNotes: string;
+    flowIntensity?: number;
+  }) => {
+    return apiRequest('/daily-symptoms', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get daily symptoms for a specific date
+  getSymptoms: async (date: string) => {
+    return apiRequest(`/daily-symptoms?date=${date}`);
+  },
+
+  // Bulk save symptoms data (for migration)
+  bulkSaveSymptoms: async (symptomsData: Array<{
+    date: string;
+    symptoms: string[];
+    mood: string;
+    healthNotes: string;
+    flowIntensity?: number;
+  }>) => {
+    return apiRequest('/daily-symptoms/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms_data: symptomsData }),
+    });
+  },
+};
