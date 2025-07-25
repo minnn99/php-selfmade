@@ -50,11 +50,6 @@ class DailySymptomController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('DailySymptom save error', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return response()->json([
                 'success' => false,
@@ -125,11 +120,6 @@ class DailySymptomController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('DailySymptom bulk save error', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
             
             return response()->json([
                 'success' => false,
@@ -174,10 +164,6 @@ class DailySymptomController extends Controller
             }
             
         } catch (\Exception $e) {
-            \Log::error('DailySymptom get error', [
-                'user_id' => $user->id,
-                'error' => $e->getMessage()
-            ]);
             
             return response()->json([
                 'success' => false,

@@ -48,14 +48,6 @@ class MenstrualCycleController extends Controller
             'notes' => $request->notes
         ]);
 
-        // デバッグログ
-        \Log::info('New cycle created', [
-            'cycle_id' => $cycle->id,
-            'start_date' => $cycle->start_date,
-            'is_active' => $cycle->is_active,
-            'user_id' => $user->id
-        ]);
-
         return response()->json($cycle, 201);
     }
 
@@ -213,13 +205,9 @@ class MenstrualCycleController extends Controller
             }
         }
 
-        // デバッグログ
-        \Log::info('Calendar data response', [
-            'year' => $year,
-            'month' => $month,
-            'cycles_count' => $cycles->count(),
-            'calendar_data' => $calendarData
-        ]);
+        // 予測データを追加
+        $predictions = $this->calculatePredictions($user, $startOfMonth, $endOfMonth);
+        $calendarData = array_merge($calendarData, $predictions);
 
         return response()->json([
             'year' => $year,
@@ -231,21 +219,6 @@ class MenstrualCycleController extends Controller
     public function getCurrentStatus(Request $request): JsonResponse
     {
         $user = $request->user();
-        
-        // デバッグ用：ユーザーの全周期を取得
-        $allCycles = $user->menstrualCycles()->orderBy('start_date', 'desc')->get();
-        \Log::info('All user cycles', [
-            'user_id' => $user->id,
-            'total_cycles' => $allCycles->count(),
-            'cycles' => $allCycles->map(function($cycle) {
-                return [
-                    'id' => $cycle->id,
-                    'start_date' => $cycle->start_date,
-                    'end_date' => $cycle->end_date,
-                    'is_active' => $cycle->is_active
-                ];
-            })
-        ]);
         
         $activeCycle = $user->menstrualCycles()
             ->whereNull('end_date')
@@ -264,14 +237,6 @@ class MenstrualCycleController extends Controller
                 Carbon::now()->diffInDays($lastCycle->end_date) : null
         ];
 
-        // デバッグログ
-        \Log::info('Current status response', [
-            'user_id' => $user->id,
-            'hasActiveCycle' => $response['hasActiveCycle'],
-            'activeCycle_id' => $activeCycle?->id,
-            'activeCycle_start_date' => $activeCycle?->start_date
-        ]);
-
         return response()->json($response);
     }
 
@@ -284,11 +249,6 @@ class MenstrualCycleController extends Controller
         $user = $request->user();
         $endDate = Carbon::parse($request->end_date);
         
-        // デバッグ用：全てのアクティブ周期を取得
-        $allActiveCycles = $user->menstrualCycles()
-            ->whereNull('end_date')
-            ->get();
-        
         // 指定された終了日以前に開始され、まだ終了していない周期を取得
         $activeCycle = $user->menstrualCycles()
             ->whereNull('end_date')
@@ -296,26 +256,204 @@ class MenstrualCycleController extends Controller
             ->orderBy('start_date', 'desc')
             ->first();
 
-        // デバッグログ
-        \Log::info('Active cycle search for end date', [
-            'user_id' => $user->id,
-            'end_date' => $endDate->format('Y-m-d'),
-            'all_active_cycles' => $allActiveCycles->map(function($cycle) {
-                return [
-                    'id' => $cycle->id,
-                    'start_date' => $cycle->start_date->format('Y-m-d'),
-                    'end_date' => $cycle->end_date
-                ];
-            }),
-            'found_cycle' => $activeCycle ? [
-                'id' => $activeCycle->id,
-                'start_date' => $activeCycle->start_date->format('Y-m-d')
-            ] : null
-        ]);
-
         return response()->json([
             'hasActiveCycle' => $activeCycle !== null,
             'activeCycle' => $activeCycle
         ]);
+    }
+
+    /**
+     * 生理予定日・排卵日の予測を計算
+     */
+    private function calculatePredictions($user, $startOfMonth, $endOfMonth)
+    {
+        $predictions = [];
+        
+        // 過去6ヶ月の完了した周期を取得（より正確な平均のため）
+        $completedCycles = $user->menstrualCycles()
+            ->whereNotNull('end_date')
+            ->where('start_date', '>=', now()->subMonths(6))
+            ->orderBy('start_date', 'desc')
+            ->limit(6)
+            ->get();
+
+        if ($completedCycles->count() < 2) {
+            // データが不足している場合は標準的な28日周期を使用
+            return $this->calculateDefaultPredictions($user, $startOfMonth, $endOfMonth);
+        }
+
+        // 周期の長さを計算
+        $cycleLengths = [];
+        for ($i = 0; $i < $completedCycles->count() - 1; $i++) {
+            $currentCycle = $completedCycles[$i];
+            $previousCycle = $completedCycles[$i + 1];
+            
+            $cycleLength = $previousCycle->start_date->diffInDays($currentCycle->start_date);
+            if ($cycleLength > 0 && $cycleLength <= 50) { // 異常値を除外
+                $cycleLengths[] = $cycleLength;
+            }
+        }
+
+        if (empty($cycleLengths)) {
+            return $this->calculateDefaultPredictions($user, $startOfMonth, $endOfMonth);
+        }
+
+        // 平均周期長を計算
+        $averageCycleLength = round(array_sum($cycleLengths) / count($cycleLengths));
+        
+        // 最後の生理開始日から次回予測
+        $lastCycle = $completedCycles->first();
+        $nextPredictedStart = $lastCycle->start_date->copy()->addDays($averageCycleLength);
+
+        // 今月と来月の予測を生成
+        for ($i = 0; $i < 3; $i++) { // 3回分の予測
+            $predictedStart = $nextPredictedStart->copy()->addDays($averageCycleLength * $i);
+            $predictedEnd = $predictedStart->copy()->addDays(5); // 平均5日間
+            
+            // 予測生理期間をカレンダーデータに追加
+            $this->addPredictedPeriod($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
+            
+            // 排卵日予測（生理予定日の14日前）
+            $ovulationDate = $predictedStart->copy()->subDays(14);
+            $this->addOvulationPrediction($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            
+            // 妊娠可能期間（排卵日±5日）
+            $this->addFertilePeriod($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+        }
+
+        return $predictions;
+    }
+
+    /**
+     * デフォルトの28日周期での予測
+     */
+    private function calculateDefaultPredictions($user, $startOfMonth, $endOfMonth)
+    {
+        $predictions = [];
+        
+        // 最後の生理記録を取得
+        $lastCycle = $user->menstrualCycles()
+            ->orderBy('start_date', 'desc')
+            ->first();
+
+        if (!$lastCycle) {
+            // データがない場合は予測なし（初回利用時は予測しない）
+            return $predictions;
+        }
+
+        // 最初の生理周期から28日周期で予測
+        $nextPredictedStart = $lastCycle->start_date->copy()->addDays(28);
+        
+        for ($i = 0; $i < 3; $i++) {
+            $predictedStart = $nextPredictedStart->copy()->addDays(28 * $i);
+            $predictedEnd = $predictedStart->copy()->addDays(5);
+            
+            $this->addPredictedPeriod($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
+            
+            $ovulationDate = $predictedStart->copy()->subDays(14);
+            $this->addOvulationPrediction($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriod($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+        }
+
+        return $predictions;
+    }
+
+    /**
+     * 予測生理期間をカレンダーデータに追加
+     */
+    private function addPredictedPeriod($predictions, $startDate, $endDate, $monthStart, $monthEnd)
+    {
+        // 表示月の範囲内の日付のみ処理
+        $start = max($startDate, $monthStart);
+        $end = min($endDate, $monthEnd);
+        
+        if ($start <= $end && $start >= $monthStart && $start <= $monthEnd) {
+            for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+                $dateKey = $date->format('Y-m-d');
+                
+                // 既存の実際の生理データがある場合はスキップ
+                if (!isset($predictions[$dateKey])) {
+                    $predictions[$dateKey] = [
+                        'hasPeriod' => false,
+                        'isPeriodStart' => false,
+                        'isPeriodEnd' => false,
+                        'isActive' => false,
+                        'isPredictedPeriod' => true,
+                        'isOvulation' => false,
+                        'isFertile' => false,
+                        'flowIntensity' => null,
+                        'symptoms' => null,
+                        'cycleId' => null,
+                        'notes' => null
+                    ];
+                }
+            }
+        }
+    }
+
+    /**
+     * 排卵日予測をカレンダーデータに追加
+     */
+    private function addOvulationPrediction($predictions, $ovulationDate, $monthStart, $monthEnd)
+    {
+        if ($ovulationDate >= $monthStart && $ovulationDate <= $monthEnd) {
+            $dateKey = $ovulationDate->format('Y-m-d');
+            
+            if (!isset($predictions[$dateKey])) {
+                $predictions[$dateKey] = [
+                    'hasPeriod' => false,
+                    'isPeriodStart' => false,
+                    'isPeriodEnd' => false,
+                    'isActive' => false,
+                    'isPredictedPeriod' => false,
+                    'isOvulation' => true,
+                    'isFertile' => true,
+                    'flowIntensity' => null,
+                    'symptoms' => null,
+                    'cycleId' => null,
+                    'notes' => null
+                ];
+            } else {
+                // 既存データに排卵情報を追加
+                $predictions[$dateKey]['isOvulation'] = true;
+                $predictions[$dateKey]['isFertile'] = true;
+            }
+        }
+    }
+
+    /**
+     * 妊娠可能期間をカレンダーデータに追加
+     */
+    private function addFertilePeriod($predictions, $ovulationDate, $monthStart, $monthEnd)
+    {
+        // 排卵日の前後5日間を妊娠可能期間とする
+        $fertileStart = $ovulationDate->copy()->subDays(5);
+        $fertileEnd = $ovulationDate->copy()->addDays(5);
+        
+        $start = max($fertileStart, $monthStart);
+        $end = min($fertileEnd, $monthEnd);
+        
+        for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+            $dateKey = $date->format('Y-m-d');
+            
+            if (!isset($predictions[$dateKey])) {
+                $predictions[$dateKey] = [
+                    'hasPeriod' => false,
+                    'isPeriodStart' => false,
+                    'isPeriodEnd' => false,
+                    'isActive' => false,
+                    'isPredictedPeriod' => false,
+                    'isOvulation' => false,
+                    'isFertile' => true,
+                    'flowIntensity' => null,
+                    'symptoms' => null,
+                    'cycleId' => null,
+                    'notes' => null
+                ];
+            } else {
+                // 既存データに妊娠可能期間情報を追加
+                $predictions[$dateKey]['isFertile'] = true;
+            }
+        }
     }
 }

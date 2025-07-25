@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DailyRecordModal } from "./DailyRecordModal";
 
 interface DailyRecordData {
@@ -12,6 +12,7 @@ interface DailyRecordData {
 export const TodaySection: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dailyData, setDailyData] = useState<DailyRecordData | null>(null);
+  const [hasAnyData, setHasAnyData] = useState(false);
   const today = new Date();
   const dateString = today.toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -20,9 +21,40 @@ export const TodaySection: React.FC = () => {
     weekday: "long",
   });
 
+  // Check if user has any data on mount
+  useEffect(() => {
+    const checkExistingData = () => {
+      const todayKey = `daily-record-${today.toISOString().split('T')[0]}`;
+      const todayData = localStorage.getItem(todayKey);
+      
+      if (todayData) {
+        try {
+          const parsedData = JSON.parse(todayData);
+          setDailyData(parsedData);
+          setHasAnyData(true);
+        } catch (error) {
+          console.error('Error parsing daily data:', error);
+        }
+      }
+
+      // Check if user has any historical data
+      const hasHistoricalData = Object.keys(localStorage).some(key => 
+        key.startsWith('daily-record-') || 
+        key.startsWith('daily-symptoms-') ||
+        key.startsWith('menstrual-')
+      );
+      
+      if (hasHistoricalData || todayData) {
+        setHasAnyData(true);
+      }
+    };
+
+    checkExistingData();
+  }, [today]);
+
   const handleSaveRecord = (data: DailyRecordData) => {
     setDailyData(data);
-    // ここで実際の保存処理を実装（localStorageやAPI）
+    setHasAnyData(true);
     localStorage.setItem(`daily-record-${today.toISOString().split('T')[0]}`, JSON.stringify(data));
     console.log('Daily record saved:', data);
   };
@@ -80,25 +112,37 @@ export const TodaySection: React.FC = () => {
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">気分</p>
           <div className="flex justify-center space-x-1">
-            <span className="text-lg sm:text-xl">{dailyData ? getMoodEmoji(dailyData.mood) : '😊'}</span>
+            {hasAnyData && dailyData ? (
+              <span className="text-lg sm:text-xl">{getMoodEmoji(dailyData.mood)}</span>
+            ) : (
+              <span className="text-xs text-gray-400">未記録</span>
+            )}
           </div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">体調</p>
           <div className="flex justify-center space-x-1">
-            <span className="text-lg sm:text-xl">{dailyData ? getPhysicalEmoji(dailyData.physicalCondition) : '💪'}</span>
+            {hasAnyData && dailyData ? (
+              <span className="text-lg sm:text-xl">{getPhysicalEmoji(dailyData.physicalCondition)}</span>
+            ) : (
+              <span className="text-xs text-gray-400">未記録</span>
+            )}
           </div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">水分摂取</p>
           <p className="text-sm sm:text-base font-medium text-gray-900">
-            {dailyData ? `${dailyData.waterIntake}L` : '1.2L'}
+            {hasAnyData && dailyData ? `${dailyData.waterIntake}L` : (
+              <span className="text-xs text-gray-400">未記録</span>
+            )}
           </p>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">睡眠時間</p>
           <p className="text-sm sm:text-base font-medium text-gray-900">
-            {dailyData ? `${dailyData.sleepHours}h` : '7.5h'}
+            {hasAnyData && dailyData ? `${dailyData.sleepHours}h` : (
+              <span className="text-xs text-gray-400">未記録</span>
+            )}
           </p>
         </div>
       </div>

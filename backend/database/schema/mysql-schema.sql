@@ -24,6 +24,21 @@ CREATE TABLE `cache_locks` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `daily_symptoms`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `daily_symptoms` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `symptom_date` date NOT NULL,
+  `symptoms_data` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `daily_symptoms_user_id_symptom_date_unique` (`user_id`,`symptom_date`),
+  CONSTRAINT `daily_symptoms_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `failed_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -99,6 +114,27 @@ CREATE TABLE `migrations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `partner_relationships`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `partner_relationships` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `female_user_id` bigint unsigned NOT NULL,
+  `male_user_id` bigint unsigned DEFAULT NULL,
+  `invite_code` varchar(6) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('pending','connected','disconnected') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `connected_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `partner_relationships_invite_code_unique` (`invite_code`),
+  KEY `partner_relationships_female_user_id_status_index` (`female_user_id`,`status`),
+  KEY `partner_relationships_male_user_id_status_index` (`male_user_id`,`status`),
+  KEY `partner_relationships_invite_code_index` (`invite_code`),
+  CONSTRAINT `partner_relationships_female_user_id_foreign` FOREIGN KEY (`female_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `partner_relationships_male_user_id_foreign` FOREIGN KEY (`male_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `password_reset_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -128,6 +164,22 @@ CREATE TABLE `personal_access_tokens` (
   KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `pregnancy_records`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_records` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `start_date` date DEFAULT NULL,
+  `records_data` json NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `pregnancy_records_user_id_foreign` (`user_id`),
+  CONSTRAINT `pregnancy_records_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `sessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -141,6 +193,21 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`id`),
   KEY `sessions_user_id_index` (`user_id`),
   KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `user_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_settings` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `setting_key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `setting_value` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_settings_user_id_setting_key_unique` (`user_id`,`setting_key`),
+  CONSTRAINT `user_settings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `users`;
@@ -174,4 +241,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (2,'0001_01_01_0000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (3,'0001_01_01_000002_create_jobs_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (4,'2025_07_16_044751_create_personal_access_tokens_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (5,'2025_07_16_103230_add_gender_and_phone_to_users_table',1);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (6,'2025_07_19_081629_create_menstrual_cycles_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (7,'2025_07_19_081629_create_menstrual_cycles_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (8,'2025_07_24_104848_add_furigana_to_users_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (9,'2025_07_24_144707_create_user_settings_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (10,'2025_07_24_144715_create_daily_symptoms_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (11,'2025_07_24_144813_create_pregnancy_records_table',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (12,'2025_07_24_152212_create_partner_relationships_table',3);

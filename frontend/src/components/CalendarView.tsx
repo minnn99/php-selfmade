@@ -15,6 +15,7 @@ interface CalendarDay {
   isPeriodStart: boolean;
   isPeriodEnd: boolean;
   isActive: boolean;
+  isFertile?: boolean;
   hasPartnerPeriod?: boolean;
   hasPartnerSymptoms?: boolean;
   partnerName?: string;
@@ -287,11 +288,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isPredictedPeriod: false,
+        isOvulation: dayData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -316,11 +318,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isPredictedPeriod: false,
+        isOvulation: dayData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -347,11 +350,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: false,
-        isPredictedPeriod: false,
+        isOvulation: dayData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || false,
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -636,6 +640,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     // 症状がある場合は小さなドットを表示
     if (day.hasSymptoms) {
       decorations.push(<div key="symptoms" className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>);
+    }
+
+    // 妊娠可能期間の表示（排卵日・生理日・予測生理日以外）
+    if (day.isFertile && !day.isOvulation && !day.hasPeriod && !day.isPredictedPeriod) {
+      decorations.push(
+        <div key="fertile" className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+      );
     }
 
     // パートナーの症状がある場合は別色のドットを表示
