@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -67,37 +68,39 @@ class AuthController extends Controller
             'password.regex' => 'パスワードは大文字と数字を含む必要があります。',
         ]);
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->furigana = $request->furigana;
-        $user->gender = $request->gender;
-        $user->phone = $request->phone;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
-        $user->save();
+        return DB::transaction(function () use ($request) {
+            $user = new User();
+            $user->name = $request->name;
+            $user->furigana = $request->furigana;
+            $user->gender = $request->gender;
+            $user->phone = $request->phone;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
 
-        $tokenResult = $user->createToken('auth_token');
-        $token = $tokenResult->plainTextToken;
-        $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes(config('sanctum.expiration'));
+            $tokenResult = $user->createToken('auth_token');
+            $token = $tokenResult->plainTextToken;
+            $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes(config('sanctum.expiration'));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'ユーザー登録が完了しました',
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'gender' => $user->gender,
-                    'phone' => $user->phone,
-                    'email' => $user->email,
-                    'created_at' => $user->created_at,
-                ],
-                'token' => $token,
-                'token_type' => 'Bearer',
-                'expires_at' => $expiresAt->toISOString(),
-                'expires_in' => config('sanctum.expiration') * 60, // 秒単位
-            ]
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'ユーザー登録が完了しました',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'gender' => $user->gender,
+                        'phone' => $user->phone,
+                        'email' => $user->email,
+                        'created_at' => $user->created_at,
+                    ],
+                    'token' => $token,
+                    'token_type' => 'Bearer',
+                    'expires_at' => $expiresAt->toISOString(),
+                    'expires_in' => config('sanctum.expiration') * 60,
+                ]
+            ], 201);
+        });
     }
 
     /**
