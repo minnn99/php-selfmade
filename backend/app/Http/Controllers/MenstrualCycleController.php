@@ -6,6 +6,7 @@ use App\Models\MenstrualCycle;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class MenstrualCycleController extends Controller
 {
@@ -277,6 +278,7 @@ class MenstrualCycleController extends Controller
             ->limit(6)
             ->get();
 
+
         if ($completedCycles->count() < 2) {
             // データが不足している場合は標準的な28日周期を使用
             return $this->calculateDefaultPredictions($user, $startOfMonth, $endOfMonth);
@@ -289,6 +291,7 @@ class MenstrualCycleController extends Controller
             $previousCycle = $completedCycles[$i + 1];
             
             $cycleLength = $previousCycle->start_date->diffInDays($currentCycle->start_date);
+            
             if ($cycleLength > 0 && $cycleLength <= 50) { // 異常値を除外
                 $cycleLengths[] = $cycleLength;
             }
@@ -361,7 +364,7 @@ class MenstrualCycleController extends Controller
     /**
      * 予測生理期間をカレンダーデータに追加
      */
-    private function addPredictedPeriod($predictions, $startDate, $endDate, $monthStart, $monthEnd)
+    private function addPredictedPeriod(&$predictions, $startDate, $endDate, $monthStart, $monthEnd)
     {
         // 表示月の範囲内の日付のみ処理
         $start = max($startDate, $monthStart);
@@ -394,7 +397,7 @@ class MenstrualCycleController extends Controller
     /**
      * 排卵日予測をカレンダーデータに追加
      */
-    private function addOvulationPrediction($predictions, $ovulationDate, $monthStart, $monthEnd)
+    private function addOvulationPrediction(&$predictions, $ovulationDate, $monthStart, $monthEnd)
     {
         if ($ovulationDate >= $monthStart && $ovulationDate <= $monthEnd) {
             $dateKey = $ovulationDate->format('Y-m-d');
@@ -424,7 +427,7 @@ class MenstrualCycleController extends Controller
     /**
      * 妊娠可能期間をカレンダーデータに追加
      */
-    private function addFertilePeriod($predictions, $ovulationDate, $monthStart, $monthEnd)
+    private function addFertilePeriod(&$predictions, $ovulationDate, $monthStart, $monthEnd)
     {
         // 排卵日の前後5日間を妊娠可能期間とする
         $fertileStart = $ovulationDate->copy()->subDays(5);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
 import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../services/api";
+import { menstrualStatusManager } from "../services/menstrualStatusManager";
 
 interface CalendarDay {
   year: number;
@@ -61,6 +62,16 @@ export const Calendar: React.FC = () => {
 
       // ユーザー情報取得後にカレンダーデータを読み込み
       await loadCalendarData(gender, isConnected);
+      
+      // MenstrualStatusManagerを初期化（認証後に実行）
+      try {
+        await menstrualStatusManager.loadStatus();
+        // Auto-update period status after loading
+        const { autoUpdatePeriodStatusForActiveCycle } = await import('../utils/periodStatusHelper');
+        autoUpdatePeriodStatusForActiveCycle();
+      } catch (error) {
+        console.error('Failed to initialize menstrual status manager:', error);
+      }
       
       // 初回読み込み時にローカルストレージデータを移行
       await migrateLocalStorageData();

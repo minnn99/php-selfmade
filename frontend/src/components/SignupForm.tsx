@@ -106,7 +106,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
     if (!gender) {
       return "性別を選択してください";
     }
-    if (!['male', 'female', 'other'].includes(gender)) {
+    if (!['male', 'female'].includes(gender)) {
       return "正しい性別を選択してください";
     }
     return undefined;
@@ -348,7 +348,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 <option value="">選択してください</option>
                 <option value="female">女性</option>
                 <option value="male">男性</option>
-                <option value="other">その他</option>
               </select>
               {errors.gender && touched.gender && (
                 <p className="mt-1 text-sm text-red-600">{errors.gender}</p>

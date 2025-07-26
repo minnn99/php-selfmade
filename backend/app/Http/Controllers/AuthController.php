@@ -29,9 +29,9 @@ class AuthController extends Controller
                 'string',
                 'min:1',
                 'max:50',
-                'regex:/^[ァ-ヶ\s]+$/u'
+                'regex:/^[ァ-ヶー\s]+$/u'
             ],
-            'gender' => 'required|string|in:male,female,other',
+            'gender' => 'required|string|in:male,female',
             'phone' => [
                 'required',
                 'string',

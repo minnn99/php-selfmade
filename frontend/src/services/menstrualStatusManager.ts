@@ -101,13 +101,8 @@ class MenstrualStatusManager {
 // Create singleton instance
 export const menstrualStatusManager = new MenstrualStatusManager();
 
-// Initialize the manager when the module is imported
-menstrualStatusManager.loadStatus().then(() => {
-  // Auto-update period status after loading
-  import('../utils/periodStatusHelper').then(({ autoUpdatePeriodStatusForActiveCycle }) => {
-    autoUpdatePeriodStatusForActiveCycle();
-  });
-});
+// Note: Manual initialization is required after authentication
+// Components should call menstrualStatusManager.loadStatus() after user login
 
 // Listen for menstrualDataUpdated events globally
 window.addEventListener('menstrualDataUpdated', () => {

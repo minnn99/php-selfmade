@@ -33,7 +33,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
-  const [internalRefreshKey, setInternalRefreshKey] = useState(0); // 内部の強制再描画用
   const [userGender, setUserGender] = useState<string>("");
   const [isConnectedToPartner, setIsConnectedToPartner] = useState(false);
 
@@ -48,17 +47,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       const userData = await authAPI.getUser();
       const gender = userData.data?.user?.gender || "";
       setUserGender(gender);
-      console.log('CalendarView: User gender set to:', gender);
-
       // パートナー状況を確認
       const partnerStatus = await partnerAPI.getStatus();
       const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
       setIsConnectedToPartner(isConnected);
-      console.log('CalendarView: Partner connection status:', { 
-        success: partnerStatus.success, 
-        is_connected: partnerStatus.data?.is_connected,
-        isConnected 
-      });
 
       // ユーザー情報取得後にカレンダーデータを読み込み
       await loadCalendarData(gender, isConnected);
@@ -70,7 +62,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     };
     
     loadData();
-  }, [currentYear, currentMonth, refreshKey, internalRefreshKey]);
+  }, [currentYear, currentMonth, refreshKey]);
+
 
   // ローカルストレージデータをAPIに移行する関数
   const migrateLocalStorageData = async () => {
@@ -188,17 +181,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       setCalendarApiData(filteredData);
 
       // 男性ユーザーで、パートナーと連動している場合、パートナーのカレンダーデータも読み込み
-      console.log('CalendarView: Loading partner data check', {
-        currentConnected,
-        currentGender,
-        isMale: currentGender === "male" || currentGender === "男性"
-      });
       
       if (currentConnected && (currentGender === "male" || currentGender === "男性")) {
         try {
-          console.log('CalendarView: Fetching partner calendar data for', currentYear, currentMonth + 1);
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
-          console.log('CalendarView: Partner data response:', partnerData);
           
           if (partnerData.success && partnerData.data?.calendar_data) {
             const partnerCalendarMap: any = {};
@@ -206,9 +192,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
               partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
-            console.log('CalendarView: Partner calendar map set:', partnerCalendarMap);
           } else {
-            console.log('CalendarView: No partner calendar data found');
             setPartnerCalendarData({});
           }
         } catch (error) {
@@ -216,7 +200,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           setPartnerCalendarData({});
         }
       } else {
-        console.log('CalendarView: Not loading partner data - not male or not connected');
         setPartnerCalendarData({});
       }
     } catch (error) {
@@ -242,21 +225,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   };
 
   // Helper function to check if a date has user input data stored locally
-  const hasUserInputForDate = (dateKey: string): boolean => {
-    const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-    if (!storedData) return false;
-    
-    try {
-      const data = JSON.parse(storedData);
-      // Check if any meaningful data exists (not just empty/default values)
-      return (data.symptoms && data.symptoms.length > 0) || 
-             (data.mood && data.mood.trim() !== '') ||
-             (data.healthNotes && data.healthNotes.trim() !== '') ||
-             (data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0);
-    } catch {
-      return false;
-    }
-  };
+  const hasUserInputForDate = useMemo(() => {
+    return (dateKey: string): boolean => {
+      const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+      if (!storedData) return false;
+      
+      try {
+        const data = JSON.parse(storedData);
+        // Check if any meaningful data exists (not just empty/default values)
+        return (data.symptoms && data.symptoms.length > 0) || 
+               (data.mood && data.mood.trim() !== '') ||
+               (data.healthNotes && data.healthNotes.trim() !== '') ||
+               (data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0);
+      } catch {
+        return false;
+      }
+    };
+  }, [refreshKey]); // refreshKey when data changes
 
   // カレンダーの日付データを生成（APIデータを使用）
   const generateCalendarDays = (): CalendarDay[] => {
@@ -370,7 +355,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     return days;
   };
 
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, internalRefreshKey]);
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: CalendarDay) => {
@@ -502,7 +487,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
           });
-          console.log(`API SUCCESS: Saved symptoms data for ${dateStr}`);
         } catch (error) {
           console.error(`API ERROR: Failed to save symptoms data for ${dateStr}:`, error);
           // 症状データのAPI保存が失敗してもローカルストレージには保存する
@@ -555,9 +539,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         }
       }
 
-      await loadCalendarData(); // 既存の状態を使用
-      // カレンダーを強制的に再描画
-      setInternalRefreshKey(prev => prev + 1);
+      // データ更新イベントを発火
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       alert("記録が保存されました！");
     } catch (error: any) {
       console.error("Failed to save record:", error);
@@ -573,7 +556,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const handleDelete = async (cycleId: number) => {
     try {
       await menstrualCycleAPI.deleteCycle(cycleId);
-      await loadCalendarData(); // 既存の状態を使用
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       alert("生理周期が削除されました");
     } catch (error: any) {
       console.error("Failed to delete cycle:", error);

@@ -1,6 +1,104 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { menstrualCycleAPI } from '../services/api';
+
+interface PredictionData {
+  nextPeriodDate: string | null;
+  nextOvulationDate: string | null;
+  currentCycleDay: number | null;
+  averageCycleLength: number | null;
+}
 
 export const OverviewCards: React.FC = () => {
+  const [predictionData, setPredictionData] = useState<PredictionData>({
+    nextPeriodDate: null,
+    nextOvulationDate: null,
+    currentCycleDay: null,
+    averageCycleLength: null
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPredictionData = async () => {
+      try {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        
+        const response = await menstrualCycleAPI.getCalendarData(year, month);
+        
+        // Find next period and ovulation dates from calendar data
+        let nextPeriodDate = null;
+        let nextOvulationDate = null;
+        
+        for (const [dateKey, dayData] of Object.entries(response.calendar || {})) {
+          const date = new Date(dateKey);
+          if (date >= today) {
+            if ((dayData as any).isPredictedPeriod && !nextPeriodDate) {
+              nextPeriodDate = dateKey;
+            }
+            if ((dayData as any).isOvulation && !nextOvulationDate) {
+              nextOvulationDate = dateKey;
+            }
+          }
+        }
+        
+        // Calculate current cycle day
+        let currentCycleDay = null;
+        const currentCycle = response.current_cycle;
+        if (currentCycle && currentCycle.start_date) {
+          const cycleStart = new Date(currentCycle.start_date);
+          const diffTime = today.getTime() - cycleStart.getTime();
+          currentCycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+        
+        setPredictionData({
+          nextPeriodDate,
+          nextOvulationDate,
+          currentCycleDay,
+          averageCycleLength: response.average_cycle_length || null
+        });
+      } catch (error) {
+        console.error('Error fetching prediction data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPredictionData();
+    
+    // Listen for menstrual data updates
+    const handleDataUpdate = () => {
+      fetchPredictionData();
+    };
+    
+    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
+    
+    return () => {
+      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+    };
+  }, []);
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
+  };
+
+  const getDaysUntil = (dateString: string | null) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    const today = new Date();
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getProgressPercentage = (dateString: string | null, averageCycleLength: number | null) => {
+    if (!dateString || !averageCycleLength) return 0;
+    const daysUntil = getDaysUntil(dateString);
+    if (daysUntil === null || daysUntil < 0) return 0;
+    return Math.max(0, Math.min(100, ((averageCycleLength - daysUntil) / averageCycleLength) * 100));
+  };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Next Period Card */}
@@ -14,11 +112,32 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2 sm:space-y-3">
-          <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-          <p className="text-xs sm:text-sm text-gray-500">データなし</p>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-pink-500 h-2 rounded-full" style={{width: '0%'}}></div>
-          </div>
+          {loading ? (
+            <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+          ) : predictionData.nextPeriodDate ? (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
+                {formatDate(predictionData.nextPeriodDate)}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                あと{getDaysUntil(predictionData.nextPeriodDate)}日
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-pink-500 h-2 rounded-full transition-all duration-300" 
+                  style={{width: `${getProgressPercentage(predictionData.nextPeriodDate, predictionData.averageCycleLength)}%`}}
+                ></div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
+              <p className="text-xs sm:text-sm text-gray-500">データなし</p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-pink-500 h-2 rounded-full" style={{width: '0%'}}></div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -33,11 +152,32 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2 sm:space-y-3">
-          <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-          <p className="text-xs sm:text-sm text-gray-500">データなし</p>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-primary-500 h-2 rounded-full" style={{width: '0%'}}></div>
-          </div>
+          {loading ? (
+            <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+          ) : predictionData.currentCycleDay ? (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
+                {predictionData.currentCycleDay}日目
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                {predictionData.averageCycleLength ? `平均${predictionData.averageCycleLength}日周期` : '周期計算中'}
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-primary-500 h-2 rounded-full transition-all duration-300" 
+                  style={{width: predictionData.averageCycleLength ? `${(predictionData.currentCycleDay / predictionData.averageCycleLength) * 100}%` : '0%'}}
+                ></div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
+              <p className="text-xs sm:text-sm text-gray-500">データなし</p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-primary-500 h-2 rounded-full" style={{width: '0%'}}></div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -52,12 +192,31 @@ export const OverviewCards: React.FC = () => {
           </div>
         </div>
         <div className="space-y-2 sm:space-y-3">
-          <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-          <p className="text-xs sm:text-sm text-gray-500">データなし</p>
-          <div className="flex items-center space-x-1">
-            <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-            <span className="text-xs text-gray-500">データ登録後表示</span>
-          </div>
+          {loading ? (
+            <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+          ) : predictionData.nextOvulationDate ? (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
+                {formatDate(predictionData.nextOvulationDate)}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                あと{getDaysUntil(predictionData.nextOvulationDate)}日
+              </p>
+              <div className="flex items-center space-x-1">
+                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                <span className="text-xs text-gray-500">排卵予測</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
+              <p className="text-xs sm:text-sm text-gray-500">データなし</p>
+              <div className="flex items-center space-x-1">
+                <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
+                <span className="text-xs text-gray-500">データ登録後表示</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
