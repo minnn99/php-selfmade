@@ -14,15 +14,15 @@ interface ValidationErrors {
   password?: string;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword, onShowWelcome, serverError }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false, onShowSignup, onShowForgotPassword, serverError }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [touched, setTouched] = useState<{email: boolean, password: boolean}>({
+  const [touched, setTouched] = useState<{ email: boolean; password: boolean }>({
     email: false,
-    password: false
+    password: false,
   });
 
   const validateEmail = (email: string): string | undefined => {
@@ -52,15 +52,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
   const validateForm = (): boolean => {
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    
+
     setErrors({
       email: emailError,
-      password: passwordError
+      password: passwordError,
     });
 
     setTouched({
       email: true,
-      password: true
+      password: true,
     });
 
     return !emailError && !passwordError;
@@ -69,11 +69,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    
+
     if (touched.email) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        email: validateEmail(value)
+        email: validateEmail(value),
       }));
     }
   };
@@ -81,34 +81,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPassword(value);
-    
+
     if (touched.password) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        password: validatePassword(value)
+        password: validatePassword(value),
       }));
     }
   };
 
   const handleEmailBlur = () => {
-    setTouched(prev => ({ ...prev, email: true }));
-    setErrors(prev => ({
+    setTouched((prev) => ({ ...prev, email: true }));
+    setErrors((prev) => ({
       ...prev,
-      email: validateEmail(email)
+      email: validateEmail(email),
     }));
   };
 
   const handlePasswordBlur = () => {
-    setTouched(prev => ({ ...prev, password: true }));
-    setErrors(prev => ({
+    setTouched((prev) => ({ ...prev, password: true }));
+    setErrors((prev) => ({
       ...prev,
-      password: validatePassword(password)
+      password: validatePassword(password),
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       onLogin(email, password, rememberMe);
     }
@@ -153,9 +153,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   onChange={handleEmailChange}
                   onBlur={handleEmailBlur}
                   className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
-                    errors.email && touched.email
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-medical focus:ring-primary-500'
+                    errors.email && touched.email ? "border-red-500 focus:ring-red-500" : "border-medical focus:ring-primary-500"
                   }`}
                   placeholder="example@email.com"
                 />
@@ -170,9 +168,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   </svg>
                 </div>
               </div>
-              {errors.email && touched.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
+              {errors.email && touched.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
             {/* Password Field */}
@@ -191,9 +187,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   onChange={handlePasswordChange}
                   onBlur={handlePasswordBlur}
                   className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
-                    errors.password && touched.password
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-medical focus:ring-primary-500'
+                    errors.password && touched.password ? "border-red-500 focus:ring-red-500" : "border-medical focus:ring-primary-500"
                   }`}
                   placeholder="パスワードを入力"
                 />
@@ -234,9 +228,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   )}
                 </button>
               </div>
-              {errors.password && touched.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
+              {errors.password && touched.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             {/* Remember Me & Forgot Password */}
@@ -302,18 +294,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
             </p>
           </div>
         </div>
-
-        {/* Test Link - Development Only */}
-        {onShowWelcome && (
-        <div className="text-center mb-4">
-          <button
-            onClick={onShowWelcome}
-            className="text-xs text-blue-500 hover:text-blue-700 underline"
-          >
-            [テスト] ウェルカム画面を表示
-          </button>
-        </div>
-        )}
 
         {/* Footer */}
         <div className="text-center">

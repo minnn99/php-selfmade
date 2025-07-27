@@ -304,9 +304,9 @@ class MenstrualCycleController extends Controller
         // 平均周期長を計算
         $averageCycleLength = round(array_sum($cycleLengths) / count($cycleLengths));
         
-        // 最後の生理開始日から次回予測
+        // 最後の生理終了日から次回予測
         $lastCycle = $completedCycles->first();
-        $nextPredictedStart = $lastCycle->start_date->copy()->addDays($averageCycleLength);
+        $nextPredictedStart = $lastCycle->end_date->copy()->addDays($averageCycleLength - 5); // 生理期間平均5日を考慮
 
         // 今月と来月の予測を生成
         for ($i = 0; $i < 3; $i++) { // 3回分の予測
@@ -316,7 +316,7 @@ class MenstrualCycleController extends Controller
             // 予測生理期間をカレンダーデータに追加
             $this->addPredictedPeriod($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
             
-            // 排卵日予測（生理予定日の14日前）
+            // 排卵日予測（次の生理の14日前）
             $ovulationDate = $predictedStart->copy()->subDays(14);
             $this->addOvulationPrediction($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
             
@@ -353,6 +353,7 @@ class MenstrualCycleController extends Controller
             
             $this->addPredictedPeriod($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
             
+            // 排卵日予測（次の生理の14日前）
             $ovulationDate = $predictedStart->copy()->subDays(14);
             $this->addOvulationPrediction($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
             $this->addFertilePeriod($predictions, $ovulationDate, $startOfMonth, $endOfMonth);

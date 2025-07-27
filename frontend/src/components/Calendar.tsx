@@ -800,10 +800,10 @@ export const Calendar: React.FC = () => {
       baseStyle += "text-gray-300 ";
     } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
       // 今日かつ生理関連の場合
-      baseStyle += "bg-red-600 text-white rounded-lg ";
+      baseStyle += "bg-red-600 text-white rounded-lg border-2 border-blue-500 ";
     } else if (day.isToday) {
       // 今日のみの場合
-      baseStyle += "bg-primary-600 text-white rounded-lg ";
+      baseStyle += "border-2 border-blue-500 text-blue-600 font-bold rounded-lg ";
     } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
       // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
       baseStyle += "bg-red-500 text-white rounded-lg ";

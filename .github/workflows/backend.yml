@@ -1,0 +1,123 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: pairiod_test
+          MYSQL_USER: pairiod_user
+          MYSQL_PASSWORD: pairiod_password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    strategy:
+      matrix:
+        php-version: [8.2]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, dom, fileinfo, mysql, redis
+        coverage: xdebug
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: backend/vendor
+        key: composer-${{ hashFiles('backend/composer.lock') }}
+        restore-keys: composer-
+
+    - name: Install Composer dependencies
+      working-directory: ./backend
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Copy environment file
+      working-directory: ./backend
+      run: cp .env.example .env
+
+    - name: Generate application key
+      working-directory: ./backend
+      run: php artisan key:generate
+
+    - name: Set testing environment
+      working-directory: ./backend
+      run: |
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=127.0.0.1" >> .env
+        echo "DB_PORT=3306" >> .env
+        echo "DB_DATABASE=pairiod_test" >> .env
+        echo "DB_USERNAME=root" >> .env
+        echo "DB_PASSWORD=password" >> .env
+
+    - name: Run database migrations
+      working-directory: ./backend
+      run: php artisan migrate --force
+
+    - name: Run PHPStan (Static Analysis)
+      working-directory: ./backend
+      run: |
+        if [ -f "composer.json" ] && grep -q "phpstan" composer.json; then
+          vendor/bin/phpstan analyse --no-progress
+        else
+          echo "PHPStan not configured, skipping static analysis"
+        fi
+      continue-on-error: true
+
+    - name: Run PHP CS Fixer (Code Style)
+      working-directory: ./backend
+      run: |
+        if [ -f "composer.json" ] && grep -q "friendsofphp/php-cs-fixer" composer.json; then
+          vendor/bin/php-cs-fixer fix --dry-run --diff
+        else
+          echo "PHP CS Fixer not configured, skipping code style check"
+        fi
+      continue-on-error: true
+
+    - name: Run PHPUnit tests
+      working-directory: ./backend
+      run: |
+        if [ -f "phpunit.xml" ] || [ -f "phpunit.xml.dist" ]; then
+          php artisan test --coverage-text --coverage-clover=coverage.xml
+        else
+          echo "No PHPUnit configuration found, skipping tests"
+        fi
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+      continue-on-error: true
+
+    - name: Check Laravel logs
+      working-directory: ./backend
+      run: |
+        if [ -f "storage/logs/laravel.log" ]; then
+          echo "Recent Laravel logs:"
+          tail -20 storage/logs/laravel.log
+        fi
+      continue-on-error: true

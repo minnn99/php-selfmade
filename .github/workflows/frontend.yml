@@ -1,0 +1,64 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+
+jobs:
+  frontend-ci:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: 'frontend/package-lock.json'
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Type check
+      working-directory: ./frontend
+      run: npm run type-check
+      continue-on-error: true
+
+    - name: Lint check
+      working-directory: ./frontend
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Build application
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-build-${{ github.sha }}
+        path: frontend/dist/
+        retention-days: 7
+
+    - name: Check bundle size
+      working-directory: ./frontend
+      run: |
+        BUILD_SIZE=$(du -sh dist/ | cut -f1)
+        echo "Frontend build size: $BUILD_SIZE"
+        echo "BUILD_SIZE=$BUILD_SIZE" >> $GITHUB_ENV

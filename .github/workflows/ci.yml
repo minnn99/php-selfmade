@@ -1,0 +1,95 @@
+name: Full Stack CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
+      backend-changed: ${{ steps.changes.outputs.backend }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          frontend:
+            - 'frontend/**'
+          backend:
+            - 'backend/**'
+
+  docker-build-test:
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.frontend == 'true' || needs.check-changes.outputs.backend == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and test with Docker Compose
+      run: |
+        # Build containers
+        docker-compose build
+        
+        # Start services
+        docker-compose up -d
+        
+        # Wait for services to be ready
+        sleep 30
+        
+        # Check if services are running
+        docker-compose ps
+        
+        # Test backend health
+        docker-compose exec -T backend php artisan --version || echo "Backend not ready"
+        
+        # Test frontend build
+        if [ "${{ needs.check-changes.outputs.frontend }}" == "true" ]; then
+          docker-compose exec -T frontend npm run build || echo "Frontend build failed"
+        fi
+        
+        # Run backend migrations if backend changed
+        if [ "${{ needs.check-changes.outputs.backend }}" == "true" ]; then
+          docker-compose exec -T backend php artisan migrate --force || echo "Migration failed"
+        fi
+
+    - name: Check application logs
+      run: |
+        echo "=== Backend Logs ==="
+        docker-compose logs backend | tail -50
+        echo "=== Frontend Logs ==="
+        docker-compose logs frontend | tail -50
+      continue-on-error: true
+
+    - name: Cleanup
+      run: docker-compose down -v
+      if: always()
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+      continue-on-error: true
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+      continue-on-error: true

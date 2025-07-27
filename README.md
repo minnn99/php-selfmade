@@ -1,12 +1,30 @@
 # Pairiod - 生理周期管理アプリ
 
-女性の生理周期を管理する Web アプリケーションです。
+女性とパートナーの生理周期を管理・共有できる Web アプリケーションです。
+
+## 機能
+
+### 実装済み機能
+- ✅ **ユーザー認証システム** (新規登録、ログイン、ログアウト)
+- ✅ **生理周期記録・管理**
+- ✅ **パートナー連携機能** (招待コード経由)
+- ✅ **カレンダービュー** (生理日予測表示)
+- ✅ **日々の症状記録**
+- ✅ **統計・分析表示**
+- ✅ **設定管理** (プロフィール、プライバシー、通知設定)
+
+### 開発中・予定機能
+- 🔄 **医療記録管理**
+- 🔄 **妊娠記録・サポート**
+- 📋 **データエクスポート機能**
+- 📋 **多言語対応**
 
 ## 技術スタック
 
 - **フロントエンド**: React + TypeScript + Vite (Node.js 20)
-- **バックエンド**: Laravel 12 (PHP 8.2)
-- **データベース**: MySQL 8.0 (Docker 環境) / SQLite (ローカル開発環境)
+- **バックエンド**: Laravel 11 (PHP 8.2)
+- **データベース**: MySQL 8.0 (Docker環境)
+- **認証**: Laravel Sanctum (APIトークン認証)
 - **コンテナ**: Docker + Docker Compose
 
 ## プロジェクト構成
@@ -103,26 +121,51 @@ php artisan serve
 
 バックエンドは http://localhost:8000 で動作します。
 
-## CORS 設定
+## API 設定
 
-フロントエンドからバックエンドの API を呼び出すため、以下のポートが CORS で許可されています：
+### CORS 設定
 
-- `http://localhost:5173` (Vite 開発サーバー)
-- `http://localhost:3000` (Create React App 用)
+フロントエンドからバックエンドの API を呼び出すため、以下のオリジンが CORS で許可されています：
+
+- `http://localhost:3000` (フロントエンドDockerコンテナ)
+- `http://localhost:5173` (Vite開発サーバー)
+- `http://localhost:8000` (バックエンドAPI)
+
+### 認証システム
+
+- **認証方式**: Laravel Sanctum APIトークン認証
+- **トークン有効期限**: 8時間 (Remember Me: 7日間)
+- **ストレージ**: ローカルストレージ (フロントエンド)
+- **自動ログアウト**: トークン期限切れ時に自動実行
 
 ## 開発時の注意事項
 
-### Docker 環境
+### Docker 環境（推奨）
 
-1. `docker-compose up -d` で全てのサービスが一度に起動されます
-2. データベースは MySQL を使用し、データは永続化されます
-3. ファイルの変更は自動的にコンテナに反映されます
+1. **統合環境**: `docker-compose up -d` で全てのサービスが一度に起動
+2. **データ永続化**: MySQLコンテナのデータは永続化されます
+3. **ホットリロード**: ファイル変更は自動的にコンテナに反映
+4. **データベース確認**: `docker exec php-selfmade-develop-backend-1 php artisan tinker`
 
-### ローカル環境
+### データベース管理
 
-1. フロントエンドとバックエンドは別々のポートで動作します
-2. API の呼び出しは `http://localhost:8000/api/` ベース URL を使用してください
-3. 開発時は両方のサーバーを同時に起動してください
+#### Docker環境のデータベース操作
+```bash
+# ユーザー一覧確認
+docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Models\User::all()"
+
+# マイグレーション実行
+docker exec php-selfmade-develop-backend-1 php artisan migrate
+
+# データベースリセット
+docker exec php-selfmade-develop-backend-1 php artisan migrate:fresh
+```
+
+### 開発環境の使い分け
+
+- **本番開発**: Docker環境を使用（データは永続化）
+- **機能テスト**: Docker環境推奨
+- **デバッグ**: ローカル環境も併用可能
 
 ## Docker コマンド
 
@@ -155,39 +198,56 @@ docker-compose exec backend php artisan migrate:fresh
 
 ### よくある問題と解決方法
 
-#### 1. Docker起動時のパッケージインストールエラー
+#### 1. 新規アカウント登録ができない（CORSエラー）
 
 ```bash
-# mysql-clientが見つからない場合は、Dockerfileが最新化されているか確認
-# backend/Dockerfile で mariadb-client を使用している必要があります
+# CORS設定の確認
+# backend/config/cors.php で localhost:3000 が許可されているか確認
+# backend/bootstrap/app.php でHandleCorsミドルウェアが設定されているか確認
+
+# サーバー再起動
+docker-compose restart backend
 ```
 
-#### 2. Laravel 500エラー
+#### 2. データベースに登録されない
 
 ```bash
-# .envファイルとアプリケーションキーが正しく設定されているか確認
-cd backend
-cp .env.example .env
-php artisan key:generate
+# Docker環境のデータベースを確認（ローカルMySQLではない）
+docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Models\User::count()"
 
-# データベースマイグレーションを実行
-docker-compose exec backend php artisan migrate
+# マイグレーション確認
+docker exec php-selfmade-develop-backend-1 php artisan migrate:status
 ```
 
-#### 3. Node.jsバージョンの不整合
+#### 3. Laravel 500エラー
 
 ```bash
-# Vite 7.0以上にはNode.js 20以上が必要です
-# frontend/Dockerfile でnode:20-alpineを使用している必要があります
+# ログ確認
+docker exec php-selfmade-develop-backend-1 tail -f storage/logs/laravel.log
+
+# キャッシュクリア
+docker exec php-selfmade-develop-backend-1 php artisan cache:clear
+docker exec php-selfmade-develop-backend-1 php artisan view:clear
+docker exec php-selfmade-develop-backend-1 php artisan config:clear
 ```
 
-#### 4. コンテナの完全リセット
+#### 4. 認証トークンの問題
+
+```bash
+# ブラウザのローカルストレージクリア
+# 開発者ツール → Application → Local Storage → localhost:3000 → auth_data削除
+
+# Sanctum設定確認
+docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Models\User::first()->tokens()->count()"
+```
+
+#### 5. コンテナの完全リセット
 
 ```bash
 # 全てのコンテナとボリュームを削除
 docker-compose down -v
 docker-compose up -d --build
-docker-compose exec backend php artisan migrate
+docker exec php-selfmade-develop-backend-1 php artisan migrate
 ```
 
 ## 開発ワークフロー
@@ -203,11 +263,62 @@ docker-compose exec backend php artisan migrate
 - **フロントエンド**: ESLint + Prettier
 - **バックエンド**: PSR-12
 
-## 次のステップ
+## 開発状況
 
-- API エンドポイントの実装
-- 生理周期トラッキング機能の実装
-- ユーザー認証機能の追加
-- UI/UX の改善
-- テストの実装
-- CI/CDパイプラインの構築
+### 完了済み
+- ✅ **Docker環境構築** (フロントエンド、バックエンド、MySQL)
+- ✅ **ユーザー認証API** (新規登録、ログイン、ログアウト)
+- ✅ **CORS設定** (フロントエンド⇔バックエンド通信)
+- ✅ **データベース設計** (ユーザー、生理周期、症状記録等)
+- ✅ **フロントエンド基盤** (React + TypeScript + Vite)
+- ✅ **認証システム** (Sanctum APIトークン認証)
+- ✅ **CI/CDパイプライン** (GitHub Actions)
+
+### 次のステップ
+- 🔄 **UI/UXの改善** (レスポンシブデザイン対応)
+- 📋 **テストケース実装** (Unit, Integration Tests)
+- 📋 **パフォーマンス最適化**
+- 📋 **セキュリティ強化** (CSRFトークン、レート制限)
+- 📋 **CD（継続的デプロイ）** 本番環境構築後に追加
+- 📋 **本番環境デプロイ準備**
+
+## CI/CD パイプライン
+
+### 🔄 実装済みCI機能
+
+- **フロントエンドCI** (`.github/workflows/frontend.yml`)
+  - Node.js 20での動作確認
+  - TypeScriptタイプチェック
+  - ESLintコードスタイルチェック
+  - Viteビルド確認
+  - バンドルサイズ測定
+
+- **バックエンドCI** (`.github/workflows/backend.yml`)
+  - PHP 8.2での動作確認
+  - Composerパッケージインストール
+  - MySQLデータベーステスト
+  - PHPStanコード品質チェック
+  - Laravel Artisanコマンド確認
+
+- **統合CI** (`.github/workflows/ci.yml`)
+  - Docker Composeビルドテスト
+  - セキュリティ脆弱性スキャン (Trivy)
+  - 変更ファイル検出による最適化実行
+
+### 🚀 CI実行タイミング
+
+- `main`、`develop`ブランチへのプッシュ
+- Pull Request作成時
+- 該当ディレクトリのファイル変更時のみ実行（最適化）
+
+## 貢献方法
+
+1. このリポジトリをフォーク
+2. feature ブランチを作成 (`git checkout -b feature/AmazingFeature`)
+3. 変更をコミット (`git commit -m 'Add some AmazingFeature'`)
+4. ブランチにプッシュ (`git push origin feature/AmazingFeature`)
+5. Pull Request を作成
+
+## ライセンス
+
+このプロジェクトは MIT ライセンスの下で公開されています。

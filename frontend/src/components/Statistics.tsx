@@ -34,50 +34,7 @@ export const Statistics: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'3months' | '6months' | '1year' | 'all'>('6months');
 
   useEffect(() => {
-    // loadStatistics(); // API呼び出しをコメントアウト
-
-    // ダミーデータを設定
-    const dummyCycleStats: CycleStats = {
-      averageCycleLength: 28,
-      averagePeriodLength: 5,
-      totalCycles: 6,
-      shortestCycle: 26,
-      longestCycle: 30,
-      lastCycleLength: 29,
-      irregularityScore: 15,
-    };
-
-    const dummySymptomStats: SymptomStats = {
-      mostCommonSymptoms: [
-        { symptom: '頭痛', frequency: 10, percentage: 30 },
-        { symptom: '腹痛', frequency: 8, percentage: 25 },
-        { symptom: '気分の落ち込み', frequency: 7, percentage: 20 },
-        { symptom: '疲労感', frequency: 5, percentage: 15 },
-        { symptom: '胸の張り', frequency: 3, percentage: 10 },
-      ],
-      symptomsByPhase: {
-        menstrual: [{ symptom: '腹痛', count: 8 }],
-        follicular: [{ symptom: '気分の高揚', count: 5 }],
-        ovulatory: [{ symptom: 'おりもの', count: 6 }],
-        luteal: [{ symptom: '頭痛', count: 10 }],
-      },
-    };
-
-    const dummyFlowStats: FlowStats = {
-      averageFlowIntensity: 3.2,
-      flowDistribution: [
-        { intensity: 1, count: 2, percentage: 10 },
-        { intensity: 2, count: 5, percentage: 25 },
-        { intensity: 3, count: 8, percentage: 40 },
-        { intensity: 4, count: 4, percentage: 20 },
-        { intensity: 5, count: 1, percentage: 5 },
-      ],
-    };
-
-    setCycleStats(dummyCycleStats);
-    setSymptomStats(dummySymptomStats);
-    setFlowStats(dummyFlowStats);
-    setLoading(false);
+    loadStatistics();
   }, [timeRange]);
 
   const loadStatistics = async () => {
