@@ -13,6 +13,7 @@ export const TodaySection: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dailyData, setDailyData] = useState<DailyRecordData | null>(null);
   const [hasAnyData, setHasAnyData] = useState(false);
+  
   const today = new Date();
   const dateString = today.toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -24,7 +25,7 @@ export const TodaySection: React.FC = () => {
   // Check if user has any data on mount
   useEffect(() => {
     const checkExistingData = () => {
-      const todayKey = `daily-record-${today.toISOString().split("T")[0]}`;
+      const todayKey = `daily-record-${new Date().toISOString().split("T")[0]}`;
       const todayData = localStorage.getItem(todayKey);
 
       if (todayData) {
@@ -48,13 +49,12 @@ export const TodaySection: React.FC = () => {
     };
 
     checkExistingData();
-  }, [today]);
+  }, []);
 
   const handleSaveRecord = (data: DailyRecordData) => {
     setDailyData(data);
     setHasAnyData(true);
-    localStorage.setItem(`daily-record-${today.toISOString().split("T")[0]}`, JSON.stringify(data));
-    console.log("Daily record saved:", data);
+    localStorage.setItem(`daily-record-${new Date().toISOString().split("T")[0]}`, JSON.stringify(data));
   };
 
   const getMoodText = (mood: string) => {
