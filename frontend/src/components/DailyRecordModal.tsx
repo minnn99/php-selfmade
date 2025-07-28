@@ -30,19 +30,19 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
   });
 
   const moodOptions = [
-    { value: 'excellent', label: '😊 とても良い', emoji: '😊' },
-    { value: 'good', label: '🙂 良い', emoji: '🙂' },
-    { value: 'normal', label: '😐 普通', emoji: '😐' },
-    { value: 'poor', label: '😔 悪い', emoji: '😔' },
-    { value: 'terrible', label: '😩 とても悪い', emoji: '😩' }
+    { value: 'excellent', label: 'とても良い', emoji: '' },
+    { value: 'good', label: '良い', emoji: '' },
+    { value: 'normal', label: '普通', emoji: '' },
+    { value: 'poor', label: '悪い', emoji: '' },
+    { value: 'terrible', label: 'とても悪い', emoji: '' }
   ];
 
   const physicalOptions = [
-    { value: 'excellent', label: '💪 とても良い', emoji: '💪' },
-    { value: 'good', label: '👍 良い', emoji: '👍' },
-    { value: 'normal', label: '👌 普通', emoji: '👌' },
-    { value: 'poor', label: '😰 悪い', emoji: '😰' },
-    { value: 'terrible', label: '🤒 とても悪い', emoji: '🤒' }
+    { value: 'excellent', label: 'とても良い', emoji: '' },
+    { value: 'good', label: '良い', emoji: '' },
+    { value: 'normal', label: '普通', emoji: '' },
+    { value: 'poor', label: '悪い', emoji: '' },
+    { value: 'terrible', label: 'とても悪い', emoji: '' }
   ];
 
   useEffect(() => {
@@ -110,7 +110,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                   }`}
                 >
                   <span className="text-lg sm:text-xl mr-3 flex-shrink-0">{option.emoji}</span>
-                  <span className="text-sm sm:text-base">{option.label.split(' ')[1]}</span>
+                  <span className="text-sm sm:text-base">{option.label}</span>
                 </button>
               ))}
             </div>
@@ -131,7 +131,7 @@ export const DailyRecordModal: React.FC<DailyRecordModalProps> = ({
                   }`}
                 >
                   <span className="text-lg sm:text-xl mr-3 flex-shrink-0">{option.emoji}</span>
-                  <span className="text-sm sm:text-base">{option.label.split(' ')[1]}</span>
+                  <span className="text-sm sm:text-base">{option.label}</span>
                 </button>
               ))}
             </div>

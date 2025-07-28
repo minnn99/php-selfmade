@@ -75,17 +75,17 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "period":
-        return "🌺";
+        return "";
       case "medication":
-        return "💊";
+        return "";
       case "appointment":
-        return "🏥";
+        return "";
       case "reminder":
-        return "⏰";
+        return "";
       case "system":
-        return "⚙️";
+        return "";
       default:
-        return "📢";
+        return "";
     }
   };
 
@@ -144,7 +144,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       <div className="overflow-y-auto max-h-96 lg:max-h-[calc(80vh-120px)]">
         {notifications.length === 0 ? (
           <div className="p-6 sm:p-8 text-center text-gray-500">
-            <div className="text-3xl sm:text-4xl mb-2">📭</div>
+            <div className="text-3xl sm:text-4xl mb-2"></div>
             <p className="text-sm sm:text-base">通知はありません</p>
           </div>
         ) : (
@@ -267,7 +267,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
               <div className="p-6 sm:p-8 text-center text-gray-500">
-                <div className="text-3xl sm:text-4xl mb-2">📭</div>
+                <div className="text-3xl sm:text-4xl mb-2"></div>
                 <p className="text-sm sm:text-base">通知はありません</p>
               </div>
             ) : (

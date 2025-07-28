@@ -144,11 +144,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   ];
 
   const categories = [
-    { id: "all", label: "すべて", icon: "🌟" },
-    { id: "nutrition", label: "栄養・食事", icon: "🥗" },
-    { id: "exercise", label: "運動・ストレッチ", icon: "🧘‍♀️" },
-    { id: "relaxation", label: "リラクゼーション", icon: "🛁" },
-    { id: "medical", label: "医療・薬", icon: "💊" },
+    { id: "all", label: "すべて", icon: "" },
+    { id: "nutrition", label: "栄養・食事", icon: "" },
+    { id: "exercise", label: "運動・ストレッチ", icon: "" },
+    { id: "relaxation", label: "リラクゼーション", icon: "" },
+    { id: "medical", label: "医療・薬", icon: "" },
   ];
 
   const selfCareAdvices: SelfCareAdvice[] = [
@@ -157,7 +157,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "1",
       title: "温かい飲み物でリラックス",
       description: "ハーブティーや生姜湯で体を温めましょう。子宮の収縮を和らげ、痛みを軽減します。",
-      icon: "☕",
+      icon: "",
       type: "nutrition",
       category: "menstrual",
       difficulty: "easy",
@@ -166,7 +166,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "2",
       title: "軽いストレッチ",
       description: "腰回りや下腹部の軽いストレッチで血流を改善し、痛みを和らげましょう。",
-      icon: "🤸‍♀️",
+      icon: "",
       type: "exercise",
       category: "menstrual",
       difficulty: "easy",
@@ -175,7 +175,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "3",
       title: "温かいお風呂",
       description: "38-40度のぬるめのお湯で下半身を温めると、生理痛が軽減されます。",
-      icon: "🛁",
+      icon: "",
       type: "relaxation",
       category: "menstrual",
       difficulty: "easy",
@@ -184,7 +184,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "4",
       title: "鉄分補給",
       description: "ほうれん草、レバー、赤身肉で鉄分を補給しましょう。貧血予防に効果的です。",
-      icon: "🥩",
+      icon: "",
       type: "nutrition",
       category: "menstrual",
       difficulty: "medium",
@@ -195,7 +195,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "5",
       title: "深呼吸と瞑想",
       description: "1日10分の深呼吸や瞑想で、イライラや不安を軽減できます。",
-      icon: "🧘‍♀️",
+      icon: "",
       type: "relaxation",
       category: "pms",
       difficulty: "easy",
@@ -204,7 +204,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "6",
       title: "カルシウム・マグネシウム摂取",
       description: "乳製品やナッツ類でカルシウムとマグネシウムを摂取し、PMSを軽減しましょう。",
-      icon: "🥛",
+      icon: "",
       type: "nutrition",
       category: "pms",
       difficulty: "easy",
@@ -213,7 +213,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "7",
       title: "適度な有酸素運動",
       description: "ウォーキングやヨガでエンドルフィンを分泌し、気分を改善しましょう。",
-      icon: "🚶‍♀️",
+      icon: "",
       type: "exercise",
       category: "pms",
       difficulty: "medium",
@@ -224,7 +224,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "8",
       title: "水分補給を強化",
       description: "排卵期は体温が上がるため、普段より多めの水分補給を心がけましょう。",
-      icon: "💧",
+      icon: "",
       type: "nutrition",
       category: "ovulation",
       difficulty: "easy",
@@ -233,7 +233,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "9",
       title: "葉酸を含む食品",
       description: "緑黄色野菜や豆類で葉酸を摂取し、妊娠準備を整えましょう。",
-      icon: "🥬",
+      icon: "",
       type: "nutrition",
       category: "ovulation",
       difficulty: "easy",
@@ -244,7 +244,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "10",
       title: "規則正しい睡眠",
       description: "7-8時間の質の良い睡眠でホルモンバランスを整えましょう。",
-      icon: "😴",
+      icon: "",
       type: "relaxation",
       category: "general",
       difficulty: "medium",
@@ -253,7 +253,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       id: "11",
       title: "ストレス管理",
       description: "趣味や読書でストレスを発散し、ホルモンバランスを保ちましょう。",
-      icon: "📚",
+      icon: "",
       type: "relaxation",
       category: "general",
       difficulty: "easy",
@@ -266,42 +266,42 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       title: "温かい飲み物を準備",
       situation: "生理痛で辛そうな時",
       description: "ハーブティーや生姜湯を温めて持っていってあげましょう。",
-      icon: "☕",
+      icon: "",
     },
     {
       id: "p2",
       title: "家事のサポート",
       situation: "生理中で体調が悪い時",
       description: "重いものを持つ、掃除や料理など、普段より多めに家事を手伝いましょう。",
-      icon: "🏠",
+      icon: "",
     },
     {
       id: "p3",
       title: "静かな環境作り",
       situation: "PMSでイライラしている時",
       description: "音量を下げる、照明を調整するなど、リラックスできる環境を作りましょう。",
-      icon: "🔇",
+      icon: "",
     },
     {
       id: "p4",
       title: "話を聞く",
       situation: "感情的になっている時",
       description: "アドバイスより共感を。「大変だね」「お疲れさま」の言葉をかけましょう。",
-      icon: "👂",
+      icon: "",
     },
     {
       id: "p5",
       title: "マッサージをする",
       situation: "腰痛や肩こりがある時",
       description: "軽く腰や肩をマッサージしてあげると、痛みが和らぎます。",
-      icon: "💆‍♀️",
+      icon: "",
     },
     {
       id: "p6",
       title: "健康的な食事を準備",
       situation: "食欲がない・栄養が心配な時",
       description: "鉄分やビタミンを含む栄養バランスの良い食事を作りましょう。",
-      icon: "🍽️",
+      icon: "",
     },
   ];
 
@@ -448,7 +448,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
         {getFilteredAdvices().length === 0 && (
           <div className="text-center py-6 sm:py-8 text-gray-500">
-            <div className="text-3xl sm:text-4xl mb-2">🌸</div>
+            <div className="text-3xl sm:text-4xl mb-2"></div>
             <p className="text-sm sm:text-base">この条件に合うセルフケア提案がありません</p>
           </div>
         )}
@@ -458,7 +458,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-4 sm:p-6">
         <div className="flex items-center mb-3 sm:mb-4">
           <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
-          <span className="ml-2 text-lg sm:text-xl">💕</span>
+          <span className="ml-2 text-lg sm:text-xl"></span>
         </div>
         <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
 

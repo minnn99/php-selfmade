@@ -18,7 +18,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   const [currentAdvice, setCurrentAdvice] = useState<AdviceContent>({
     title: "今日のアドバイス",
     message: "読み込み中...",
-    icon: "💫",
+    icon: "",
     bgColor: "from-primary-50 to-purple-50",
     textColor: "text-primary-600",
   });
@@ -71,7 +71,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           setCurrentAdvice({
             title: "生理中のケア",
             message: `生理${dayNumber}日目です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。`,
-            icon: "🌺",
+            icon: "",
             bgColor: "from-red-50 to-pink-50",
             textColor: "text-red-600",
           });
@@ -81,7 +81,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           setCurrentAdvice({
             title: "排卵期",
             message: "排卵期です。体温が上がりやすいので、水分補給を忘れずに。妊娠を希望する場合は重要な時期です。",
-            icon: "🌸",
+            icon: "",
             bgColor: "from-pink-50 to-rose-50",
             textColor: "text-pink-600",
           });
@@ -91,7 +91,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           setCurrentAdvice({
             title: "妊娠可能期間",
             message: "妊娠可能期間です。体調管理に気をつけて、バランスの良い食事を心がけましょう。",
-            icon: "💕",
+            icon: "",
             bgColor: "from-pink-50 to-rose-50",
             textColor: "text-pink-600",
           });
@@ -101,7 +101,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           setCurrentAdvice({
             title: "生理予定日",
             message: "生理予定日です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
-            icon: "🌺",
+            icon: "",
             bgColor: "from-red-50 to-pink-50",
             textColor: "text-red-600",
           });
@@ -112,7 +112,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           setCurrentAdvice({
             title: "エネルギー充実期",
             message: "体調が良い時期です。新しいことにチャレンジしたり、運動を始めるのに最適な時期です。",
-            icon: "✨",
+            icon: "",
             bgColor: "from-green-50 to-emerald-50",
             textColor: "text-green-600",
           });
@@ -181,7 +181,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       setCurrentAdvice({
         title: "安定期",
         message: "比較的安定した時期です。バランスの良い食事と適度な運動を心がけましょう。",
-        icon: "🌻",
+        icon: "",
         bgColor: "from-yellow-50 to-orange-50",
         textColor: "text-yellow-600",
       });
@@ -190,7 +190,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       setCurrentAdvice({
         title: "PMS期間",
         message: "生理前の時期です。イライラや体調不良を感じやすい時期なので、リラックスを心がけ、カフェインを控えめにしましょう。",
-        icon: "🌙",
+        icon: "",
         bgColor: "from-purple-50 to-indigo-50",
         textColor: "text-purple-600",
       });
@@ -254,21 +254,21 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       {
         title: "今日のアドバイス",
         message: "規則正しい生活リズムを心がけて、自分の体と向き合う時間を大切にしましょう。",
-        icon: "💫",
+        icon: "",
         bgColor: "from-primary-50 to-purple-50",
         textColor: "text-primary-600",
       },
       {
         title: "健康のヒント",
         message: "水分補給を忘れずに。1日1.5-2リットルの水を飲むことで、体調管理に役立ちます。",
-        icon: "💧",
+        icon: "",
         bgColor: "from-blue-50 to-cyan-50",
         textColor: "text-blue-600",
       },
       {
         title: "セルフケア",
         message: "深呼吸や軽いストレッチで、日々のストレスを和らげましょう。5分でも効果があります。",
-        icon: "🧘‍♀️",
+        icon: "",
         bgColor: "from-green-50 to-teal-50",
         textColor: "text-green-600",
       },

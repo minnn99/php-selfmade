@@ -24,26 +24,24 @@ export const TodaySection: React.FC = () => {
   // Check if user has any data on mount
   useEffect(() => {
     const checkExistingData = () => {
-      const todayKey = `daily-record-${today.toISOString().split('T')[0]}`;
+      const todayKey = `daily-record-${today.toISOString().split("T")[0]}`;
       const todayData = localStorage.getItem(todayKey);
-      
+
       if (todayData) {
         try {
           const parsedData = JSON.parse(todayData);
           setDailyData(parsedData);
           setHasAnyData(true);
         } catch (error) {
-          console.error('Error parsing daily data:', error);
+          console.error("Error parsing daily data:", error);
         }
       }
 
       // Check if user has any historical data
-      const hasHistoricalData = Object.keys(localStorage).some(key => 
-        key.startsWith('daily-record-') || 
-        key.startsWith('daily-symptoms-') ||
-        key.startsWith('menstrual-')
+      const hasHistoricalData = Object.keys(localStorage).some(
+        (key) => key.startsWith("daily-record-") || key.startsWith("daily-symptoms-") || key.startsWith("menstrual-")
       );
-      
+
       if (hasHistoricalData || todayData) {
         setHasAnyData(true);
       }
@@ -55,30 +53,30 @@ export const TodaySection: React.FC = () => {
   const handleSaveRecord = (data: DailyRecordData) => {
     setDailyData(data);
     setHasAnyData(true);
-    localStorage.setItem(`daily-record-${today.toISOString().split('T')[0]}`, JSON.stringify(data));
-    console.log('Daily record saved:', data);
+    localStorage.setItem(`daily-record-${today.toISOString().split("T")[0]}`, JSON.stringify(data));
+    console.log("Daily record saved:", data);
   };
 
-  const getMoodEmoji = (mood: string) => {
+  const getMoodText = (mood: string) => {
     const moodMap: { [key: string]: string } = {
-      'excellent': '😊',
-      'good': '🙂',
-      'normal': '😐',
-      'poor': '😔',
-      'terrible': '😩'
+      excellent: "とても良い",
+      good: "良い",
+      normal: "普通",
+      poor: "悪い",
+      terrible: "とても悪い",
     };
-    return moodMap[mood] || '😐';
+    return moodMap[mood] || "普通";
   };
 
-  const getPhysicalEmoji = (condition: string) => {
+  const getPhysicalText = (condition: string) => {
     const conditionMap: { [key: string]: string } = {
-      'excellent': '💪',
-      'good': '👍',
-      'normal': '👌',
-      'poor': '😰',
-      'terrible': '🤒'
+      excellent: "とても良い",
+      good: "良い",
+      normal: "普通",
+      poor: "悪い",
+      terrible: "とても悪い",
     };
-    return conditionMap[condition] || '👌';
+    return conditionMap[condition] || "普通";
   };
 
   return (
@@ -90,7 +88,7 @@ export const TodaySection: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center justify-center px-4 py-3 border border-primary-300 rounded-lg text-sm sm:text-base font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 transition-colors min-h-[44px]"
           >
@@ -113,7 +111,7 @@ export const TodaySection: React.FC = () => {
           <p className="text-xs text-gray-500 mb-1">気分</p>
           <div className="flex justify-center space-x-1">
             {hasAnyData && dailyData ? (
-              <span className="text-lg sm:text-xl">{getMoodEmoji(dailyData.mood)}</span>
+              <span className="text-sm sm:text-base font-medium text-gray-700">{getMoodText(dailyData.mood)}</span>
             ) : (
               <span className="text-xs text-gray-400">未記録</span>
             )}
@@ -123,7 +121,7 @@ export const TodaySection: React.FC = () => {
           <p className="text-xs text-gray-500 mb-1">体調</p>
           <div className="flex justify-center space-x-1">
             {hasAnyData && dailyData ? (
-              <span className="text-lg sm:text-xl">{getPhysicalEmoji(dailyData.physicalCondition)}</span>
+              <span className="text-sm sm:text-base font-medium text-gray-700">{getPhysicalText(dailyData.physicalCondition)}</span>
             ) : (
               <span className="text-xs text-gray-400">未記録</span>
             )}
@@ -132,28 +130,19 @@ export const TodaySection: React.FC = () => {
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">水分摂取</p>
           <p className="text-sm sm:text-base font-medium text-gray-900">
-            {hasAnyData && dailyData ? `${dailyData.waterIntake}L` : (
-              <span className="text-xs text-gray-400">未記録</span>
-            )}
+            {hasAnyData && dailyData ? `${dailyData.waterIntake}L` : <span className="text-xs text-gray-400">未記録</span>}
           </p>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 mb-1">睡眠時間</p>
           <p className="text-sm sm:text-base font-medium text-gray-900">
-            {hasAnyData && dailyData ? `${dailyData.sleepHours}h` : (
-              <span className="text-xs text-gray-400">未記録</span>
-            )}
+            {hasAnyData && dailyData ? `${dailyData.sleepHours}h` : <span className="text-xs text-gray-400">未記録</span>}
           </p>
         </div>
       </div>
 
       {/* Daily Record Modal */}
-      <DailyRecordModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveRecord}
-        date={today}
-      />
+      <DailyRecordModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveRecord} date={today} />
     </div>
   );
 };

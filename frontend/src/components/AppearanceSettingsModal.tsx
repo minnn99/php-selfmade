@@ -88,9 +88,9 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
               <label className="block text-sm font-medium text-gray-700 whitespace-nowrap">テーマモード</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { value: "light", label: "ライト", icon: "☀️" },
-                  { value: "dark", label: "ダーク", icon: "🌙" },
-                  { value: "auto", label: "自動", icon: "🔄" },
+                  { value: "light", label: "ライト", icon: "" },
+                  { value: "dark", label: "ダーク", icon: "" },
+                  { value: "auto", label: "自動", icon: "" },
                 ].map((mode) => (
                   <label key={mode.value} className="flex items-center">
                     <input

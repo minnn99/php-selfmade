@@ -109,9 +109,9 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
   };
 
   const tabs = [
-    { id: "faq", label: "よくある質問", icon: "❓" },
-    { id: "contact", label: "お問い合わせ", icon: "📧" },
-    { id: "info", label: "アプリ情報", icon: "ℹ️" },
+    { id: "faq", label: "よくある質問", icon: "" },
+    { id: "contact", label: "お問い合わせ", icon: "" },
+    { id: "info", label: "アプリ情報", icon: "" },
   ];
 
   const renderFAQ = () => (
@@ -233,7 +233,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
     <div className="space-y-4 sm:space-y-6">
       <div className="text-center">
         <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-          <span className="text-xl sm:text-2xl">🌺</span>
+          <span className="text-xl sm:text-2xl"></span>
         </div>
         <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Pairiod</h3>
         <p className="text-xs sm:text-sm text-gray-600 px-4 sm:px-0">女性の健康をサポートする生理管理アプリ</p>
