@@ -16,6 +16,7 @@ interface CalendarDay {
   isPeriodStart: boolean;
   isPeriodEnd: boolean;
   isActive: boolean;
+  isFertile: boolean;
   hasPartnerPeriod?: boolean;
   hasPartnerSymptoms?: boolean;
   partnerName?: string;
@@ -200,27 +201,6 @@ export const Calendar: React.FC = () => {
     localStorage.setItem('july-data-cleanup-completed', 'true');
   };
 
-  // ユーザー情報とパートナー状況を読み込み
-  const loadUserInfo = async () => {
-    try {
-      const userData = await authAPI.getUser();
-      const gender = userData.data?.user?.gender || "";
-      setUserGender(gender);
-      console.log('Calendar: User gender set to:', gender);
-
-      // パートナー状況を確認
-      const partnerStatus = await partnerAPI.getStatus();
-      const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
-      setIsConnectedToPartner(isConnected);
-      console.log('Calendar: Partner connection status:', { 
-        success: partnerStatus.success, 
-        is_connected: partnerStatus.data?.is_connected,
-        isConnected 
-      });
-    } catch (error) {
-      console.error("Failed to load user info:", error);
-    }
-  };
 
   const loadCalendarData = async (gender?: string, isConnected?: boolean) => {
     // パラメータが指定されていない場合は現在の状態を使用
@@ -365,6 +345,7 @@ export const Calendar: React.FC = () => {
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -394,6 +375,7 @@ export const Calendar: React.FC = () => {
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -425,6 +407,7 @@ export const Calendar: React.FC = () => {
         isPeriodStart: dayData?.isPeriodStart || false,
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
+        isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === 'period' || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data ? (
           (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
@@ -832,6 +815,9 @@ export const Calendar: React.FC = () => {
     } else if (day.isOvulation) {
       // 排卵日の場合
       baseStyle += "bg-pink-500 text-white rounded-lg ";
+    } else if (day.isFertile) {
+      // 妊娠可能期間の場合
+      baseStyle += "bg-pink-100 text-pink-800 border border-pink-300 rounded-lg ";
     } else {
       // 通常の日付
       baseStyle += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
@@ -944,6 +930,10 @@ export const Calendar: React.FC = () => {
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">排卵日</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-pink-100 border border-pink-300 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600">妊娠しやすい時期</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>

@@ -595,6 +595,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     } else if (day.isOvulation) {
       // 排卵日の場合
       baseStyle += "bg-pink-500 text-white rounded-lg ";
+    } else if (day.isFertile) {
+      // 妊娠可能期間の場合
+      baseStyle += "bg-pink-100 text-pink-800 border border-pink-300 rounded-lg ";
     } else {
       // 通常の日付
       baseStyle += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
@@ -625,12 +628,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       decorations.push(<div key="symptoms" className="absolute top-1 right-1 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>);
     }
 
-    // 妊娠可能期間の表示（排卵日・生理日・予測生理日以外）
-    if (day.isFertile && !day.isOvulation && !day.hasPeriod && !day.isPredictedPeriod) {
-      decorations.push(
-        <div key="fertile" className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-      );
-    }
 
     // パートナーの症状がある場合は別色のドットを表示
     if (day.hasPartnerSymptoms && !day.hasSymptoms) {
@@ -714,6 +711,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">排卵日</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-pink-100 border border-pink-300 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600">妊娠しやすい時期</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
