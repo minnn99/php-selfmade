@@ -226,18 +226,22 @@ class MenstrualCycleController extends Controller
                 $predictedEndDate = $cycle->start_date->copy()->addDays(4); // 5日間（開始日含む）
                 
                 // 生理期間の各日をマーク
+                $today = Carbon::today();
                 for ($date = $cycle->start_date->copy(); $date <= $predictedEndDate; $date->addDay()) {
                     // 表示月および拡張範囲内の日付を処理
                     if ($date >= $startOfMonth && $date <= $extendedEndOfMonth) {
                         $isStartDate = $date->format('Y-m-d') === $cycle->start_date->format('Y-m-d');
                         $isEndDate = $date->format('Y-m-d') === $predictedEndDate->format('Y-m-d');
                         
+                        // 今日以前の日付は確定生理日、未来の日付は予測生理日
+                        $isPastOrToday = $date <= $today;
+                        
                         $calendarData[$date->format('Y-m-d')] = [
-                            'hasPeriod' => $isStartDate, // 開始日のみ確定生理日
+                            'hasPeriod' => $isPastOrToday, // 今日以前は確定生理日
                             'isPeriodStart' => $isStartDate,
                             'isPeriodEnd' => false, // アクティブ周期では終了日を設定しない
                             'isActive' => true,
-                            'isPredictedPeriod' => !$isStartDate, // 開始日以外は予測生理日
+                            'isPredictedPeriod' => !$isPastOrToday, // 未来の日付のみ予測生理日
                             'isOvulation' => false,
                             'isFertile' => false,
                             'flowIntensity' => $isStartDate ? $cycle->flow_intensity : null,

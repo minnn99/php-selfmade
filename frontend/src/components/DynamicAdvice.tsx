@@ -51,12 +51,23 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       const todayData = calendarResponse.data[todayString];
       
       console.log('DynamicAdvice - Today calendar data:', todayData);
+      console.log('DynamicAdvice - Today string:', todayString);
+      console.log('DynamicAdvice - Calendar response data keys:', Object.keys(calendarResponse.data || {}));
       
       // 今日のカレンダーステータスに基づいてアドバイスを決定
       if (todayData) {
+        console.log('DynamicAdvice - Today data found, checking status...');
+        console.log('DynamicAdvice - hasPeriod:', todayData.hasPeriod);
+        console.log('DynamicAdvice - isPeriodStart:', todayData.isPeriodStart);
+        console.log('DynamicAdvice - isPeriodEnd:', todayData.isPeriodEnd);
+        console.log('DynamicAdvice - isOvulation:', todayData.isOvulation);
+        console.log('DynamicAdvice - isFertile:', todayData.isFertile);
+        console.log('DynamicAdvice - isPredictedPeriod:', todayData.isPredictedPeriod);
+        
         if (todayData.hasPeriod || todayData.isPeriodStart || todayData.isPeriodEnd) {
           // 実際の生理日
           const dayNumber = getDayOfPeriod(todayData);
+          console.log('DynamicAdvice - Setting period advice, day number:', dayNumber);
           setCurrentAdvice({
             title: "生理中のケア",
             message: `生理${dayNumber}日目です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。`,
@@ -95,22 +106,24 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
             textColor: "text-red-600",
           });
           return;
+        } else {
+          // 今日のデータがあるが特別なステータスがない場合
+          console.log('DynamicAdvice - Today data found but no special status, setting default advice');
+          setCurrentAdvice({
+            title: "エネルギー充実期",
+            message: "体調が良い時期です。新しいことにチャレンジしたり、運動を始めるのに最適な時期です。",
+            icon: "✨",
+            bgColor: "from-green-50 to-emerald-50",
+            textColor: "text-green-600",
+          });
+          return;
         }
-      }
-      
-      // 特別なステータスがない場合、生理後の卵胞期として扱う
-      if (!todayData || (!todayData.hasPeriod && !todayData.isOvulation && !todayData.isFertile && !todayData.isPredictedPeriod)) {
-        setCurrentAdvice({
-          title: "エネルギー充実期",
-          message: "体調が良い時期です。新しいことにチャレンジしたり、運動を始めるのに最適な時期です。",
-          icon: "✨",
-          bgColor: "from-green-50 to-emerald-50",
-          textColor: "text-green-600",
-        });
-        return;
+      } else {
+        // 今日のデータがない場合
+        console.log('DynamicAdvice - No today data found in calendar response');
       }
     } catch (error) {
-      console.error('Failed to get calendar data for advice:', error);
+      console.error('DynamicAdvice - Failed to get calendar data for advice:', error);
     }
 
     // カレンダーデータが取得できない場合は従来のロジックを使用
@@ -188,12 +201,27 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   };
 
   const getDayOfPeriod = (todayData: any): number => {
-    // 生理の何日目かを計算（簡易版：今日が開始日なら1日目、それ以外は推定）
+    // 今日が開始日なら1日目
     if (todayData.isPeriodStart) {
       return 1;
     }
-    // より正確な計算が必要な場合は、周期データから計算する
-    return 1; // 暫定的に1を返す
+    
+    // アクティブな周期がある場合、開始日から今日までの日数を計算
+    const currentStatus = menstrualStatusManager.getCurrentStatus();
+    if (currentStatus?.hasActiveCycle && currentStatus?.activeCycle?.start_date) {
+      const startDate = new Date(currentStatus.activeCycle.start_date);
+      const today = new Date();
+      const diffTime = today.getTime() - startDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      
+      // 生理期間内（一般的に1-7日）の場合のみ返す
+      if (diffDays >= 1 && diffDays <= 7) {
+        return diffDays;
+      }
+    }
+    
+    // デフォルトとして1を返す
+    return 1;
   };
 
   const getCycleDay = (status: any, currentDate: Date): number => {
