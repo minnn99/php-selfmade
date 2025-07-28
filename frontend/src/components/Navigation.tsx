@@ -94,13 +94,22 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         start_date: today
       });
       
+      // 生理開始から予測される5日間を生理期間として自動設定
+      const startDate = new Date(today);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 4); // 5日間（開始日含む）
+      const endDateString = getLocalDateString(endDate);
+      
+      // 生理開始日から予測終了日まで全ての日を生理中として設定
+      await updateCalendarForPeriod(today, endDateString);
+      
       // Reload status first to get the new active cycle
       await menstrualStatusManager.forceReloadStatus();
       
       // カスタムイベントを発火してカレンダーとセルフケアを更新
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
-      alert('生理が開始されました');
+      alert('生理が開始されました（予測5日間の期間が設定されました）');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);
     } finally {

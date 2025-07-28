@@ -75,17 +75,41 @@ export const MobileActions: React.FC = () => {
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
+      
+      // 1. API周期を作成
       await menstrualCycleAPI.startCycle({
         start_date: today
       });
       
-      // Reload status first to get the new active cycle
+      // 2. 今日を生理開始日として明示的に設定
+      await userDataAPI.saveDailySymptoms(today, {
+        isPeriodStart: true,
+        hasPeriod: true,
+        timestamp: new Date().toISOString()
+      });
+      
+      // 3. 生理開始から予測される5日間の期間を設定
+      const startDate = new Date(today);
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 4); // 5日間（開始日含む）
+      const endDateString = getLocalDateString(endDate);
+      
+      // 生理開始日から予測終了日まで全ての日を生理中として設定
+      await updateCalendarForPeriod(today, endDateString);
+      
+      // 4. ステータスとカレンダーデータを確実に再読み込み
       await menstrualStatusManager.forceReloadStatus();
       
-      // カスタムイベントを発火してカレンダーとセルフケアを更新（すぐに実行）
+      // カスタムイベントを発火してカレンダーとセルフケアを更新
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
-      alert('生理が開始されました');
+      // 少し遅延してもう一度確実に更新（データ反映の確実性のため）
+      setTimeout(async () => {
+        await menstrualStatusManager.forceReloadStatus();
+        window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      }, 300);
+      
+      alert('生理が開始されました（5日間の期間が設定されました）');
     } catch (error: any) {
       alert('エラーが発生しました: ' + error.message);
     } finally {

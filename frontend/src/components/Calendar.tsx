@@ -592,39 +592,24 @@ export const Calendar: React.FC = () => {
             });
             console.log(`API SUCCESS: Started new cycle on ${dateStr}`);
           } else if (data.isPeriodEnd) {
-            // 終了日を設定する場合、既存のアクティブな周期を探す
-            await loadCalendarData(); // 既存の状態を使用 // 既存の状態を使用
+            // 終了日を設定する場合、直接アクティブな周期を取得
+            console.log(`Setting end date for active cycle on ${dateStr}`);
             
-            console.log(`Searching for active cycle to end on ${dateStr}`);
-            console.log('Current calendar data:', calendarApiData);
-            
-            let foundCycleId = null;
-            let foundStartDate = '';
-            
-            // アクティブな周期（isActive: trueまたは終了日が未設定）を探す
-            for (const [dateKey, dayData] of Object.entries(calendarApiData)) {
-              const apiData = dayData as any;
-              console.log(`Checking date ${dateKey}:`, apiData);
+            try {
+              const response = await menstrualCycleAPI.getCurrentStatus();
+              console.log('Current status response:', response);
               
-              if (apiData.cycleId && apiData.isPeriodStart === true && dateKey <= dateStr) {
-                // この開始日に対応する終了日があるかチェック
-                const hasEndDate = Object.values(calendarApiData).some(
-                  (d: any) => d.cycleId === apiData.cycleId && d.isPeriodEnd === true
-                );
+              if (response.hasActiveCycle && response.activeCycle) {
+                const activeCycle = response.activeCycle;
+                console.log(`Found active cycle: ID=${activeCycle.id}, start=${activeCycle.start_date}`);
                 
-                if (!hasEndDate || apiData.isActive === true) {
-                  foundCycleId = apiData.cycleId;
-                  foundStartDate = dateKey;
-                  console.log(`Found active cycle: ID=${foundCycleId}, start=${foundStartDate}`);
-                  break;
-                }
+                await menstrualCycleAPI.updateCycle(activeCycle.id, { end_date: dateStr });
+                console.log(`API SUCCESS: Updated cycle ${activeCycle.id} with end date ${dateStr}`);
+              } else {
+                throw new Error('終了する生理周期が見つかりません。先に生理開始日を設定してください。');
               }
-            }
-            
-            if (foundCycleId) {
-              await menstrualCycleAPI.updateCycle(foundCycleId, { end_date: dateStr });
-              console.log(`API SUCCESS: Updated cycle ${foundCycleId} with end date ${dateStr}`);
-            } else {
+            } catch (error) {
+              console.error('Error getting current status:', error);
               throw new Error('終了する生理周期が見つかりません。先に生理開始日を設定してください。');
             }
           }
@@ -669,10 +654,41 @@ export const Calendar: React.FC = () => {
         console.log(`LOCAL REMOVE: Removed data for ${dateStr}`);
       }
 
-      await loadCalendarData(); // 既存の状態を使用
-      // カレンダーを強制的に再描画
+      // データ保存後の確実な更新処理
+      console.log('Starting post-save update process...');
+      
+      // 1. カレンダーデータを再読み込み
+      await loadCalendarData();
+      
+      // 2. メンストラルステータスを強制更新
+      try {
+        const { menstrualStatusManager } = await import('../services/menstrualStatusManager');
+        await menstrualStatusManager.forceReloadStatus();
+      } catch (error) {
+        console.error('Failed to reload menstrual status:', error);
+      }
+      
+      // 3. カレンダーを強制的に再描画
       setRefreshKey((prev) => prev + 1);
       console.log(`Calendar refresh triggered for ${dateStr}, refreshKey: ${refreshKey + 1}`);
+      
+      // 4. カスタムイベントを発火してアプリ全体を更新
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
+      // 5. 少し遅延してもう一度確実に更新
+      setTimeout(async () => {
+        console.log('Secondary update process...');
+        await loadCalendarData();
+        try {
+          const { menstrualStatusManager } = await import('../services/menstrualStatusManager');
+          await menstrualStatusManager.forceReloadStatus();
+        } catch (error) {
+          console.error('Failed to reload menstrual status:', error);
+        }
+        setRefreshKey((prev) => prev + 1);
+        window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      }, 300);
+      
       alert("記録が保存されました！");
     } catch (error: any) {
       console.error("Failed to save record:", error);
