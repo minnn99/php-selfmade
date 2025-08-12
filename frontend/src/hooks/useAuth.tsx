@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { authAPI } from '../services/api';
+import { useState, useEffect, useCallback } from "react";
+import { authAPI } from "../services/api";
 
 interface User {
   id: number;
@@ -29,13 +29,13 @@ export const useAuth = (): UseAuthReturn => {
   const checkInitialAuth = async () => {
     try {
       const isAuth = authAPI.isAuthenticated();
-      
+
       if (isAuth) {
         const currentUser = authAPI.getCurrentUser();
         if (currentUser) {
           setUser(currentUser);
           setIsAuthenticated(true);
-          
+
           // Start token expiration checker
           authAPI.startTokenChecker();
         } else {
@@ -47,7 +47,7 @@ export const useAuth = (): UseAuthReturn => {
         setUser(null);
       }
     } catch (error) {
-      console.error('Initial auth check failed:', error);
+      console.error("Initial auth check failed:", error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -64,29 +64,25 @@ export const useAuth = (): UseAuthReturn => {
         authAPI.startTokenChecker();
       }
     } catch (error) {
-      console.error('Failed to refresh user data:', error);
+      console.error("Failed to refresh user data:", error);
       await logout();
     }
   };
 
-  const login = useCallback(async (
-    email: string, 
-    password: string, 
-    rememberMe: boolean = false
-  ): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await authAPI.login(email, password);
-      
+
       if (response.success) {
         setUser(response.data.user);
         setIsAuthenticated(true);
         authAPI.startTokenChecker();
         return true;
       }
-      
+
       return false;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       return false;
     }
   }, []);
@@ -95,7 +91,7 @@ export const useAuth = (): UseAuthReturn => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.warn('Logout API call failed:', error);
+      console.warn("Logout API call failed:", error);
     } finally {
       authAPI.stopTokenChecker();
       setUser(null);
@@ -114,22 +110,22 @@ export const useAuth = (): UseAuthReturn => {
     isLoading,
     login,
     logout,
-    refreshAuth
+    refreshAuth,
   };
 };
 
 // Route protection hook
-export const useRequireAuth = (redirectTo: string = '/') => {
+export const useRequireAuth = (redirectTo: string = "/") => {
   const auth = useAuth();
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       // Store the attempted URL for redirect after login
       const currentPath = window.location.pathname + window.location.search;
-      if (currentPath !== '/' && currentPath !== '/login') {
-        sessionStorage.setItem('redirectAfterLogin', currentPath);
+      if (currentPath !== "/" && currentPath !== "/login") {
+        sessionStorage.setItem("redirectAfterLogin", currentPath);
       }
-      
+
       // Redirect to login
       window.location.href = redirectTo;
     }
