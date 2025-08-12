@@ -49,63 +49,63 @@ export const Calendar: React.FC = () => {
       const userData = await authAPI.getUser();
       const gender = userData.data?.user?.gender || "";
       setUserGender(gender);
-      console.log('Calendar: User gender set to:', gender);
+      console.log("Calendar: User gender set to:", gender);
 
       // パートナー状況を確認
       const partnerStatus = await partnerAPI.getStatus();
       const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
       setIsConnectedToPartner(isConnected);
-      console.log('Calendar: Partner connection status:', { 
-        success: partnerStatus.success, 
+      console.log("Calendar: Partner connection status:", {
+        success: partnerStatus.success,
         is_connected: partnerStatus.data?.is_connected,
-        isConnected 
+        isConnected,
       });
 
       // ユーザー情報取得後にカレンダーデータを読み込み
       await loadCalendarData(gender, isConnected);
-      
+
       // MenstrualStatusManagerを初期化（認証後に実行）
       try {
         await menstrualStatusManager.loadStatus();
         // Auto-update period status after loading
-        const { autoUpdatePeriodStatusForActiveCycle } = await import('../utils/periodStatusHelper');
+        const { autoUpdatePeriodStatusForActiveCycle } = await import("../utils/periodStatusHelper");
         autoUpdatePeriodStatusForActiveCycle();
       } catch (error) {
-        console.error('Failed to initialize menstrual status manager:', error);
+        console.error("Failed to initialize menstrual status manager:", error);
       }
-      
+
       // 初回読み込み時にローカルストレージデータを移行
       await migrateLocalStorageData();
-      
+
       cleanupOldLocalStorageData();
     };
-    
+
     loadData();
   }, [currentYear, currentMonth]);
 
   // Listen for menstrual data updates with debounce
   useEffect(() => {
     let timeoutId: number;
-    
+
     const handleDataUpdate = () => {
-      console.log('Calendar - Menstrual data updated, debouncing reload...');
-      
+      console.log("Calendar - Menstrual data updated, debouncing reload...");
+
       // Clear existing timeout
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      
+
       // Set new timeout
       timeoutId = setTimeout(() => {
         loadCalendarData(); // 既存の状態を使用
-        setRefreshKey(prev => prev + 1); // カレンダーを強制再描画
+        setRefreshKey((prev) => prev + 1); // カレンダーを強制再描画
       }, 400); // 400ms debounce for Calendar
     };
 
-    window.addEventListener('menstrualDataUpdated', handleDataUpdate);
-    
+    window.addEventListener("menstrualDataUpdated", handleDataUpdate);
+
     return () => {
-      window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
@@ -115,92 +115,91 @@ export const Calendar: React.FC = () => {
   // 古いローカルストレージデータをクリーンアップする関数
   // ローカルストレージデータをAPIに移行する関数
   const migrateLocalStorageData = async () => {
-    const migrationKey = 'symptoms-data-migrated';
-    
+    const migrationKey = "symptoms-data-migrated";
+
     // 既に移行済みの場合はスキップ
-    if (localStorage.getItem(migrationKey) === 'true') {
-      console.log('Symptoms data already migrated, skipping...');
+    if (localStorage.getItem(migrationKey) === "true") {
+      console.log("Symptoms data already migrated, skipping...");
       return;
     }
-    
+
     try {
       const symptomsData = [];
-      
+
       // ローカルストレージから症状データを収集
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('daily-symptoms-')) {
+        if (key && key.startsWith("daily-symptoms-")) {
           try {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            const data = JSON.parse(localStorage.getItem(key) || "{}");
             const dateMatch = key.match(/daily-symptoms-(\d{4}-\d{2}-\d{2})/);
-            
+
             if (dateMatch && dateMatch[1]) {
               const date = dateMatch[1];
               const hasSymptoms = data.symptoms && data.symptoms.length > 0;
-              const hasMood = data.mood && data.mood.trim() !== '';
-              const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== '';
+              const hasMood = data.mood && data.mood.trim() !== "";
+              const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
               const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-              
+
               // 有効なデータがある場合のみ移行対象に追加
               if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
                 symptomsData.push({
                   date: date,
                   symptoms: data.symptoms || [],
-                  mood: data.mood || '',
-                  healthNotes: data.healthNotes || '',
-                  flowIntensity: data.flowIntensity || null
+                  mood: data.mood || "",
+                  healthNotes: data.healthNotes || "",
+                  flowIntensity: data.flowIntensity || null,
                 });
               }
             }
           } catch (error) {
-            console.error('Error parsing local storage data for key:', key, error);
+            console.error("Error parsing local storage data for key:", key, error);
           }
         }
       }
-      
+
       if (symptomsData.length > 0) {
         console.log(`Migrating ${symptomsData.length} symptoms records from localStorage to API...`);
         const response = await dailySymptomsAPI.bulkSaveSymptoms(symptomsData);
-        
+
         if (response.success) {
-          console.log('Migration successful:', response.data);
-          localStorage.setItem(migrationKey, 'true');
+          console.log("Migration successful:", response.data);
+          localStorage.setItem(migrationKey, "true");
         } else {
-          console.error('Migration failed:', response);
+          console.error("Migration failed:", response);
         }
       } else {
-        console.log('No symptoms data found in localStorage to migrate');
-        localStorage.setItem(migrationKey, 'true');
+        console.log("No symptoms data found in localStorage to migrate");
+        localStorage.setItem(migrationKey, "true");
       }
     } catch (error) {
-      console.error('Error during symptoms data migration:', error);
+      console.error("Error during symptoms data migration:", error);
     }
   };
 
   const cleanupOldLocalStorageData = () => {
     // 一回だけ実行する7月データの完全クリーンアップ
-    const hasCleanedJuly = localStorage.getItem('july-data-cleanup-completed');
+    const hasCleanedJuly = localStorage.getItem("july-data-cleanup-completed");
     if (hasCleanedJuly) return;
 
     // 全ての7月のデータを強制削除（古いバージョンで保存された可能性のあるデータ）
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('daily-symptoms-2025-07-')) {
+      if (key && key.startsWith("daily-symptoms-2025-07-")) {
         keys.push(key);
       }
     }
-    
+
     if (keys.length > 0) {
-      keys.forEach(key => {
+      keys.forEach((key) => {
         localStorage.removeItem(key);
       });
       console.log(`Cleaned up ${keys.length} old July data entries`);
     }
-    
-    localStorage.setItem('july-data-cleanup-completed', 'true');
-  };
 
+    localStorage.setItem("july-data-cleanup-completed", "true");
+  };
 
   const loadCalendarData = async (gender?: string, isConnected?: boolean) => {
     // パラメータが指定されていない場合は現在の状態を使用
@@ -229,27 +228,27 @@ export const Calendar: React.FC = () => {
       setCalendarApiData(filteredData);
 
       // 男性ユーザーで、パートナーと連動している場合、パートナーのカレンダーデータも読み込み
-      console.log('Calendar: Loading partner data check', {
+      console.log("Calendar: Loading partner data check", {
         currentConnected,
         currentGender,
-        isMale: currentGender === "male" || currentGender === "男性"
+        isMale: currentGender === "male" || currentGender === "男性",
       });
-      
+
       if (currentConnected && (currentGender === "male" || currentGender === "男性")) {
         try {
-          console.log('Calendar: Fetching partner calendar data for', currentYear, currentMonth + 1);
+          console.log("Calendar: Fetching partner calendar data for", currentYear, currentMonth + 1);
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
-          console.log('Calendar: Partner data response:', partnerData);
-          
+          console.log("Calendar: Partner data response:", partnerData);
+
           if (partnerData.success && partnerData.data?.calendar_data) {
             const partnerCalendarMap: any = {};
             partnerData.data.calendar_data.forEach((dayData: any) => {
               partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
-            console.log('Calendar: Partner calendar map set:', partnerCalendarMap);
+            console.log("Calendar: Partner calendar map set:", partnerCalendarMap);
           } else {
-            console.log('Calendar: No partner calendar data found');
+            console.log("Calendar: No partner calendar data found");
             setPartnerCalendarData({});
           }
         } catch (error) {
@@ -257,7 +256,7 @@ export const Calendar: React.FC = () => {
           setPartnerCalendarData({});
         }
       } else {
-        console.log('Calendar: Not loading partner data - not male or not connected');
+        console.log("Calendar: Not loading partner data - not male or not connected");
         setPartnerCalendarData({});
       }
     } catch (error) {
@@ -276,32 +275,33 @@ export const Calendar: React.FC = () => {
       const data = JSON.parse(storedData);
       // Check if any meaningful data exists (not just empty/default values)
       const hasSymptoms = data.symptoms && Array.isArray(data.symptoms) && data.symptoms.length > 0;
-      const hasMood = data.mood && typeof data.mood === 'string' && data.mood.trim() !== "";
-      const hasHealthNotes = data.healthNotes && typeof data.healthNotes === 'string' && data.healthNotes.trim() !== "";
-      const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === 'number' && data.flowIntensity > 0;
+      const hasMood = data.mood && typeof data.mood === "string" && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && typeof data.healthNotes === "string" && data.healthNotes.trim() !== "";
+      const hasFlowIntensity =
+        data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === "number" && data.flowIntensity > 0;
       const hasPeriodInfo = data.isPeriodStart === true || data.isPeriodEnd === true || data.hasPeriod === true;
 
       // 黄色の点は症状・気分・健康ノート・経血量のみで判定（生理フラグは除外）
       const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
-      
+
       // 特定の日付についてのみデバッグログ（より詳細に）
-      if (dateKey.endsWith('-22') || result) {
+      if (dateKey.endsWith("-22") || result) {
         console.log(`hasUserInputForDate(${dateKey}):`, {
-          result, 
-          hasSymptoms, 
-          hasMood, 
-          hasHealthNotes, 
-          hasFlowIntensity, 
+          result,
+          hasSymptoms,
+          hasMood,
+          hasHealthNotes,
+          hasFlowIntensity,
           hasPeriodInfo,
-          'data.symptoms': data.symptoms,
-          'data.mood': data.mood,
-          'data.healthNotes': data.healthNotes,
-          'data.flowIntensity': data.flowIntensity,
-          'data.isPeriodStart': data.isPeriodStart,
-          'data.isPeriodEnd': data.isPeriodEnd,
-          'data.hasPeriod': data.hasPeriod,
-          storedData, 
-          parsedData: data
+          "data.symptoms": data.symptoms,
+          "data.mood": data.mood,
+          "data.healthNotes": data.healthNotes,
+          "data.flowIntensity": data.flowIntensity,
+          "data.isPeriodStart": data.isPeriodStart,
+          "data.isPeriodEnd": data.isPeriodEnd,
+          "data.hasPeriod": data.hasPeriod,
+          storedData,
+          parsedData: data,
         });
       }
 
@@ -346,12 +346,12 @@ export const Calendar: React.FC = () => {
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
         isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === 'period' || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data ? (
-          (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-          (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== '') ||
-          (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== '')
-        ) : false,
+        hasPartnerPeriod: partnerData?.status === "period" || false,
+        hasPartnerSymptoms: partnerData?.partner_daily_data
+          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          : false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -376,12 +376,12 @@ export const Calendar: React.FC = () => {
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
         isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === 'period' || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data ? (
-          (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-          (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== '') ||
-          (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== '')
-        ) : false,
+        hasPartnerPeriod: partnerData?.status === "period" || false,
+        hasPartnerSymptoms: partnerData?.partner_daily_data
+          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          : false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -408,12 +408,12 @@ export const Calendar: React.FC = () => {
         isPeriodEnd: dayData?.isPeriodEnd || false,
         isActive: dayData?.isActive || false,
         isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === 'period' || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data ? (
-          (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-          (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== '') ||
-          (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== '')
-        ) : false,
+        hasPartnerPeriod: partnerData?.status === "period" || false,
+        hasPartnerSymptoms: partnerData?.partner_daily_data
+          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          : false,
         partnerName: partnerData?.partner_name,
       });
       nextMonthDate++;
@@ -468,10 +468,10 @@ export const Calendar: React.FC = () => {
     if (partnerData?.partner_daily_data) {
       partnerDailyData = {
         symptoms: partnerData.partner_daily_data.symptoms || [],
-        mood: partnerData.partner_daily_data.mood || '',
-        healthNotes: partnerData.partner_daily_data.health_notes || '',
+        mood: partnerData.partner_daily_data.mood || "",
+        healthNotes: partnerData.partner_daily_data.health_notes || "",
         flowIntensity: partnerData.partner_daily_data.flow_intensity,
-        partnerName: partnerData.partner_name
+        partnerName: partnerData.partner_name,
       };
     }
 
@@ -577,23 +577,23 @@ export const Calendar: React.FC = () => {
           } else if (data.isPeriodEnd) {
             // 終了日を設定する場合、直接アクティブな周期を取得
             console.log(`Setting end date for active cycle on ${dateStr}`);
-            
+
             try {
               const response = await menstrualCycleAPI.getCurrentStatus();
-              console.log('Current status response:', response);
-              
+              console.log("Current status response:", response);
+
               if (response.hasActiveCycle && response.activeCycle) {
                 const activeCycle = response.activeCycle;
                 console.log(`Found active cycle: ID=${activeCycle.id}, start=${activeCycle.start_date}`);
-                
+
                 await menstrualCycleAPI.updateCycle(activeCycle.id, { end_date: dateStr });
                 console.log(`API SUCCESS: Updated cycle ${activeCycle.id} with end date ${dateStr}`);
               } else {
-                throw new Error('終了する生理周期が見つかりません。先に生理開始日を設定してください。');
+                throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
               }
             } catch (error) {
-              console.error('Error getting current status:', error);
-              throw new Error('終了する生理周期が見つかりません。先に生理開始日を設定してください。');
+              console.error("Error getting current status:", error);
+              throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
             }
           }
         }
@@ -638,40 +638,40 @@ export const Calendar: React.FC = () => {
       }
 
       // データ保存後の確実な更新処理
-      console.log('Starting post-save update process...');
-      
+      console.log("Starting post-save update process...");
+
       // 1. カレンダーデータを再読み込み
       await loadCalendarData();
-      
+
       // 2. メンストラルステータスを強制更新
       try {
-        const { menstrualStatusManager } = await import('../services/menstrualStatusManager');
+        const { menstrualStatusManager } = await import("../services/menstrualStatusManager");
         await menstrualStatusManager.forceReloadStatus();
       } catch (error) {
-        console.error('Failed to reload menstrual status:', error);
+        console.error("Failed to reload menstrual status:", error);
       }
-      
+
       // 3. カレンダーを強制的に再描画
       setRefreshKey((prev) => prev + 1);
       console.log(`Calendar refresh triggered for ${dateStr}, refreshKey: ${refreshKey + 1}`);
-      
+
       // 4. カスタムイベントを発火してアプリ全体を更新
-      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
-      
+      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+
       // 5. 少し遅延してもう一度確実に更新
       setTimeout(async () => {
-        console.log('Secondary update process...');
+        console.log("Secondary update process...");
         await loadCalendarData();
         try {
-          const { menstrualStatusManager } = await import('../services/menstrualStatusManager');
+          const { menstrualStatusManager } = await import("../services/menstrualStatusManager");
           await menstrualStatusManager.forceReloadStatus();
         } catch (error) {
-          console.error('Failed to reload menstrual status:', error);
+          console.error("Failed to reload menstrual status:", error);
         }
         setRefreshKey((prev) => prev + 1);
-        window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+        window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
       }, 300);
-      
+
       alert("記録が保存されました！");
     } catch (error: any) {
       console.error("Failed to save record:", error);
@@ -686,7 +686,7 @@ export const Calendar: React.FC = () => {
   // ローカルストレージから生理データを削除する関数（完全削除版）
   const clearPeriodDataFromLocalStorage = (cycleId: number) => {
     console.log(`Clearing period data for cycle ID: ${cycleId}`);
-    
+
     // まず calendarApiData から該当するサイクルの全ての日付を特定
     const cycleDates = [];
     for (const dateKey of Object.keys(calendarApiData)) {
@@ -695,52 +695,52 @@ export const Calendar: React.FC = () => {
         cycleDates.push(dateKey);
       }
     }
-    
+
     console.log(`Found ${cycleDates.length} dates for cycle ${cycleId}:`, cycleDates);
-    
+
     // 該当する日付のローカルストレージを完全削除
-    cycleDates.forEach(dateString => {
+    cycleDates.forEach((dateString) => {
       const localStorageKey = `daily-symptoms-${dateString}`;
       const existingData = localStorage.getItem(localStorageKey);
-      
+
       if (existingData) {
         console.log(`Removing localStorage data for ${dateString}`);
         localStorage.removeItem(localStorageKey);
       }
     });
-    
+
     // さらに、現在の月の全ての日付で生理関連データをクリア（追加の安全策）
     const today = new Date();
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-    
+
     // 今月の全ての日をチェック
     for (let day = 1; day <= 31; day++) {
-      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const localStorageKey = `daily-symptoms-${dateString}`;
       const existingData = localStorage.getItem(localStorageKey);
-      
+
       if (existingData) {
         try {
           const data = JSON.parse(existingData);
           // 生理関連のフラグがある場合はクリア
           if (data.hasPeriod || data.isPeriodStart || data.isPeriodEnd) {
             console.log(`Clearing period flags from ${dateString}`);
-            
+
             const updatedData = {
               ...data,
               isPeriodStart: false,
               isPeriodEnd: false,
               hasPeriod: false,
-              flowIntensity: undefined
+              flowIntensity: undefined,
             };
-            
+
             // 他に意味のあるデータがない場合は完全に削除
-            const hasOtherData = 
+            const hasOtherData =
               (updatedData.symptoms && updatedData.symptoms.length > 0) ||
               (updatedData.mood && updatedData.mood.trim() !== "") ||
               (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
-              
+
             if (hasOtherData) {
               localStorage.setItem(localStorageKey, JSON.stringify(updatedData));
             } else {
@@ -758,23 +758,23 @@ export const Calendar: React.FC = () => {
   const handleDelete = async (cycleId: number) => {
     try {
       console.log(`Starting deletion process for cycle ${cycleId}`);
-      
+
       // ローカルストレージを先に削除（API削除前に実行）
       clearPeriodDataFromLocalStorage(cycleId);
-      
+
       // API からサイクルを削除
       await menstrualCycleAPI.deleteCycle(cycleId);
       console.log(`Successfully deleted cycle ${cycleId} from API`);
-      
+
       // カレンダーデータを再読み込み
       await loadCalendarData(); // 既存の状態を使用
-      
+
       // カレンダーを強制再描画
-      setRefreshKey(prev => prev + 1);
-      
+      setRefreshKey((prev) => prev + 1);
+
       // カスタムイベントを発火してアプリ全体を更新
-      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
-      
+      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+
       alert("生理周期が削除されました");
     } catch (error: any) {
       console.error("Failed to delete cycle:", error);
@@ -799,10 +799,22 @@ export const Calendar: React.FC = () => {
       baseStyle += "text-gray-300 ";
     } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
       // 今日かつ生理関連の場合
-      baseStyle += "bg-red-600 text-white rounded-lg border-2 border-blue-500 ";
+      baseStyle += "bg-purple-600 text-white rounded-lg ";
+    } else if (day.isToday && day.hasPartnerPeriod) {
+      // 今日かつパートナーの生理期間の場合
+      baseStyle += "bg-purple-600 text-white rounded-lg ";
+    } else if (day.isToday && day.isPredictedPeriod) {
+      // 今日かつ予測生理日の場合
+      baseStyle += "bg-purple-600 text-white rounded-lg ";
+    } else if (day.isToday && day.isOvulation) {
+      // 今日かつ排卵日の場合
+      baseStyle += "bg-purple-600 text-white rounded-lg ";
+    } else if (day.isToday && day.isFertile) {
+      // 今日かつ妊娠可能期間の場合
+      baseStyle += "bg-purple-600 text-white rounded-lg ";
     } else if (day.isToday) {
       // 今日のみの場合
-      baseStyle += "border-2 border-blue-500 text-blue-600 font-bold rounded-lg ";
+      baseStyle += "bg-purple-500 text-white font-bold rounded-lg ";
     } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
       // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
       baseStyle += "bg-red-500 text-white rounded-lg ";
@@ -829,14 +841,6 @@ export const Calendar: React.FC = () => {
   // 日付セルの装飾を決定
   const getDayDecorations = (day: CalendarDay) => {
     const decorations = [];
-
-    // 生理日は背景色で表示するため、ドットは不要
-    // 予測生理日の場合のみドット表示
-    if (day.isPredictedPeriod && !day.hasPeriod) {
-      decorations.push(
-        <div key="predicted" className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 border-2 border-red-400 rounded-full bg-white"></div>
-      );
-    }
 
     // 排卵日も背景色で表示するため、生理日と重複しない場合のみ
     if (day.isOvulation && !day.hasPeriod) {
@@ -914,6 +918,10 @@ export const Calendar: React.FC = () => {
         <h3 className="text-sm font-medium text-gray-700 mb-3">凡例</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
           <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600">今日</span>
+          </div>
+          <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
@@ -924,7 +932,7 @@ export const Calendar: React.FC = () => {
             </div>
           )}
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 border-2 border-red-400 rounded-full flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-red-100 border border-red-300 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">予測生理日</span>
           </div>
           <div className="flex items-center space-x-2">
