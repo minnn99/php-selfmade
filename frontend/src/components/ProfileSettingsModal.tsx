@@ -52,14 +52,11 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   const loadProfileData = async () => {
     try {
       // APIから最新のユーザー情報を取得
-      const [userResponse, settingsResponse] = await Promise.all([
-        authAPI.getUser(),
-        userDataAPI.getSettings()
-      ]);
-      
+      const [userResponse, settingsResponse] = await Promise.all([authAPI.getUser(), userDataAPI.getSettings()]);
+
       const user = userResponse.data.user;
       const savedProfile = settingsResponse.success ? settingsResponse.data.userProfile : null;
-      
+
       if (savedProfile) {
         setProfileData({
           ...savedProfile,
@@ -79,7 +76,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
         }));
       }
     } catch (error) {
-      console.error('Failed to load profile data:', error);
+      console.error("Failed to load profile data:", error);
     }
   };
 
@@ -87,13 +84,13 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     setLoading(true);
     try {
       await userDataAPI.saveSettings({
-        userProfile: profileData
+        userProfile: profileData,
       });
       onSave(profileData);
       onClose();
     } catch (error) {
-      console.error('Failed to save profile data:', error);
-      alert('プロフィールの保存に失敗しました。');
+      console.error("Failed to save profile data:", error);
+      alert("プロフィールの保存に失敗しました。");
     } finally {
       setLoading(false);
     }
@@ -108,10 +105,14 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
 
   const getGenderDisplay = (gender: string) => {
     switch (gender) {
-      case 'male': return '男性';
-      case 'female': return '女性';
-      case 'other': return 'その他';
-      default: return '未設定';
+      case "male":
+        return "男性";
+      case "female":
+        return "女性";
+      case "other":
+        return "その他";
+      default:
+        return "未設定";
     }
   };
 
@@ -139,8 +140,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   };
 
   const tabs = [
-    { id: "basic", label: "基本情報", icon: "👤" },
-    { id: "health", label: "健康情報", icon: "🏥" },
+    { id: "basic", label: "基本情報", icon: "" },
+    { id: "health", label: "健康情報", icon: "" },
   ];
 
   const renderBasicInfo = () => (
@@ -344,7 +345,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
             disabled={loading}
             className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            {loading ? '保存中...' : '保存'}
+            {loading ? "保存中..." : "保存"}
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { userDataAPI } from '../services/api';
+import { userDataAPI } from "../services/api";
 
 interface MedicalRecordsProps {
   className?: string;
@@ -73,31 +73,31 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
         setMedications(response.data.medications || []);
       }
     } catch (error) {
-      console.error('Failed to load medical records:', error);
+      console.error("Failed to load medical records:", error);
     }
   };
 
   const saveToStorage = async (type: RecordType, data: any[]) => {
     try {
-      let apiType: 'hospitalVisits' | 'testResults' | 'medications';
+      let apiType: "hospitalVisits" | "testResults" | "medications";
       switch (type) {
         case "visit":
-          apiType = 'hospitalVisits';
+          apiType = "hospitalVisits";
           setHospitalVisits(data);
           break;
         case "test":
-          apiType = 'testResults';
+          apiType = "testResults";
           setTestResults(data);
           break;
         case "medication":
-          apiType = 'medications';
+          apiType = "medications";
           setMedications(data);
           break;
       }
       await userDataAPI.saveMedicalRecords(apiType, data);
     } catch (error) {
-      console.error('Failed to save medical records:', error);
-      alert('データの保存に失敗しました。');
+      console.error("Failed to save medical records:", error);
+      alert("データの保存に失敗しました。");
     }
   };
 
@@ -241,15 +241,14 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     }
   };
 
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ja-JP");
   };
 
   const tabs = [
-    { id: "visit", label: "病院受診", icon: "🏥" },
-    { id: "test", label: "検査結果", icon: "🔬" },
-    { id: "medication", label: "処方薬", icon: "💊" },
+    { id: "visit", label: "病院受診", icon: "" },
+    { id: "test", label: "検査結果", icon: "" },
+    { id: "medication", label: "処方薬", icon: "" },
   ];
 
   const renderVisitForm = () => (
@@ -516,7 +515,6 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
           <div className="space-y-4">
             {hospitalVisits.length === 0 ? (
               <div className="text-center py-6 sm:py-8 text-gray-500">
-                <div className="text-3xl sm:text-4xl mb-2">🏥</div>
                 <p className="text-sm sm:text-base">まだ受診記録がありません</p>
               </div>
             ) : (
@@ -528,16 +526,16 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center mb-2">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-blue-100 text-blue-800">
-                              病院受診
-                            </span>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-blue-100 text-blue-800">病院受診</span>
                             <h6 className="font-medium text-gray-900 text-sm break-words">{visit.hospitalName}</h6>
                           </div>
                           <div className="space-y-1">
                             {visit.department && <p className="text-xs sm:text-sm text-gray-600">診療科: {visit.department}</p>}
                             {visit.doctorName && <p className="text-xs sm:text-sm text-gray-600">医師: {visit.doctorName}</p>}
                             {visit.purpose && <p className="text-xs sm:text-sm text-gray-600">目的: {visit.purpose}</p>}
-                            {visit.diagnosis && <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">診断: {visit.diagnosis}</p>}
+                            {visit.diagnosis && (
+                              <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">診断: {visit.diagnosis}</p>
+                            )}
                             {visit.nextVisit && <p className="text-xs sm:text-sm text-primary-600 mt-2">次回受診: {formatDate(visit.nextVisit)}</p>}
                           </div>
                         </div>
@@ -575,7 +573,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Mobile Action Buttons */}
                       <div className="flex justify-end space-x-2 sm:hidden">
                         <button
@@ -619,7 +617,6 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
           <div className="space-y-4">
             {testResults.length === 0 ? (
               <div className="text-center py-6 sm:py-8 text-gray-500">
-                <div className="text-3xl sm:text-4xl mb-2">🔬</div>
                 <p className="text-sm sm:text-base">まだ検査結果がありません</p>
               </div>
             ) : (
@@ -631,16 +628,18 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center mb-2">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-green-100 text-green-800">
-                              検査結果
-                            </span>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-green-100 text-green-800">検査結果</span>
                             <h6 className="font-medium text-gray-900 text-sm break-words">{test.testType}</h6>
                           </div>
                           <div className="space-y-1">
                             {test.hospitalName && <p className="text-xs sm:text-sm text-gray-600">検査機関: {test.hospitalName}</p>}
-                            {test.results && <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">結果: {test.results}</p>}
+                            {test.results && (
+                              <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">結果: {test.results}</p>
+                            )}
                             {test.referenceValues && <p className="text-xs sm:text-sm text-gray-600">基準値: {test.referenceValues}</p>}
-                            {test.notes && <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {test.notes}</p>}
+                            {test.notes && (
+                              <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {test.notes}</p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 sm:ml-4">
@@ -677,7 +676,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Mobile Action Buttons */}
                       <div className="flex justify-end space-x-2 sm:hidden">
                         <button
@@ -721,7 +720,6 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
           <div className="space-y-4">
             {medications.length === 0 ? (
               <div className="text-center py-6 sm:py-8 text-gray-500">
-                <div className="text-3xl sm:text-4xl mb-2">💊</div>
                 <p className="text-sm sm:text-base">まだ処方薬情報がありません</p>
               </div>
             ) : (
@@ -733,21 +731,27 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center mb-2">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-purple-100 text-purple-800">
-                              処方薬
-                            </span>
-                            <h6 className="font-medium text-sm break-words text-gray-900">
-                              {medication.name}
-                            </h6>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-purple-100 text-purple-800">処方薬</span>
+                            <h6 className="font-medium text-sm break-words text-gray-900">{medication.name}</h6>
                           </div>
                           <div className="space-y-1">
                             {medication.dosage && <p className="text-xs sm:text-sm text-gray-600">用量: {medication.dosage}</p>}
                             {medication.frequency && <p className="text-xs sm:text-sm text-gray-600">頻度: {medication.frequency}</p>}
                             {medication.duration && <p className="text-xs sm:text-sm text-gray-600">期間: {medication.duration}</p>}
-                            {medication.purpose && <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">目的: {medication.purpose}</p>}
+                            {medication.purpose && (
+                              <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">
+                                目的: {medication.purpose}
+                              </p>
+                            )}
                             {medication.prescribedBy && <p className="text-xs sm:text-sm text-gray-600">処方医: {medication.prescribedBy}</p>}
-                            {medication.sideEffects && <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">副作用: {medication.sideEffects}</p>}
-                            {medication.notes && <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {medication.notes}</p>}
+                            {medication.sideEffects && (
+                              <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">
+                                副作用: {medication.sideEffects}
+                              </p>
+                            )}
+                            {medication.notes && (
+                              <p className="text-xs sm:text-sm text-gray-600 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {medication.notes}</p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 sm:ml-4">
@@ -784,7 +788,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Mobile Action Buttons */}
                       <div className="flex justify-end space-x-2 sm:hidden">
                         <button

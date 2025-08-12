@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { userDataAPI } from '../services/api';
+import { userDataAPI } from "../services/api";
 
 interface PregnancyRecord {
   id: string;
@@ -48,7 +48,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
         setPregnancyStartDate(response.data.start_date || "");
       }
     } catch (error) {
-      console.error('Failed to load pregnancy data:', error);
+      console.error("Failed to load pregnancy data:", error);
     }
   };
 
@@ -56,8 +56,8 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     try {
       await userDataAPI.savePregnancyRecords(startDate || null, records);
     } catch (error) {
-      console.error('Failed to save pregnancy data:', error);
-      alert('データの保存に失敗しました。');
+      console.error("Failed to save pregnancy data:", error);
+      alert("データの保存に失敗しました。");
     }
   };
 
@@ -369,7 +369,6 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
       <div className="space-y-6">
         {pregnancyRecords.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
-            <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📝</div>
             <p className="text-gray-500 text-sm px-4">まだ記録がありません</p>
             <button
               onClick={() => setShowAddRecord(true)}
@@ -400,99 +399,99 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
 
                   return (
                     <div key={record.id} className={`relative p-3 sm:p-4 ${index !== records.length - 1 ? "border-b border-gray-100" : ""}`}>
-                        {/* Display Mode */}
-                        <div className="space-y-3">
-                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center mb-2">
-                                <span
-                                  className={`
+                      {/* Display Mode */}
+                      <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center mb-2">
+                              <span
+                                className={`
                                   px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0
                                   ${record.type === "symptom" ? "bg-orange-100 text-orange-800" : ""}
                                   ${record.type === "test" ? "bg-blue-100 text-blue-800" : ""}
                                   ${record.type === "appointment" ? "bg-green-100 text-green-800" : ""}
                                   ${record.type === "note" ? "bg-gray-100 text-gray-800" : ""}
                                 `}
-                                >
-                                  {getTypeLabel(record.type)}
-                                </span>
-                                <h6 className="font-medium text-gray-900 text-sm break-words">{record.title}</h6>
-                              </div>
-                              <p className="text-gray-700 text-xs sm:text-sm mb-2 whitespace-pre-wrap break-words leading-relaxed">{record.description}</p>
-                              {record.value && <p className="text-primary-600 text-xs sm:text-sm font-medium break-words">結果: {record.value}</p>}
+                              >
+                                {getTypeLabel(record.type)}
+                              </span>
+                              <h6 className="font-medium text-gray-900 text-sm break-words">{record.title}</h6>
                             </div>
-                            <div className="text-right flex-shrink-0 sm:ml-4">
-                              <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(record.date)}</div>
-                              <div className="text-xs text-primary-600 font-medium whitespace-nowrap sm:mb-2">
-                                {weekData.weeks}w{weekData.days}d
-                              </div>
+                            <p className="text-gray-700 text-xs sm:text-sm mb-2 whitespace-pre-wrap break-words leading-relaxed">{record.description}</p>
+                            {record.value && <p className="text-primary-600 text-xs sm:text-sm font-medium break-words">結果: {record.value}</p>}
+                          </div>
+                          <div className="text-right flex-shrink-0 sm:ml-4">
+                            <div className="text-xs text-gray-500 whitespace-nowrap">{formatDate(record.date)}</div>
+                            <div className="text-xs text-primary-600 font-medium whitespace-nowrap sm:mb-2">
+                              {weekData.weeks}w{weekData.days}d
                             </div>
-                          </div>
-                          
-                          {/* Mobile Action Buttons */}
-                          <div className="flex justify-end space-x-2 sm:hidden">
-                            <button
-                              onClick={() => openEditModal(record)}
-                              className="flex items-center space-x-1 px-3 py-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
-                              </svg>
-                              <span>編集</span>
-                            </button>
-                            <button
-                              onClick={() => deleteRecord(record.id)}
-                              className="flex items-center space-x-1 px-3 py-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                              <span>削除</span>
-                            </button>
-                          </div>
-
-                          {/* Desktop Action Buttons */}
-                          <div className="hidden sm:flex sm:absolute sm:bottom-3 sm:right-3 space-x-1">
-                            <button
-                              onClick={() => openEditModal(record)}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
-                              title="編集"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => deleteRecord(record.id)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
-                              title="削除"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
-                              </svg>
-                            </button>
                           </div>
                         </div>
+
+                        {/* Mobile Action Buttons */}
+                        <div className="flex justify-end space-x-2 sm:hidden">
+                          <button
+                            onClick={() => openEditModal(record)}
+                            className="flex items-center space-x-1 px-3 py-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                            <span>編集</span>
+                          </button>
+                          <button
+                            onClick={() => deleteRecord(record.id)}
+                            className="flex items-center space-x-1 px-3 py-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                            <span>削除</span>
+                          </button>
+                        </div>
+
+                        {/* Desktop Action Buttons */}
+                        <div className="hidden sm:flex sm:absolute sm:bottom-3 sm:right-3 space-x-1">
+                          <button
+                            onClick={() => openEditModal(record)}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="編集"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => deleteRecord(record.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            title="削除"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
@@ -504,7 +503,10 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
 
       {/* Edit Record Modal */}
       {showEditModal && editingRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+        >
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900">記録を編集</h3>

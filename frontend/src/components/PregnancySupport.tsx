@@ -279,7 +279,6 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
             <div className="space-y-2">
               {pregnancyRecords.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <div className="text-2xl mb-2">📝</div>
                   <p className="text-gray-500 text-xs sm:text-sm mb-3">まだ記録がありません</p>
                   <button
                     onClick={() => setShowRecordsPage(true)}
