@@ -243,7 +243,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-medical rounded touch-manipulation"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700">
-                  ログイン状態を保持（7日間）
+                  ログイン状態を保持
                 </label>
               </div>
               <div className="text-sm">

@@ -35,12 +35,18 @@ const setAuthData = (data: AuthData) => {
 };
 
 const isTokenExpired = (expiresAt: string): boolean => {
+  // If user chose to remember login, don't auto-expire tokens
+  const authData = getAuthData();
+  if (authData && localStorage.getItem('rememberMe') === 'true') {
+    return false;
+  }
   return new Date() >= new Date(expiresAt);
 };
 
 const logout = () => {
   localStorage.removeItem('auth_data');
   localStorage.removeItem('auth_token'); // 後方互換性のため
+  localStorage.removeItem('rememberMe'); // Clear remember me setting
   sessionStorage.removeItem('redirectAfterLogin'); // Clear any pending redirects
   
   // Redirect to login page
@@ -133,6 +139,9 @@ export const authAPI = {
         user: response.data.user
       };
       setAuthData(authData);
+      
+      // Store remember me preference
+      localStorage.setItem('rememberMe', rememberMe.toString());
     }
     
     return response;

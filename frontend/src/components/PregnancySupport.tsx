@@ -34,6 +34,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
   const [pregnancyRecords, setPregnancyRecords] = useState<PregnancyRecord[]>([]);
   const [showCancelPregnancyModal, setShowCancelPregnancyModal] = useState(false);
   const [showPregnancyConfirmModal, setShowPregnancyConfirmModal] = useState(false);
+  const [showPregnancyModeEnableModal, setShowPregnancyModeEnableModal] = useState(false);
   const [showRecordsPage, setShowRecordsPage] = useState(false);
 
   useEffect(() => {
@@ -74,12 +75,20 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
 
   const togglePregnancyMode = () => {
     const newMode = !isPregnancyMode;
-    setIsPregnancyMode(newMode);
-    localStorage.setItem("pregnancyMode", JSON.stringify(newMode));
 
     if (newMode) {
-      loadOvulationData();
+      setShowPregnancyModeEnableModal(true);
+    } else {
+      setIsPregnancyMode(newMode);
+      localStorage.setItem("pregnancyMode", JSON.stringify(newMode));
     }
+  };
+
+  const handlePregnancyModeEnable = () => {
+    setIsPregnancyMode(true);
+    localStorage.setItem("pregnancyMode", JSON.stringify(true));
+    setShowPregnancyModeEnableModal(false);
+    loadOvulationData();
   };
 
   const handlePregnancyConfirm = () => {
@@ -361,6 +370,18 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Pregnancy Mode Enable Confirmation Modal */}
+      {showPregnancyModeEnableModal && (
+        <ConfirmationModal
+          message={`妊娠サポートモードを有効にしますか？このモードでは排卵日予測や妊娠記録などの詳細機能をご利用いただけます。`}
+          onConfirm={handlePregnancyModeEnable}
+          onCancel={() => setShowPregnancyModeEnableModal(false)}
+          confirmButtonText="有効にする"
+          cancelButtonText="キャンセル"
+          confirmButtonClass="px-4 sm:px-6 py-3 rounded-md bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 transition-colors text-sm sm:text-base font-medium min-h-[44px] flex items-center justify-center"
+        />
       )}
 
       {/* Pregnancy Confirmation Modal */}
