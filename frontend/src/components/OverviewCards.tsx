@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { menstrualCycleAPI } from '../services/api';
+import { menstrualCycleAPI, partnerAPI, authAPI } from '../services/api';
 
 interface PredictionData {
   nextPeriodDate: string | null; // 次の生理周期開始予定日
@@ -16,22 +16,58 @@ export const OverviewCards: React.FC = () => {
     averageCycleLength: null
   });
   const [loading, setLoading] = useState(true);
+  const [userGender, setUserGender] = useState<string>('');
+  const [isConnectedToPartner, setIsConnectedToPartner] = useState(false);
 
   useEffect(() => {
     const fetchPredictionData = async () => {
       try {
+        // まずユーザー情報とパートナー状況を取得
+        const userData = await authAPI.getUser();
+        const gender = userData.data?.user?.gender || '';
+        setUserGender(gender);
+
+        const partnerStatus = await partnerAPI.getStatus();
+        const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
+        setIsConnectedToPartner(isConnected);
+
         const today = new Date();
         const year = today.getFullYear();
         const month = today.getMonth() + 1;
         
-        // Get calendar data for current and next month
-        const response = await menstrualCycleAPI.getCalendarData(year, month);
-        const nextMonth = month === 12 ? 1 : month + 1;
-        const nextMonthYear = month === 12 ? year + 1 : year;
-        const nextMonthResponse = await menstrualCycleAPI.getCalendarData(nextMonthYear, nextMonth);
+        let combinedData: { [key: string]: any } = {};
         
-        // Combine current and next month data
-        const combinedData = { ...response.data, ...nextMonthResponse.data };
+        // 男性ユーザーでパートナーと連携している場合はパートナーのデータを取得
+        if ((gender === 'male' || gender === '男性') && isConnected) {
+          console.log('OverviewCards: Fetching partner calendar data for male user');
+          const response = await partnerAPI.getPartnerCalendar(year, month);
+          const nextMonth = month === 12 ? 1 : month + 1;
+          const nextMonthYear = month === 12 ? year + 1 : year;
+          const nextMonthResponse = await partnerAPI.getPartnerCalendar(nextMonthYear, nextMonth);
+          
+          if (response.success && nextMonthResponse.success) {
+            // パートナーAPIからのデータを変換
+            const currentMonthData: { [key: string]: any } = {};
+            response.data.calendar_data.forEach((dayData: any) => {
+              currentMonthData[dayData.date] = dayData;
+            });
+            
+            const nextMonthData: { [key: string]: any } = {};
+            nextMonthResponse.data.calendar_data.forEach((dayData: any) => {
+              nextMonthData[dayData.date] = dayData;
+            });
+            
+            combinedData = { ...currentMonthData, ...nextMonthData };
+          }
+        } else {
+          // 女性ユーザーまたは連携していない場合は通常の生理周期データを取得
+          const response = await menstrualCycleAPI.getCalendarData(year, month);
+          const nextMonth = month === 12 ? 1 : month + 1;
+          const nextMonthYear = month === 12 ? year + 1 : year;
+          const nextMonthResponse = await menstrualCycleAPI.getCalendarData(nextMonthYear, nextMonth);
+          
+          combinedData = { ...response.data, ...nextMonthResponse.data };
+        }
         console.log('Debug: Combined calendar data:', combinedData);
         
         // Find next cycle start date and ovulation dates from calendar data
@@ -98,17 +134,23 @@ export const OverviewCards: React.FC = () => {
         let averageCycleLength = null;
         
         try {
-          const statusResponse = await menstrualCycleAPI.getCurrentStatus();
-          
-          if (statusResponse.hasActiveCycle && statusResponse.activeCycle) {
-            const cycleStart = new Date(statusResponse.activeCycle.start_date);
-            const diffTime = today.getTime() - cycleStart.getTime();
-            currentCycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          // 男性ユーザーでパートナーと連携している場合は現在周期の計算をスキップ
+          if ((gender === 'male' || gender === '男性') && isConnected) {
+            // パートナーの周期情報は表示しない（男性ユーザーには関係ないため）
+            currentCycleDay = null;
+            averageCycleLength = 28; // デフォルト値を使用
+          } else {
+            const statusResponse = await menstrualCycleAPI.getCurrentStatus();
+            
+            if (statusResponse.hasActiveCycle && statusResponse.activeCycle) {
+              const cycleStart = new Date(statusResponse.activeCycle.start_date);
+              const diffTime = today.getTime() - cycleStart.getTime();
+              currentCycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            }
+            
+            // Calculate average cycle length from recent cycles
+            averageCycleLength = 28; // Default value
           }
-          
-          // Calculate average cycle length from recent cycles
-          averageCycleLength = 28; // Default value
-          
         } catch (error) {
           console.error('Failed to get current status:', error);
         }
@@ -166,7 +208,12 @@ export const OverviewCards: React.FC = () => {
       {/* Next Period Card */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-sm font-medium text-gray-600">次の生理周期予定日</h3>
+          <h3 className="text-sm font-medium text-gray-600">
+            {(userGender === 'male' || userGender === '男性') && isConnectedToPartner 
+              ? 'パートナーの次の生理予定日' 
+              : '次の生理周期予定日'
+            }
+          </h3>
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -206,7 +253,12 @@ export const OverviewCards: React.FC = () => {
       {/* Current Cycle Card */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-sm font-medium text-gray-600">現在の周期</h3>
+          <h3 className="text-sm font-medium text-gray-600">
+            {(userGender === 'male' || userGender === '男性') && isConnectedToPartner 
+              ? 'パートナー連携状況' 
+              : '現在の周期'
+            }
+          </h3>
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -216,6 +268,18 @@ export const OverviewCards: React.FC = () => {
         <div className="space-y-2 sm:space-y-3">
           {loading ? (
             <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+          ) : (userGender === 'male' || userGender === '男性') && isConnectedToPartner ? (
+            <>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">
+                連携中
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                パートナーのデータを表示中
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-primary-500 h-2 rounded-full" style={{width: '100%'}}></div>
+              </div>
+            </>
           ) : predictionData.currentCycleDay ? (
             <>
               <p className="text-xl sm:text-2xl font-semibold text-gray-900">
@@ -246,7 +310,12 @@ export const OverviewCards: React.FC = () => {
       {/* Ovulation Card */}
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
         <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-sm font-medium text-gray-600">排卵予定日</h3>
+          <h3 className="text-sm font-medium text-gray-600">
+            {(userGender === 'male' || userGender === '男性') && isConnectedToPartner 
+              ? 'パートナーの排卵予定日' 
+              : '排卵予定日'
+            }
+          </h3>
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
