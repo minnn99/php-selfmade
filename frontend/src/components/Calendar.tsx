@@ -340,18 +340,14 @@ export const Calendar: React.FC = () => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -370,18 +366,14 @@ export const Calendar: React.FC = () => {
         isToday,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -402,18 +394,14 @@ export const Calendar: React.FC = () => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
         partnerName: partnerData?.partner_name,
       });
       nextMonthDate++;
@@ -815,12 +803,9 @@ export const Calendar: React.FC = () => {
     } else if (day.isToday) {
       // 今日のみの場合
       baseStyle += "bg-purple-500 text-white font-bold rounded-lg ";
-    } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
-      // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
+    } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd || day.hasPartnerPeriod) {
+      // 生理期間中・開始日・終了日・パートナーの生理期間の場合（統一して赤いスタイル）
       baseStyle += "bg-red-500 text-white rounded-lg ";
-    } else if (day.hasPartnerPeriod) {
-      // パートナーの生理期間の場合（ピンク色で表示）
-      baseStyle += "bg-pink-300 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
       baseStyle += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
@@ -925,12 +910,6 @@ export const Calendar: React.FC = () => {
             <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
-          {isConnectedToPartner && (userGender === "male" || userGender === "男性") && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-pink-300 rounded-full flex-shrink-0"></div>
-              <span className="text-gray-600">パートナーの生理日</span>
-            </div>
-          )}
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-100 border border-red-300 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">予測生理日</span>
@@ -947,12 +926,6 @@ export const Calendar: React.FC = () => {
             <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">症状記録</span>
           </div>
-          {isConnectedToPartner && (userGender === "male" || userGender === "男性") && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0"></div>
-              <span className="text-gray-600">パートナーの症状</span>
-            </div>
-          )}
         </div>
       </div>
 

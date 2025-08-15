@@ -243,8 +243,6 @@ class PartnerController extends Controller
     {
         $user = $request->user();
         
-        \Log::info('PartnerCalendar: Request from user', ['user_id' => $user->id, 'user_gender' => $user->gender]);
-        
         // パートナー関係を取得
         $relationship = PartnerRelationship::where(function ($query) use ($user) {
             $query->where('female_user_id', $user->id)
@@ -254,10 +252,7 @@ class PartnerController extends Controller
         ->with(['femaleUser', 'maleUser'])
         ->first();
         
-        \Log::info('PartnerCalendar: Relationship found', ['relationship' => $relationship ? $relationship->toArray() : null]);
-        
         if (!$relationship) {
-            \Log::warning('PartnerCalendar: No relationship found for user', ['user_id' => $user->id]);
             return response()->json([
                 'success' => false,
                 'message' => 'パートナーとの連携が見つかりません。'
@@ -268,106 +263,129 @@ class PartnerController extends Controller
         $partnerUser = $relationship->getPartnerUser($user->id);
         
         if (!$partnerUser) {
-            \Log::error('PartnerCalendar: Partner user not found', ['relationship_id' => $relationship->id, 'user_id' => $user->id]);
             return response()->json([
                 'success' => false,
                 'message' => 'パートナー情報が見つかりません。'
             ], 404);
         }
         
-        \Log::info('PartnerCalendar: Partner user found', ['partner_id' => $partnerUser->id, 'partner_name' => $partnerUser->name]);
-        
         // 年月のパラメータを取得
         $year = $request->input('year', date('Y'));
         $month = $request->input('month', date('n'));
         
         try {
-            // パートナーの生理周期データを取得（MenstrualCycleControllerのロジックを流用）
-            $startDate = \Carbon\Carbon::createFromDate($year, $month, 1)->startOfMonth();
-            $endDate = $startDate->copy()->endOfMonth();
+            // 女性側のMenstrualCycleControllerと完全に同じロジックを使用
             
-            // パートナーの生理周期データを取得
+            // MenstrualCycleController::getCalendarDataと同じロジック
+            $startOfMonth = \Carbon\Carbon::create($year, $month, 1);
+            $endOfMonth = $startOfMonth->copy()->endOfMonth();
+            
+            // アクティブな周期がある場合は次月の最初の数日も含める
+            $activeCycle = \App\Models\MenstrualCycle::where('user_id', $partnerUser->id)
+                ->whereNull('end_date')
+                ->first();
+            
+            $extendedEndOfMonth = $endOfMonth;
+            if ($activeCycle) {
+                $predictedEndDate = $activeCycle->start_date->copy()->addDays(4);
+                if ($predictedEndDate > $endOfMonth) {
+                    $extendedEndOfMonth = $predictedEndDate;
+                }
+            }
+            
+            // 周期データを取得
             $cycles = \App\Models\MenstrualCycle::where('user_id', $partnerUser->id)
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('start_date', [$startDate, $endDate])
-                          ->orWhereBetween('end_date', [$startDate, $endDate])
-                          ->orWhere(function ($q) use ($startDate, $endDate) {
-                              $q->where('start_date', '<=', $startDate)
-                                ->where(function ($qq) use ($endDate) {
-                                    $qq->where('end_date', '>=', $endDate)
+                ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                    $query->whereBetween('start_date', [$startOfMonth, $endOfMonth])
+                        ->orWhereBetween('end_date', [$startOfMonth, $endOfMonth])
+                        ->orWhere(function ($q) use ($startOfMonth, $endOfMonth) {
+                            $q->where('start_date', '<=', $startOfMonth)
+                                ->where(function ($qq) use ($endOfMonth) {
+                                    $qq->where('end_date', '>=', $endOfMonth)
                                        ->orWhereNull('end_date');
                                 });
-                          });
+                        });
                 })
-                ->orderBy('start_date')
                 ->get();
-                
-            \Log::info('PartnerCalendar: Cycles found', [
-                'partner_id' => $partnerUser->id, 
-                'cycles_count' => $cycles->count(),
-                'year' => $year,
-                'month' => $month,
-                'cycles' => $cycles->toArray()
-            ]);
             
-            // カレンダー用のデータ構造に変換
             $calendarData = [];
             
+            // 実際の周期データを処理
             foreach ($cycles as $cycle) {
-                $cycleStart = \Carbon\Carbon::parse($cycle->start_date);
-                $cycleEnd = $cycle->end_date ? \Carbon\Carbon::parse($cycle->end_date) : null;
-                
-                // 生理期間の日付を設定
-                $current = $cycleStart->copy();
-                while ($current->month == $month && $current->year == $year) {
-                    if ($cycleEnd && $current->gt($cycleEnd)) {
-                        break;
+                if ($cycle->end_date === null) {
+                    // アクティブな周期の処理
+                    $predictedEndDate = $cycle->start_date->copy()->addDays(4);
+                    $today = \Carbon\Carbon::today();
+                    
+                    for ($date = $cycle->start_date->copy(); $date <= $predictedEndDate; $date->addDay()) {
+                        if ($date >= $startOfMonth && $date <= $extendedEndOfMonth) {
+                            $isStartDate = $date->format('Y-m-d') === $cycle->start_date->format('Y-m-d');
+                            $isPastOrToday = $date <= $today;
+                            
+                            $calendarData[$date->format('Y-m-d')] = [
+                                'date' => $date->format('Y-m-d'),
+                                'hasPeriod' => $isPastOrToday,
+                                'isPeriodStart' => $isStartDate,
+                                'isPeriodEnd' => false,
+                                'isActive' => true,
+                                'isPredictedPeriod' => !$isPastOrToday,
+                                'isOvulation' => false,
+                                'isFertile' => false,
+                                'flowIntensity' => $isStartDate ? $cycle->flow_intensity : null,
+                                'symptoms' => $isStartDate ? $cycle->symptoms : [],
+                                'cycleId' => $cycle->id,
+                                'notes' => $isStartDate ? $cycle->notes : null,
+                                'is_partner_data' => true,
+                                'partner_name' => $partnerUser->name
+                            ];
+                        }
                     }
+                } else {
+                    // 完了した周期の処理
+                    $start = max($cycle->start_date, $startOfMonth);
+                    $end = min($cycle->end_date, $endOfMonth);
                     
-                    $dateKey = $current->format('Y-m-d');
-                    $dayOfCycle = $current->diffInDays($cycleStart) + 1;
-                    
-                    // パートナー（女性）の日次症状データを取得
-                    $dailySymptoms = \App\Models\DailySymptom::where('user_id', $partnerUser->id)
-                        ->where('symptom_date', $dateKey)
-                        ->first();
-                    
-                    $calendarData[$dateKey] = [
-                        'date' => $dateKey,
-                        'status' => $cycleEnd || $dayOfCycle <= 7 ? 'period' : 'cycle',
-                        'day_of_cycle' => $dayOfCycle,
-                        'flow_intensity' => $cycle->flow_intensity ?? 2,
-                        'symptoms' => $cycle->symptoms ?? [],
-                        'notes' => $cycle->notes,
-                        'is_partner_data' => true,
-                        'partner_name' => $partnerUser->name,
-                        // パートナーの日次データを追加
-                        'partner_daily_data' => $dailySymptoms ? [
-                            'symptoms' => $dailySymptoms->symptoms_data['symptoms'] ?? [],
-                            'mood' => $dailySymptoms->symptoms_data['mood'] ?? '',
-                            'health_notes' => $dailySymptoms->symptoms_data['healthNotes'] ?? '',
-                            'flow_intensity' => $dailySymptoms->symptoms_data['flowIntensity'] ?? null,
-                        ] : null
-                    ];
-                    
-                    $current->addDay();
-                    
-                    // 生理終了日を過ぎたら抜ける
-                    if ($cycleEnd && $current->gt($cycleEnd)) {
-                        break;
+                    for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+                        $isStartDate = $date->format('Y-m-d') === $cycle->start_date->format('Y-m-d');
+                        $isEndDate = $date->format('Y-m-d') === $cycle->end_date->format('Y-m-d');
+                        
+                        $calendarData[$date->format('Y-m-d')] = [
+                            'date' => $date->format('Y-m-d'),
+                            'hasPeriod' => true,
+                            'isPeriodStart' => $isStartDate,
+                            'isPeriodEnd' => $isEndDate,
+                            'isActive' => false,
+                            'isPredictedPeriod' => false,
+                            'isOvulation' => false,
+                            'isFertile' => false,
+                            'flowIntensity' => $cycle->flow_intensity,
+                            'symptoms' => $cycle->symptoms ?? [],
+                            'cycleId' => $cycle->id,
+                            'notes' => $cycle->notes,
+                            'is_partner_data' => true,
+                            'partner_name' => $partnerUser->name
+                        ];
                     }
-                    
-                    // 7日を超えたら生理期間終了とみなす（end_dateがない場合）
-                    if (!$cycleEnd && $dayOfCycle >= 7) {
-                        break;
-                    }
+                }
+            }
+            
+            // 予測データを追加
+            $predictions = $this->calculatePredictionsForPartner($partnerUser, $startOfMonth, $extendedEndOfMonth);
+            $calendarData = array_merge($calendarData, $predictions);
+            
+            // 表示月範囲内のデータのみにフィルタリング
+            $filteredData = [];
+            foreach ($calendarData as $date => $data) {
+                $dateObj = \Carbon\Carbon::parse($date);
+                if ($dateObj >= $startOfMonth && $dateObj <= $endOfMonth) {
+                    $filteredData[$date] = $data;
                 }
             }
             
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'calendar_data' => array_values($calendarData),
+                    'calendar_data' => array_values($filteredData),
                     'partner_info' => [
                         'id' => $partnerUser->id,
                         'name' => $partnerUser->name,
@@ -379,17 +397,289 @@ class PartnerController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('PartnerCalendar: Exception occurred', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'パートナーのカレンダーデータの取得に失敗しました。',
                 'error' => app()->environment('local') ? $e->getMessage() : null
             ], 500);
+        }
+    }
+
+    /**
+     * パートナー用の予測計算（MenstrualCycleControllerと同じロジック）
+     */
+    private function calculatePredictionsForPartner($partnerUser, $startOfMonth, $endOfMonth)
+    {
+        $predictions = [];
+        
+        // アクティブな周期をチェック
+        $activeCycle = \App\Models\MenstrualCycle::where('user_id', $partnerUser->id)
+            ->whereNull('end_date')
+            ->first();
+        
+        // 過去6ヶ月の完了した周期を取得
+        $completedCycles = \App\Models\MenstrualCycle::where('user_id', $partnerUser->id)
+            ->whereNotNull('end_date')
+            ->where('start_date', '>=', now()->subMonths(6))
+            ->orderBy('start_date', 'desc')
+            ->limit(6)
+            ->get();
+
+        // アクティブな周期がある場合とない場合で処理を分ける
+        if ($activeCycle) {
+            return $this->calculatePredictionsWithActiveCycleForPartner($activeCycle, $completedCycles, $startOfMonth, $endOfMonth);
+        }
+
+        if ($completedCycles->count() < 2) {
+            return $this->calculateDefaultPredictionsForPartner($partnerUser, $startOfMonth, $endOfMonth);
+        }
+
+        // 周期の長さを計算
+        $cycleLengths = [];
+        for ($i = 0; $i < $completedCycles->count() - 1; $i++) {
+            $currentCycle = $completedCycles[$i];
+            $previousCycle = $completedCycles[$i + 1];
+            
+            $cycleLength = $previousCycle->start_date->diffInDays($currentCycle->start_date);
+            
+            if ($cycleLength > 0 && $cycleLength <= 50) {
+                $cycleLengths[] = $cycleLength;
+            }
+        }
+
+        if (empty($cycleLengths)) {
+            return $this->calculateDefaultPredictionsForPartner($partnerUser, $startOfMonth, $endOfMonth);
+        }
+
+        // 平均周期長を計算
+        $averageCycleLength = round(array_sum($cycleLengths) / count($cycleLengths));
+        
+        // 最後の生理終了日から次回予測
+        $lastCycle = $completedCycles->first();
+        $nextPredictedStart = $lastCycle->end_date->copy()->addDays($averageCycleLength - 5);
+
+        // 完了した周期の排卵日予測を追加
+        for ($i = 1; $i < $completedCycles->count(); $i++) {
+            $nextCycleStart = $completedCycles[$i - 1]->start_date;
+            
+            $ovulationDate = $nextCycleStart->copy()->subDays(14);
+            if ($ovulationDate >= $startOfMonth && $ovulationDate <= $endOfMonth) {
+                $this->addOvulationPredictionForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+                $this->addFertilePeriodForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            }
+        }
+        
+        // 次回予測生理の排卵日予測を追加
+        $nextOvulationDate = $nextPredictedStart->copy()->subDays(14);
+        if ($nextOvulationDate >= $startOfMonth && $nextOvulationDate <= $endOfMonth) {
+            $this->addOvulationPredictionForPartner($predictions, $nextOvulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $nextOvulationDate, $startOfMonth, $endOfMonth);
+        }
+
+        // 今月と来月の予測を生成
+        for ($i = 0; $i < 3; $i++) {
+            $predictedStart = $nextPredictedStart->copy()->addDays($averageCycleLength * $i);
+            $predictedEnd = $predictedStart->copy()->addDays(5);
+            
+            $this->addPredictedPeriodForPartner($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
+            
+            $ovulationDate = $predictedStart->copy()->subDays(14);
+            $this->addOvulationPredictionForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+        }
+
+        return $predictions;
+    }
+
+    private function calculatePredictionsWithActiveCycleForPartner($activeCycle, $completedCycles, $startOfMonth, $endOfMonth)
+    {
+        $predictions = [];
+        
+        $averageCycleLength = 28;
+        
+        if ($completedCycles->count() >= 1) {
+            $cycleLengths = [];
+            for ($i = 0; $i < $completedCycles->count() - 1; $i++) {
+                $currentCycle = $completedCycles[$i];
+                $previousCycle = $completedCycles[$i + 1];
+                
+                $cycleLength = $previousCycle->start_date->diffInDays($currentCycle->start_date);
+                
+                if ($cycleLength > 0 && $cycleLength <= 50) {
+                    $cycleLengths[] = $cycleLength;
+                }
+            }
+            
+            if (!empty($cycleLengths)) {
+                $averageCycleLength = round(array_sum($cycleLengths) / count($cycleLengths));
+            }
+        }
+        
+        // 前回周期の排卵日予測を保持
+        $previousOvulationDate = $activeCycle->start_date->copy()->subDays(14);
+        if ($previousOvulationDate >= $startOfMonth && $previousOvulationDate <= $endOfMonth) {
+            $this->addOvulationPredictionForPartner($predictions, $previousOvulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $previousOvulationDate, $startOfMonth, $endOfMonth);
+        }
+        
+        $nextPredictedStart = $activeCycle->start_date->copy()->addDays($averageCycleLength);
+        
+        $newOvulationDate = $nextPredictedStart->copy()->subDays(14);
+        if ($newOvulationDate >= $startOfMonth && $newOvulationDate <= $endOfMonth) {
+            $this->addOvulationPredictionForPartner($predictions, $newOvulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $newOvulationDate, $startOfMonth, $endOfMonth);
+        }
+        
+        // 将来の予測を生成
+        for ($i = 0; $i < 3; $i++) {
+            $predictedStart = $nextPredictedStart->copy()->addDays($averageCycleLength * $i);
+            $predictedEnd = $predictedStart->copy()->addDays(5);
+            
+            $extendedEndOfMonth = $endOfMonth;
+            if ($i == 0) {
+                $extendedEndOfMonth = $endOfMonth->copy()->addDays(7);
+            }
+            
+            $this->addPredictedPeriodForPartner($predictions, $predictedStart, $predictedEnd, $startOfMonth, $extendedEndOfMonth);
+            
+            $ovulationDate = $predictedStart->copy()->subDays(14);
+            $this->addOvulationPredictionForPartner($predictions, $ovulationDate, $startOfMonth, $extendedEndOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $ovulationDate, $startOfMonth, $extendedEndOfMonth);
+        }
+        
+        return $predictions;
+    }
+
+    private function calculateDefaultPredictionsForPartner($partnerUser, $startOfMonth, $endOfMonth)
+    {
+        $predictions = [];
+        
+        $completedCycles = \App\Models\MenstrualCycle::where('user_id', $partnerUser->id)
+            ->whereNotNull('end_date')
+            ->orderBy('start_date', 'desc')
+            ->limit(3)
+            ->get();
+
+        if ($completedCycles->isEmpty()) {
+            return $predictions;
+        }
+        
+        $lastCycle = $completedCycles->first();
+
+        $nextPredictedStart = $lastCycle->end_date ? 
+            $lastCycle->end_date->copy()->addDays(23) :
+            $lastCycle->start_date->copy()->addDays(28);
+        
+        // 完了した周期の排卵日予測を追加
+        for ($i = 1; $i < $completedCycles->count(); $i++) {
+            $nextCycleStart = $completedCycles[$i - 1]->start_date;
+            
+            $ovulationDate = $nextCycleStart->copy()->subDays(14);
+            if ($ovulationDate >= $startOfMonth && $ovulationDate <= $endOfMonth) {
+                $this->addOvulationPredictionForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+                $this->addFertilePeriodForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            }
+        }
+        
+        for ($i = 0; $i < 3; $i++) {
+            $predictedStart = $nextPredictedStart->copy()->addDays(28 * $i);
+            $predictedEnd = $predictedStart->copy()->addDays(5);
+            
+            $this->addPredictedPeriodForPartner($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
+            
+            $ovulationDate = $predictedStart->copy()->subDays(14);
+            $this->addOvulationPredictionForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+            $this->addFertilePeriodForPartner($predictions, $ovulationDate, $startOfMonth, $endOfMonth);
+        }
+
+        return $predictions;
+    }
+
+    private function addPredictedPeriodForPartner(&$predictions, $startDate, $endDate, $monthStart, $monthEnd)
+    {
+        $start = max($startDate, $monthStart);
+        $end = min($endDate, $monthEnd);
+        
+        if ($start <= $end && $start >= $monthStart && $start <= $monthEnd) {
+            for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+                $dateKey = $date->format('Y-m-d');
+                
+                if (!isset($predictions[$dateKey])) {
+                    $predictions[$dateKey] = [
+                        'date' => $dateKey,
+                        'hasPeriod' => false,
+                        'isPeriodStart' => false,
+                        'isPeriodEnd' => false,
+                        'isActive' => false,
+                        'isPredictedPeriod' => true,
+                        'isOvulation' => false,
+                        'isFertile' => false,
+                        'flowIntensity' => null,
+                        'symptoms' => [],
+                        'cycleId' => null,
+                        'notes' => null,
+                        'is_partner_data' => true
+                    ];
+                }
+            }
+        }
+    }
+
+    private function addOvulationPredictionForPartner(&$predictions, $ovulationDate, $monthStart, $monthEnd)
+    {
+        if ($ovulationDate >= $monthStart && $ovulationDate <= $monthEnd) {
+            $dateKey = $ovulationDate->format('Y-m-d');
+            
+            if (!isset($predictions[$dateKey])) {
+                $predictions[$dateKey] = [
+                    'date' => $dateKey,
+                    'hasPeriod' => false,
+                    'isPeriodStart' => false,
+                    'isPeriodEnd' => false,
+                    'isActive' => false,
+                    'isPredictedPeriod' => false,
+                    'isOvulation' => true,
+                    'isFertile' => false,
+                    'flowIntensity' => null,
+                    'symptoms' => [],
+                    'cycleId' => null,
+                    'notes' => null,
+                    'is_partner_data' => true
+                ];
+            } else {
+                $predictions[$dateKey]['isOvulation'] = true;
+            }
+        }
+    }
+
+    private function addFertilePeriodForPartner(&$predictions, $ovulationDate, $monthStart, $monthEnd)
+    {
+        for ($i = -5; $i <= 5; $i++) {
+            $fertileDate = $ovulationDate->copy()->addDays($i);
+            
+            if ($fertileDate >= $monthStart && $fertileDate <= $monthEnd) {
+                $dateKey = $fertileDate->format('Y-m-d');
+                
+                if (!isset($predictions[$dateKey])) {
+                    $predictions[$dateKey] = [
+                        'date' => $dateKey,
+                        'hasPeriod' => false,
+                        'isPeriodStart' => false,
+                        'isPeriodEnd' => false,
+                        'isActive' => false,
+                        'isPredictedPeriod' => false,
+                        'isOvulation' => false,
+                        'isFertile' => true,
+                        'flowIntensity' => null,
+                        'symptoms' => [],
+                        'cycleId' => null,
+                        'notes' => null,
+                        'is_partner_data' => true
+                    ];
+                } else {
+                    $predictions[$dateKey]['isFertile'] = true;
+                }
+            }
         }
     }
 }
