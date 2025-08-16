@@ -420,6 +420,11 @@ export const dailySymptomsAPI = {
     return apiRequest(`/daily-symptoms?date=${date}`);
   },
 
+  // Get daily symptoms for a date range (for statistics)
+  getSymptomsRange: async (startDate: string, endDate: string) => {
+    return apiRequest(`/daily-symptoms/range?start_date=${startDate}&end_date=${endDate}`);
+  },
+
   // Bulk save symptoms data (for migration)
   bulkSaveSymptoms: async (symptomsData: Array<{
     date: string;

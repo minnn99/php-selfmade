@@ -18,6 +18,13 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'gender' => 'female',
+            'phone' => '090-1234-5678'
+        ]);
+
+        // Seed menstrual cycle data
+        $this->call([
+            MenstrualCycleSeeder::class,
         ]);
     }
 }

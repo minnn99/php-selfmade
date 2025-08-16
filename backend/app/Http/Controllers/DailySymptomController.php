@@ -171,4 +171,51 @@ class DailySymptomController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * 期間指定で症状データを取得（統計用）
+     */
+    public function getSymptomsRange(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date'
+        ]);
+        
+        try {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+            
+            $dailySymptoms = DailySymptom::where('user_id', $user->id)
+                ->whereBetween('symptom_date', [$startDate, $endDate])
+                ->orderBy('symptom_date', 'asc')
+                ->get();
+                
+            // 日付をキーとした連想配列に変換
+            $symptomsData = [];
+            foreach ($dailySymptoms as $symptom) {
+                $dateKey = (string) $symptom->symptom_date;
+                $symptomsData[$dateKey] = $symptom->symptoms_data;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => $symptomsData,
+                'meta' => [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'total_days' => count($symptomsData)
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            
+            return response()->json([
+                'success' => false,
+                'message' => '症状データの取得に失敗しました。'
+            ], 500);
+        }
+    }
 }

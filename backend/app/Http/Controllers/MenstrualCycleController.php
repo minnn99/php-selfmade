@@ -13,11 +13,21 @@ class MenstrualCycleController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        
+        // デバッグログ追加
+        Log::info('MenstrualCycle index - User ID: ' . $user->id);
+        Log::info('MenstrualCycle index - User email: ' . $user->email);
+        
         $cycles = $user->menstrualCycles()
             ->orderBy('start_date', 'desc')
             ->get();
+            
+        Log::info('MenstrualCycle index - Cycles count: ' . $cycles->count());
 
-        return response()->json($cycles);
+        return response()->json([
+            'success' => true,
+            'data' => $cycles
+        ]);
     }
 
     public function store(Request $request): JsonResponse

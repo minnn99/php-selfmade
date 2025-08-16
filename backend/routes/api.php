@@ -53,4 +53,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/daily-symptoms', [DailySymptomController::class, 'saveSymptoms']);
     Route::post('/daily-symptoms/bulk', [DailySymptomController::class, 'bulkSaveSymptoms']);
     Route::get('/daily-symptoms', [DailySymptomController::class, 'getSymptoms']);
+    Route::get('/daily-symptoms/range', [DailySymptomController::class, 'getSymptomsRange']);
 });
