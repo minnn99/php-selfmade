@@ -16,6 +16,7 @@ export const OverviewCards: React.FC = () => {
     averageCycleLength: null
   });
   const [loading, setLoading] = useState(true);
+  const [updateTimeoutId, setUpdateTimeoutId] = useState<number | null>(null);
   const [userGender, setUserGender] = useState<string>('');
   const [isConnectedToPartner, setIsConnectedToPartner] = useState(false);
 
@@ -170,15 +171,33 @@ export const OverviewCards: React.FC = () => {
 
     fetchPredictionData();
     
-    // Listen for menstrual data updates
+    // Listen for menstrual data updates with debouncing
     const handleDataUpdate = () => {
-      fetchPredictionData();
+      // 既存のタイムアウトをクリア
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
+      
+      // デバウンス：300ms後に実行
+      const timeoutId = setTimeout(async () => {
+        try {
+          await fetchPredictionData();
+        } catch (error) {
+          console.error('Error updating prediction data:', error);
+        }
+      }, 300);
+      
+      setUpdateTimeoutId(timeoutId);
     };
     
     window.addEventListener('menstrualDataUpdated', handleDataUpdate);
     
     return () => {
       window.removeEventListener('menstrualDataUpdated', handleDataUpdate);
+      // タイムアウトのクリーンアップ
+      if (updateTimeoutId) {
+        clearTimeout(updateTimeoutId);
+      }
     };
   }, []);
 

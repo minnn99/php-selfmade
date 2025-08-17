@@ -481,13 +481,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       // 1. 症状データをAPIに保存
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
         try {
-          await dailySymptomsAPI.saveSymptoms({
+          console.log(`Calendar: Saving symptoms data to API for ${dateStr}:`, {
             date: dateStr,
             symptoms: data.symptoms,
             mood: data.mood,
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
           });
+          
+          const apiResponse = await dailySymptomsAPI.saveSymptoms({
+            date: dateStr,
+            symptoms: data.symptoms,
+            mood: data.mood,
+            healthNotes: data.healthNotes,
+            flowIntensity: data.flowIntensity,
+          });
+          
+          console.log(`Calendar: API save response for ${dateStr}:`, apiResponse);
         } catch (error) {
           console.error(`API ERROR: Failed to save symptoms data for ${dateStr}:`, error);
           // 症状データのAPI保存が失敗してもローカルストレージには保存する
@@ -505,6 +515,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       };
 
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
+        console.log(`Calendar: Saving to localStorage for ${dateStr}:`, dailyRecord);
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
       } else {
         // データがない場合は削除
