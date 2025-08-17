@@ -218,4 +218,31 @@ class DailySymptomController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * ユーザーの全症状データを削除
+     */
+    public function deleteAll(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        try {
+            $deletedCount = DailySymptom::where('user_id', $user->id)->delete();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'deleted_count' => $deletedCount
+                ],
+                'message' => '全ての症状データが削除されました。'
+            ]);
+            
+        } catch (\Exception $e) {
+            
+            return response()->json([
+                'success' => false,
+                'message' => '症状データの削除に失敗しました。'
+            ], 500);
+        }
+    }
 }

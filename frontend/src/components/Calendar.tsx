@@ -83,23 +83,28 @@ export const Calendar: React.FC = () => {
     loadData();
   }, [currentYear, currentMonth]);
 
-  // Listen for menstrual data updates with debounce
+  // Listen for menstrual data updates with debounce (DISABLED FOR SYMPTOMS)
   useEffect(() => {
     let timeoutId: number;
 
     const handleDataUpdate = () => {
-      console.log("Calendar - Menstrual data updated, debouncing reload...");
-
+      console.log("Calendar - Menstrual data updated event received, but ignoring to prevent display issues");
+      
+      // COMPLETELY DISABLE automatic calendar reloading
+      // This prevents period display from disappearing when entering symptoms
+      // Calendar will only update on manual navigation or page refresh
+      
       // Clear existing timeout
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
 
-      // Set new timeout
+      // DO NOT reload calendar data automatically
+      // Only refresh the key for minimal updates
       timeoutId = setTimeout(() => {
-        loadCalendarData(); // 既存の状態を使用
-        setRefreshKey((prev) => prev + 1); // カレンダーを強制再描画
-      }, 400); // 400ms debounce for Calendar
+        console.log("Calendar - Minimal refresh only");
+        setRefreshKey((prev) => prev + 1); // 最小限の再描画のみ
+      }, 100);
     };
 
     window.addEventListener("menstrualDataUpdated", handleDataUpdate);
@@ -279,37 +284,16 @@ export const Calendar: React.FC = () => {
       const hasHealthNotes = data.healthNotes && typeof data.healthNotes === "string" && data.healthNotes.trim() !== "";
       const hasFlowIntensity =
         data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === "number" && data.flowIntensity > 0;
-      const hasPeriodInfo = data.isPeriodStart === true || data.isPeriodEnd === true || data.hasPeriod === true;
 
       // 黄色の点は症状・気分・健康ノート・経血量のみで判定（生理フラグは除外）
       const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
-
-      // 特定の日付についてのみデバッグログ（より詳細に）
-      if (dateKey.endsWith("-22") || result) {
-        console.log(`hasUserInputForDate(${dateKey}):`, {
-          result,
-          hasSymptoms,
-          hasMood,
-          hasHealthNotes,
-          hasFlowIntensity,
-          hasPeriodInfo,
-          "data.symptoms": data.symptoms,
-          "data.mood": data.mood,
-          "data.healthNotes": data.healthNotes,
-          "data.flowIntensity": data.flowIntensity,
-          "data.isPeriodStart": data.isPeriodStart,
-          "data.isPeriodEnd": data.isPeriodEnd,
-          "data.hasPeriod": data.hasPeriod,
-          storedData,
-          parsedData: data,
-        });
-      }
 
       return result;
     } catch {
       return false;
     }
   };
+
 
   const generateCalendarDays = (): CalendarDay[] => {
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
@@ -625,42 +609,29 @@ export const Calendar: React.FC = () => {
         console.log(`LOCAL REMOVE: Removed data for ${dateStr}`);
       }
 
-      // データ保存後の確実な更新処理
-      console.log("Starting post-save update process...");
-
-      // 1. カレンダーデータを再読み込み
-      await loadCalendarData();
-
-      // 2. メンストラルステータスを強制更新
-      try {
-        const { menstrualStatusManager } = await import("../services/menstrualStatusManager");
-        await menstrualStatusManager.forceReloadStatus();
-      } catch (error) {
-        console.error("Failed to reload menstrual status:", error);
-      }
-
-      // 3. カレンダーを強制的に再描画
-      setRefreshKey((prev) => prev + 1);
-      console.log(`Calendar refresh triggered for ${dateStr}, refreshKey: ${refreshKey + 1}`);
-
-      // 4. カスタムイベントを発火してアプリ全体を更新
-      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
-
-      // 5. 少し遅延してもう一度確実に更新
-      setTimeout(async () => {
-        console.log("Secondary update process...");
-        await loadCalendarData();
-        try {
-          const { menstrualStatusManager } = await import("../services/menstrualStatusManager");
-          await menstrualStatusManager.forceReloadStatus();
-        } catch (error) {
-          console.error("Failed to reload menstrual status:", error);
-        }
-        setRefreshKey((prev) => prev + 1);
-        window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
-      }, 300);
-
       alert("記録が保存されました！");
+      
+      // 生理周期情報が変更された場合のみ、強制的にカレンダー更新
+      if (hasPeriodInfo) {
+        console.log("Period info changed - manual calendar reload required");
+        
+        setTimeout(async () => {
+          await loadCalendarData();
+          
+          try {
+            const { menstrualStatusManager } = await import("../services/menstrualStatusManager");
+            await menstrualStatusManager.forceReloadStatus();
+          } catch (error) {
+            console.error("Failed to reload menstrual status:", error);
+          }
+          
+          setRefreshKey((prev) => prev + 1);
+        }, 100);
+      } else {
+        console.log("Symptoms only - calendar display preserved");
+        // 症状のみの場合は一切更新しない
+        // カレンダーAPIデータはそのまま維持され、生理日表示は保持される
+      }
     } catch (error: any) {
       console.error("Failed to save record:", error);
       let errorMessage = "記録の保存に失敗しました。";

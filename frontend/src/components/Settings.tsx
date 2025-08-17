@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI, authAPI } from "../services/api";
+import { menstrualCycleAPI, authAPI, dailySymptomsAPI } from "../services/api";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
@@ -46,62 +46,50 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     setShowSecondConfirmModal(true);
   };
 
-  // ローカルストレージから全ての生理データを削除
-  const clearAllPeriodDataFromLocalStorage = () => {
-    const keys = [];
+
+  // ローカルストレージから全ての記録データを削除（包括的）
+  const clearAllLocalStorageData = () => {
+    const keysToDelete: string[] = [];
+
+    // ローカルストレージの全キーをチェック
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('daily-symptoms-')) {
-        keys.push(key);
+      if (key) {
+        // 認証関連以外のデータを削除対象に追加
+        if (!key.startsWith("auth_") && !key.startsWith("token") && !key.startsWith("user_") && key !== "has_visited") {
+          keysToDelete.push(key);
+        }
       }
     }
-    
-    keys.forEach(key => {
-      const existingData = JSON.parse(localStorage.getItem(key) || '{}');
-      
-      // 生理関連のフラグのみを削除（他の症状データは保持）
-      const updatedData = {
-        ...existingData,
-        isPeriodStart: false,
-        isPeriodEnd: false,
-        hasPeriod: false,
-        flowIntensity: undefined
-      };
-      
-      // 他に意味のあるデータがない場合は完全に削除
-      const hasOtherData = 
-        (updatedData.symptoms && updatedData.symptoms.length > 0) ||
-        (updatedData.mood && updatedData.mood.trim() !== "") ||
-        (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
-        
-      if (hasOtherData) {
-        // 他のデータがある場合は生理情報のみクリア
-        localStorage.setItem(key, JSON.stringify(updatedData));
-      } else {
-        // 他にデータがない場合は完全に削除
-        localStorage.removeItem(key);
-      }
+
+    // 削除対象のキーを削除
+    keysToDelete.forEach((key) => {
+      localStorage.removeItem(key);
     });
-    
-    console.log(`Cleared period data from ${keys.length} localStorage entries`);
+
+    console.log(`Deleted ${keysToDelete.length} localStorage items:`, keysToDelete);
   };
 
   const handleConfirmSecond = async () => {
     setShowSecondConfirmModal(false);
     try {
+      // 1. サーバーサイドの全データ削除
       await menstrualCycleAPI.deleteAllCycles();
-      
-      // ローカルストレージから全ての生理データを削除
-      clearAllPeriodDataFromLocalStorage();
-      
-      // カスタムイベントを発火してアプリ全体を更新
-      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
-      
+      await dailySymptomsAPI.deleteAllSymptoms();
+
+      // 2. ローカルストレージから全ての記録データを削除
+      clearAllLocalStorageData();
+
+      // 3. カスタムイベントを発火してアプリ全体を更新
+      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+
       onDataDeleted();
+
+      alert("全データが正常に削除されました。アプリがリセットされました。");
     } catch (error: any) {
-      console.error('Failed to delete all cycles:', error);
-      
-      let errorMessage = '全削除に失敗しました。';
+      console.error("Failed to delete all data:", error);
+
+      let errorMessage = "全データ削除に失敗しました。";
       if (error.response) {
         const errorData = error.response.data;
         if (errorData.message) {
@@ -121,22 +109,22 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
   };
 
   const handleNotificationSave = (settings: any) => {
-    console.log('Notification settings saved:', settings);
+    console.log("Notification settings saved:", settings);
     // ここで実際の保存処理を実装
   };
 
   const handlePrivacySave = (settings: any) => {
-    console.log('Privacy settings saved:', settings);
+    console.log("Privacy settings saved:", settings);
     // ここで実際の保存処理を実装
   };
 
   const handleAppearanceSave = (settings: any) => {
-    console.log('Appearance settings saved:', settings);
+    console.log("Appearance settings saved:", settings);
     // ここで実際の保存処理を実装
   };
 
   const handleProfileSave = (profileData: any) => {
-    console.log('Profile data saved:', profileData);
+    console.log("Profile data saved:", profileData);
     // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
   };
 
@@ -154,21 +142,21 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     try {
       // アカウント削除API呼び出し
       await authAPI.deleteAccount();
-      
+
       // ローカルストレージを完全にクリア
       localStorage.clear();
-      
+
       // ログアウト処理
       authAPI.stopTokenChecker();
-      
-      alert('アカウントが正常に削除されました。ご利用ありがとうございました。');
-      
+
+      alert("アカウントが正常に削除されました。ご利用ありがとうございました。");
+
       // ページをリロードしてログイン画面へ
       window.location.reload();
     } catch (error: any) {
-      console.error('Failed to delete account:', error);
-      
-      let errorMessage = 'アカウント削除に失敗しました。';
+      console.error("Failed to delete account:", error);
+
+      let errorMessage = "アカウント削除に失敗しました。";
       if (error.response) {
         const errorData = error.response.data;
         if (errorData.message) {
@@ -222,7 +210,12 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       description: "プッシュ通知、メール通知の設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
         </svg>
       ),
       onClick: () => {
@@ -323,10 +316,15 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     {
       id: "delete_all_data",
       title: "全データ削除",
-      description: "全ての生理周期データを完全に削除します",
+      description: "全ての記録データ（生理周期、症状、流量など）を完全に削除してアプリをリセットします",
       icon: (
         <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
         </svg>
       ),
       onClick: handleInitialDeleteClick,
@@ -352,7 +350,12 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       description: "アカウントからログアウトします",
       icon: (
         <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
         </svg>
       ),
       onClick: handleLogoutClick,
@@ -384,13 +387,9 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                 </div>
                 <div className="ml-3 sm:ml-4 flex-1 min-w-0">
                   <div className="flex items-center">
-                    <h3 className="text-sm sm:text-base font-medium text-neutral-900 group-hover:text-primary-600 transition-colors truncate">
-                      {item.title}
-                    </h3>
+                    <h3 className="text-sm sm:text-base font-medium text-neutral-900 group-hover:text-primary-600 transition-colors truncate">{item.title}</h3>
                     {item.badge && (
-                      <span className="ml-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">
-                        {item.badge}
-                      </span>
+                      <span className="ml-2 bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">{item.badge}</span>
                     )}
                   </div>
                   <p className="text-xs sm:text-sm text-neutral-500 mt-1 leading-relaxed break-words">{item.description}</p>
@@ -422,7 +421,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       {/* Confirmation Modals */}
       {showConfirmModal && (
         <ConfirmationModal
-          message="全ての生理周期データを削除しますか？この操作は取り消すことができません。"
+          message="全ての記録データ（生理周期、症状、流量データなど）を削除してアプリをリセットしますか？この操作は取り消すことができません。"
           onConfirm={handleConfirmFirst}
           onCancel={handleCancel}
         />
@@ -430,57 +429,32 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
       {showSecondConfirmModal && (
         <ConfirmationModal
-          message="本当に全てのデータを削除しますか？※この操作は永続的で復元できません※"
+          message="最終確認&#10;&#10;全ての記録データを完全に削除してアプリをリセットします。&#10;&#10;削除されるデータ：&#10;• 生理周期データ&#10;• 日別症状記録&#10;• 流量データ&#10;• その他全ての記録&#10;&#10;この操作は永続的で復元できません。&#10;&#10;本当に実行しますか？"
           onConfirm={handleConfirmSecond}
           onCancel={handleCancel}
         />
       )}
 
       {/* Notification Settings Modal */}
-      <NotificationSettingsModal
-        isOpen={showNotificationModal}
-        onClose={() => setShowNotificationModal(false)}
-        onSave={handleNotificationSave}
-      />
+      <NotificationSettingsModal isOpen={showNotificationModal} onClose={() => setShowNotificationModal(false)} onSave={handleNotificationSave} />
 
       {/* Privacy Settings Modal */}
-      <PrivacySettingsModal
-        isOpen={showPrivacyModal}
-        onClose={() => setShowPrivacyModal(false)}
-        onSave={handlePrivacySave}
-      />
+      <PrivacySettingsModal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} onSave={handlePrivacySave} />
 
       {/* Appearance Settings Modal */}
-      <AppearanceSettingsModal
-        isOpen={showAppearanceModal}
-        onClose={() => setShowAppearanceModal(false)}
-        onSave={handleAppearanceSave}
-      />
+      <AppearanceSettingsModal isOpen={showAppearanceModal} onClose={() => setShowAppearanceModal(false)} onSave={handleAppearanceSave} />
 
       {/* Data Management Modal */}
-      <DataManagementModal
-        isOpen={showDataManagementModal}
-        onClose={() => setShowDataManagementModal(false)}
-      />
+      <DataManagementModal isOpen={showDataManagementModal} onClose={() => setShowDataManagementModal(false)} />
 
       {/* Profile Settings Modal */}
-      <ProfileSettingsModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        onSave={handleProfileSave}
-      />
+      <ProfileSettingsModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} onSave={handleProfileSave} />
 
       {/* Support Modal */}
-      <SupportModal
-        isOpen={showSupportModal}
-        onClose={() => setShowSupportModal(false)}
-      />
+      <SupportModal isOpen={showSupportModal} onClose={() => setShowSupportModal(false)} />
 
       {/* Security Settings Modal */}
-      <SecuritySettingsModal
-        isOpen={showSecurityModal}
-        onClose={() => setShowSecurityModal(false)}
-      />
+      <SecuritySettingsModal isOpen={showSecurityModal} onClose={() => setShowSecurityModal(false)} />
 
       {/* Account Delete Confirmation Modals */}
       {showAccountDeleteModal && (
@@ -493,20 +467,14 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
       {showAccountDeleteConfirmModal && (
         <ConfirmationModal
-          message="⚠️ 最終確認 ⚠️&#10;&#10;アカウント削除を実行します。この操作は永続的で、一切復元できません。&#10;&#10;本当にアカウントを削除しますか？"
+          message="最終確認&#10;&#10;アカウント削除を実行します。この操作は永続的で、一切復元できません。&#10;&#10;本当にアカウントを削除しますか？"
           onConfirm={handleAccountDeleteFinal}
           onCancel={handleAccountDeleteCancel}
         />
       )}
 
       {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <ConfirmationModal
-          message="ログアウトしますか？"
-          onConfirm={handleLogoutConfirm}
-          onCancel={handleLogoutCancel}
-        />
-      )}
+      {showLogoutModal && <ConfirmationModal message="ログアウトしますか？" onConfirm={handleLogoutConfirm} onCancel={handleLogoutCancel} />}
     </>
   );
 };

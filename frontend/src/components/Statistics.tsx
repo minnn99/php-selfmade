@@ -302,12 +302,25 @@ export const Statistics: React.FC = () => {
       try {
         const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
         if (response.success && response.data) {
-          Object.entries(response.data).forEach(([date, dayData]: [string, any]) => {
-            if (dayData.symptoms && Array.isArray(dayData.symptoms)) {
-              console.log(`Statistics: Adding ${dayData.symptoms.length} symptoms from API for ${date}:`, dayData.symptoms);
-              allSymptoms.push(...dayData.symptoms);
-            }
-          });
+          console.log('Statistics: API response data type and structure:', typeof response.data, response.data);
+          
+          // レスポンスデータが配列の場合の処理
+          if (Array.isArray(response.data)) {
+            response.data.forEach((dayData: any) => {
+              if (dayData.symptoms && Array.isArray(dayData.symptoms)) {
+                allSymptoms.push(...dayData.symptoms);
+              }
+            });
+          }
+          // レスポンスデータがオブジェクトの場合の処理
+          else if (typeof response.data === 'object' && response.data !== null) {
+            Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
+              if (dayData && typeof dayData === 'object' && dayData.symptoms && Array.isArray(dayData.symptoms)) {
+                // console.log(`Statistics: Adding ${dayData.symptoms.length} symptoms from API for ${date}:`, dayData.symptoms);
+                allSymptoms.push(...dayData.symptoms);
+              }
+            });
+          }
         }
       } catch (error) {
         console.log('Statistics: Failed to fetch symptoms range for symptom statistics');
@@ -327,7 +340,7 @@ export const Statistics: React.FC = () => {
               if (localData) {
                 const parsed = JSON.parse(localData);
                 if (parsed.symptoms && Array.isArray(parsed.symptoms)) {
-                  console.log(`Statistics: Adding ${parsed.symptoms.length} symptoms from localStorage for ${dateStr}:`, parsed.symptoms);
+                  // console.log(`Statistics: Adding ${parsed.symptoms.length} symptoms from localStorage for ${dateStr}:`, parsed.symptoms);
                   allSymptoms.push(...parsed.symptoms);
                 }
               }
@@ -437,14 +450,25 @@ export const Statistics: React.FC = () => {
         if (response.success && response.data) {
           console.log('Statistics: Symptoms range data for flow calculation:', response.data);
           
-          // APIデータから流量データを抽出
-          Object.entries(response.data).forEach(([date, dayData]: [string, any]) => {
-            console.log(`Statistics: Checking API data for ${date}:`, dayData);
-            if (dayData.flowIntensity && dayData.flowIntensity > 0) {
-              console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} for ${date} from API`);
-              allFlowIntensities.push(dayData.flowIntensity);
-            }
-          });
+          // レスポンスデータが配列の場合の処理
+          if (Array.isArray(response.data)) {
+            response.data.forEach((dayData: any) => {
+              if (dayData.flowIntensity && dayData.flowIntensity > 0) {
+                console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} from API (array format)`);
+                allFlowIntensities.push(dayData.flowIntensity);
+              }
+            });
+          }
+          // レスポンスデータがオブジェクトの場合の処理
+          else if (typeof response.data === 'object' && response.data !== null) {
+            Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
+              // console.log(`Statistics: Checking API data for ${_date}:`, dayData);
+              if (dayData && typeof dayData === 'object' && dayData.flowIntensity && dayData.flowIntensity > 0) {
+                console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} for ${_date} from API`);
+                allFlowIntensities.push(dayData.flowIntensity);
+              }
+            });
+          }
         } else {
           console.log('Statistics: API response failed or no data:', response);
         }
@@ -466,7 +490,7 @@ export const Statistics: React.FC = () => {
             const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
             if (localData) {
               const parsed = JSON.parse(localData);
-              console.log(`Statistics: Checking localStorage data for ${dateStr}:`, parsed);
+              // console.log(`Statistics: Checking localStorage data for ${dateStr}:`, parsed);
               if (parsed.flowIntensity && parsed.flowIntensity > 0) {
                 console.log(`Statistics: Found flow intensity ${parsed.flowIntensity} for ${dateStr} from localStorage`);
                 allFlowIntensities.push(parsed.flowIntensity);

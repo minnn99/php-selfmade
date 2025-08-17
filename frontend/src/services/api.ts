@@ -296,6 +296,13 @@ export const menstrualCycleAPI = {
       method: 'DELETE',
     });
   },
+
+  // Delete all user data except account
+  deleteAllUserData: async () => {
+    return apiRequest('/user/delete-all-data', {
+      method: 'DELETE',
+    });
+  },
 };
 
 // User Data API
@@ -436,6 +443,13 @@ export const dailySymptomsAPI = {
     return apiRequest('/daily-symptoms/bulk', {
       method: 'POST',
       body: JSON.stringify({ symptoms_data: symptomsData }),
+    });
+  },
+
+  // Delete all symptoms data
+  deleteAllSymptoms: async () => {
+    return apiRequest('/daily-symptoms/delete-all', {
+      method: 'DELETE',
     });
   },
 };

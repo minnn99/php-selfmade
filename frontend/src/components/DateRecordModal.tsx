@@ -87,8 +87,14 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
 
     onSave(formData);
 
-    // データ更新イベントを発火してセルフケア状態を更新
-    window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+    // 生理周期情報が変更された場合のみイベント発火
+    const hasPeriodInfo = formData.isPeriodStart || formData.isPeriodEnd;
+    if (hasPeriodInfo) {
+      console.log("DateRecordModal: Period info changed, dispatching event");
+      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+    } else {
+      console.log("DateRecordModal: Symptoms only, no event dispatched");
+    }
 
     onClose();
   };
