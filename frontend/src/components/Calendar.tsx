@@ -22,12 +22,32 @@ interface CalendarDay {
   partnerName?: string;
 }
 
+interface CalendarDayData {
+  hasPeriod?: boolean;
+  isOvulation?: boolean;
+  isPredictedPeriod?: boolean;
+  isPeriodStart?: boolean;
+  isPeriodEnd?: boolean;
+  isActive?: boolean;
+  isFertile?: boolean;
+  cycleId?: number;
+  flowIntensity?: number;
+  partner_name?: string;
+  symptoms?: string[];
+  partner_daily_data?: {
+    symptoms?: string[];
+    mood?: string;
+    health_notes?: string;
+    flow_intensity?: number;
+  };
+}
+
 export const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
-  const [calendarApiData, setCalendarApiData] = useState<any>({});
-  const [partnerCalendarData, setPartnerCalendarData] = useState<any>({});
+  const [calendarApiData, setCalendarApiData] = useState<Record<string, CalendarDayData>>({});
+  const [partnerCalendarData, setPartnerCalendarData] = useState<Record<string, CalendarDayData>>({});
   const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0); // カレンダー強制再描画用
@@ -218,7 +238,7 @@ export const Calendar: React.FC = () => {
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
       const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const filteredData: any = {};
+      const filteredData: Record<string, CalendarDayData> = {};
 
       Object.keys(rawData).forEach((dateKey) => {
         const keyDate = new Date(dateKey);
@@ -246,8 +266,8 @@ export const Calendar: React.FC = () => {
           console.log("Calendar: Partner data response:", partnerData);
 
           if (partnerData.success && partnerData.data?.calendar_data) {
-            const partnerCalendarMap: any = {};
-            partnerData.data.calendar_data.forEach((dayData: any) => {
+            const partnerCalendarMap: Record<string, CalendarDayData> = {};
+            partnerData.data.calendar_data.forEach((dayData: CalendarDayData & { date: string }) => {
               partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
@@ -331,7 +351,7 @@ export const Calendar: React.FC = () => {
         isActive: dayData?.isActive || partnerData?.hasPeriod || false,
         isFertile: dayData?.isFertile || partnerData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
-        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -357,7 +377,7 @@ export const Calendar: React.FC = () => {
         isActive: dayData?.isActive || partnerData?.hasPeriod || false,
         isFertile: dayData?.isFertile || partnerData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
-        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -385,7 +405,7 @@ export const Calendar: React.FC = () => {
         isActive: dayData?.isActive || partnerData?.hasPeriod || false,
         isFertile: dayData?.isFertile || partnerData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
-        hasPartnerSymptoms: partnerData?.symptoms?.length > 0 || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
       nextMonthDate++;
@@ -527,7 +547,7 @@ export const Calendar: React.FC = () => {
       if (hasPeriodInfo) {
         if (data.cycleId) {
           // 既存の周期IDがある場合：周期の更新
-          const updateData: any = {};
+          const updateData: Record<string, string> = {};
 
           if (data.isPeriodStart) {
             updateData.start_date = dateStr;
@@ -632,11 +652,14 @@ export const Calendar: React.FC = () => {
         // 症状のみの場合は一切更新しない
         // カレンダーAPIデータはそのまま維持され、生理日表示は保持される
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to save record:", error);
       let errorMessage = "記録の保存に失敗しました。";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response?: { data?: { message?: string } } };
+        if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
+        }
       }
       alert(errorMessage);
     }
@@ -735,7 +758,7 @@ export const Calendar: React.FC = () => {
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
 
       alert("生理周期が削除されました");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete cycle:", error);
       alert("削除に失敗しました");
     }
