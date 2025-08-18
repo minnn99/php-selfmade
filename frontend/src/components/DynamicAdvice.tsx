@@ -73,7 +73,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
 
         if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart || todayTypedData.isPeriodEnd) {
           // 実際の生理日
-          const dayNumber = getDayOfPeriod(todayData);
+          const dayNumber = getDayOfPeriod(todayData as Record<string, unknown>);
           console.log("DynamicAdvice - Setting period advice, day number:", dayNumber);
           setCurrentAdvice({
             title: "生理中のケア",
@@ -134,8 +134,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     console.log("DynamicAdvice - Calculated cycle day:", cycleDay, "hasActiveCycle:", status?.hasActiveCycle);
 
     // 実際に生理中（アクティブな周期があり、かつその周期が現在進行中）の場合
-    if (status?.hasActiveCycle && status?.activeCycle && !status?.activeCycle?.end_date) {
-      const activeCycleStart = new Date(status.activeCycle.start_date);
+    if (status?.hasActiveCycle && status?.activeCycle && !(status?.activeCycle as { end_date?: string })?.end_date) {
+      const activeCycleStart = new Date((status.activeCycle as { start_date: string }).start_date);
       const daysSinceStart = Math.floor((today.getTime() - activeCycleStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
       if (daysSinceStart >= 1 && daysSinceStart <= 7) {
@@ -198,14 +198,14 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
 
   const getDayOfPeriod = (todayData: Record<string, unknown>): number => {
     // 今日が開始日なら1日目
-    if (todayData.isPeriodStart) {
+    if ((todayData as { isPeriodStart?: boolean }).isPeriodStart) {
       return 1;
     }
 
     // アクティブな周期がある場合、開始日から今日までの日数を計算
     const currentStatus = menstrualStatusManager.getCurrentStatus();
-    if (currentStatus?.hasActiveCycle && currentStatus?.activeCycle?.start_date) {
-      const startDate = new Date(currentStatus.activeCycle.start_date);
+    if ((currentStatus as Record<string, unknown> | null)?.hasActiveCycle && (currentStatus as Record<string, unknown> | null)?.activeCycle && ((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date?: string })?.start_date) {
+      const startDate = new Date(((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date: string }).start_date);
       const today = new Date();
       const diffTime = today.getTime() - startDate.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
@@ -220,26 +220,26 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     return 1;
   };
 
-  const getCycleDay = (status: Record<string, unknown>, currentDate: Date): number => {
+  const getCycleDay = (status: Record<string, unknown> | null, currentDate: Date): number => {
     // アクティブな周期がある場合、その開始日からの日数を返す
-    if (status?.hasActiveCycle && status?.activeCycle?.start_date) {
-      const activeCycleStart = new Date(status.activeCycle.start_date);
+    if (status?.hasActiveCycle && (status?.activeCycle as { start_date?: string })?.start_date) {
+      const activeCycleStart = new Date((status.activeCycle as { start_date: string }).start_date);
       const diffTime = currentDate.getTime() - activeCycleStart.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
       return diffDays;
     }
 
     // アクティブな周期がない場合、最後の周期から予測
-    if (status?.lastCycle?.start_date) {
-      const lastCycleStart = new Date(status.lastCycle.start_date);
+    if ((status?.lastCycle as { start_date?: string })?.start_date) {
+      const lastCycleStart = new Date((status?.lastCycle as { start_date: string }).start_date);
       const diffTime = currentDate.getTime() - lastCycleStart.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
       // 最後の周期の長さを取得（デフォルト28日）
-      const cycleLength = status?.lastCycle?.cycle_length || 28;
+      const cycleLength = (status?.lastCycle as { cycle_length?: number })?.cycle_length || 28;
 
       // 周期内の日数を計算
-      return (diffDays % cycleLength) + 1;
+      return (diffDays % (cycleLength as number)) + 1;
     }
 
     return 1; // デフォルト値

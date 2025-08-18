@@ -11,7 +11,7 @@ export const MobileActions: React.FC = () => {
     console.log('MobileActions - Subscribing to menstrual status updates');
     const unsubscribe = menstrualStatusManager.subscribe((status) => {
       console.log('MobileActions - Received status update:', status);
-      setMenstrualStatus(status);
+      setMenstrualStatus(status as Record<string, unknown> | null);
     });
 
     return unsubscribe;
@@ -124,12 +124,14 @@ export const MobileActions: React.FC = () => {
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
-      const startDate = menstrualStatus.activeCycle.start_date;
+      const startDate = (menstrualStatus.activeCycle as { start_date: string }).start_date;
       
       await menstrualCycleAPI.endCycle(today);
       
       // 生理開始日から今日まで全ての日を生理中として設定
-      await updateCalendarForPeriod(startDate, today);
+      if (startDate) {
+        await updateCalendarForPeriod(startDate, today);
+      }
       
       // カスタムイベントを発火してカレンダーとセルフケアを更新（すぐに実行）
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
@@ -146,14 +148,21 @@ export const MobileActions: React.FC = () => {
     }
   };
 
-  const quickActions = [
+  const quickActions: Array<{
+    id: string;
+    label: string;
+    color: string;
+    disabled: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+  }> = [
     {
       id: 'period-start',
       label: '生理開始',
       color: menstrualStatus?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
         : 'bg-red-500 hover:bg-red-600 active:bg-red-700',
-      disabled: menstrualStatus?.hasActiveCycle || loading,
+      disabled: Boolean(menstrualStatus?.hasActiveCycle) || loading,
       onClick: handleStartPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +176,7 @@ export const MobileActions: React.FC = () => {
       color: !menstrualStatus?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
         : 'bg-green-500 hover:bg-green-600 active:bg-green-700',
-      disabled: !menstrualStatus?.hasActiveCycle || loading,
+      disabled: !Boolean(menstrualStatus?.hasActiveCycle) || loading,
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,8 +209,7 @@ export const MobileActions: React.FC = () => {
             >
               <span className="mr-2">{action.icon}</span>
               {loading ? '処理中...' : action.label}
-              {/* 生理中状態の表示 */}
-              {action.id === 'period-end' && menstrualStatus?.hasActiveCycle && (
+              {action.id === 'period-end' && Boolean(menstrualStatus?.hasActiveCycle) && (
                 <span className="ml-1 text-xs opacity-90">(生理中)</span>
               )}
             </button>
