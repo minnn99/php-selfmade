@@ -84,15 +84,15 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
       switch (type) {
         case "visit":
           apiType = "hospitalVisits";
-          setHospitalVisits(data);
+          setHospitalVisits(data as HospitalVisit[]);
           break;
         case "test":
           apiType = "testResults";
-          setTestResults(data);
+          setTestResults(data as TestResult[]);
           break;
         case "medication":
           apiType = "medications";
-          setMedications(data);
+          setMedications(data as Medication[]);
           break;
       }
       await userDataAPI.saveMedicalRecords(apiType, data);
