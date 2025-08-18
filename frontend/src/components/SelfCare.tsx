@@ -117,6 +117,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   // コンポーネントがマウントされた時に今日の状態を取得
   useEffect(() => {
     updateTodayStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // カスタムイベントリスナーを追加して、データ更新時にセルフケア状態も更新
@@ -135,7 +136,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
       window.removeEventListener("storage", handleDataUpdate);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
 
   const symptoms = [
     { id: "menstrual", label: "生理中", color: "bg-red-100 text-red-800" },

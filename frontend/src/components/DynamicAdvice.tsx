@@ -30,6 +30,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     });
 
     return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateAdviceBasedOnStatus = async (status: Record<string, unknown> | null) => {

@@ -101,6 +101,7 @@ export const Calendar: React.FC = () => {
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear, currentMonth]);
 
   // Listen for menstrual data updates with debounce (DISABLED FOR SYMPTOMS)
@@ -488,7 +489,7 @@ export const Calendar: React.FC = () => {
             healthNotes: localHealthNotes, // ローカルデータを使用
             flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : (cycleData as { flow_intensity?: number }).flow_intensity,
             cycleId: (cycleData as { id?: number }).id,
-            existingCycleData: cycleData,
+            existingCycleData: cycleData as Record<string, unknown>,
             partnerData: partnerDailyData, // パートナーデータを追加
           };
         }
@@ -771,7 +772,7 @@ export const Calendar: React.FC = () => {
     setExistingDataForModal(undefined);
   };
 
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey, generateCalendarDays]);
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {

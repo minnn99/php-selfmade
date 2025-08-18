@@ -283,7 +283,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       id: "period-start",
       label: "生理開始",
       color: menstrualStatus?.hasActiveCycle ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 active:bg-red-700",
-      disabled: Boolean(menstrualStatus?.hasActiveCycle) || loading,
+      disabled: (menstrualStatus?.hasActiveCycle as boolean) || loading,
       onClick: handleStartPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,7 +295,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       id: "period-end",
       label: "生理終了",
       color: !menstrualStatus?.hasActiveCycle ? "bg-gray-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 active:bg-green-700",
-      disabled: !Boolean(menstrualStatus?.hasActiveCycle) || loading,
+      disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -363,7 +363,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
             >
               <span className="mr-2">{action.icon}</span>
               {loading === true ? "処理中..." : action.label}
-              {action.id === "period-end" && Boolean(menstrualStatus?.hasActiveCycle) && <span className="ml-1 text-xs opacity-90">(生理中)</span>}
+              {action.id === "period-end" && (menstrualStatus?.hasActiveCycle as boolean) && <span className="ml-1 text-xs opacity-90">(生理中)</span>}
             </button>
           ))}
         </div>

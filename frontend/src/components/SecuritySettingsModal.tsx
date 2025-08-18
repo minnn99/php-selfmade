@@ -74,7 +74,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
     alert("セキュリティ設定が保存されました");
   };
 
-  const updateSetting = (category: keyof SecuritySettings, field: string, value: any) => {
+  const updateSetting = (category: keyof SecuritySettings, field: string, value: boolean | string | number | string[]) => {
     setSettings((prev) => ({
       ...prev,
       [category]: {

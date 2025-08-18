@@ -82,6 +82,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear, currentMonth, refreshKey]);
 
   // ローカルストレージデータをAPIに移行する関数
@@ -262,7 +263,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         return false;
       }
     };
-  }, [refreshKey]); // refreshKey when data changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Remove refreshKey dependency to avoid unnecessary re-renders
 
   // カレンダーの日付データを生成（APIデータを使用）
   const generateCalendarDays = (): CalendarDay[] => {
@@ -302,9 +304,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === "period" || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
           : false,
         partnerName: partnerData?.partner_name,
       });
@@ -332,9 +334,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === "period" || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
           : false,
         partnerName: partnerData?.partner_name,
       });
@@ -364,9 +366,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isFertile: dayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.status === "period" || false,
         hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? (partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && partnerData.partner_daily_data.mood.trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && partnerData.partner_daily_data.health_notes.trim() !== "")
+          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
+            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
+            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
           : false,
         partnerName: partnerData?.partner_name,
       });
@@ -376,7 +378,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     return days;
   };
 
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey, generateCalendarDays]);
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: CalendarDay) => {
@@ -454,7 +456,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
             healthNotes: localHealthNotes, // ローカルデータを使用
             flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : (cycleData as { flow_intensity?: number }).flow_intensity,
             cycleId: (cycleData as { id?: number }).id,
-            existingCycleData: cycleData,
+            existingCycleData: cycleData as Record<string, unknown>,
             partnerData: partnerDailyData, // パートナーデータを追加
           };
         }
@@ -545,7 +547,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       // 3. 生理周期情報はAPIに保存（症状・経血量データは除く）
       if (data.cycleId) {
         // 既存の周期IDがある場合：周期の更新（症状・経血量データは送信しない）
-        const updateData: any = {};
+        const updateData: { start_date?: string; end_date?: string } = {};
 
         if (data.isPeriodStart) {
           // 開始日を更新
@@ -574,11 +576,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       // データ更新イベントを発火
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
       alert("記録が保存されました！");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to save record:", error);
       let errorMessage = "記録の保存に失敗しました。";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
       }
       alert(errorMessage);
     }
@@ -590,7 +595,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       await menstrualCycleAPI.deleteCycle(cycleId);
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
       alert("生理周期が削除されました");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete cycle:", error);
       alert("削除に失敗しました");
     }

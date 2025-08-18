@@ -9,6 +9,39 @@ import { ProfileSettingsModal } from "./ProfileSettingsModal";
 import { SupportModal } from "./SupportModal";
 import { SecuritySettingsModal } from "./SecuritySettingsModal";
 
+// 型のインポート
+interface NotificationSettings {
+  menstrualReminder: {
+    enabled: boolean;
+    daysBeforeStart: number;
+    time: string;
+  };
+  ovulationReminder: {
+    enabled: boolean;
+    daysBeforeOvulation: number;
+    time: string;
+  };
+  partnerNotifications: {
+    enabled: boolean;
+    menstrualStart: boolean;
+    ovulationPeriod: boolean;
+    moodChanges: boolean;
+  };
+  generalSettings: {
+    pushNotifications: boolean;
+    soundEnabled: boolean;
+  };
+}
+
+interface PrivacySettings {
+  dataSharing: {
+    analyticsEnabled: boolean;
+    partnerDataSharing: boolean;
+    statisticsSharing: boolean;
+    predictionDataSharing: boolean;
+  };
+}
+
 interface SettingsProps {
   onDataDeleted: () => void;
   onLogout?: () => void;
@@ -86,17 +119,18 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       onDataDeleted();
 
       alert("全データが正常に削除されました。アプリがリセットされました。");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete all data:", error);
 
       let errorMessage = "全データ削除に失敗しました。";
-      if (error.response) {
-        const errorData = error.response.data;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string }, status: number } };
+        const errorData = axiosError.response.data;
         if (errorData.message) {
           errorMessage += `\nエラー: ${errorData.message}`;
         }
-        errorMessage += `\nステータス: ${error.response.status}`;
-      } else if (error.message) {
+        errorMessage += `\nステータス: ${axiosError.response.status}`;
+      } else if (error instanceof Error) {
         errorMessage += `\nエラー: ${error.message}`;
       }
       alert(errorMessage);
@@ -108,12 +142,12 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     setShowSecondConfirmModal(false);
   };
 
-  const handleNotificationSave = (settings: any) => {
+  const handleNotificationSave = (settings: NotificationSettings) => {
     console.log("Notification settings saved:", settings);
     // ここで実際の保存処理を実装
   };
 
-  const handlePrivacySave = (settings: any) => {
+  const handlePrivacySave = (settings: PrivacySettings) => {
     console.log("Privacy settings saved:", settings);
     // ここで実際の保存処理を実装
   };

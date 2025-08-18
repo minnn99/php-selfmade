@@ -53,6 +53,7 @@ export const Statistics: React.FC = () => {
 
   useEffect(() => {
     loadStatistics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRange]);
 
   // カレンダーデータ更新時に統計を再読み込み
