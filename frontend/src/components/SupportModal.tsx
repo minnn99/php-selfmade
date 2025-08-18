@@ -318,7 +318,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as 'faq' | 'contact' | 'info')}
                 className={`flex-1 flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-2 py-2 sm:py-3 px-1 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[60px] sm:min-h-[44px] ${
                   activeTab === tab.id ? "bg-white text-primary-700 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}

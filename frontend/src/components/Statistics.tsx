@@ -21,6 +21,22 @@ interface SymptomStats {
   };
 }
 
+interface CycleData {
+  id?: number;
+  start_date: string;
+  end_date?: string;
+  symptoms?: string[];
+  flow_intensity?: number;
+  [key: string]: unknown;
+}
+
+interface DailySymptomsData {
+  symptoms?: string[];
+  flowIntensity?: number;
+  [key: string]: unknown;
+}
+
+
 interface FlowStats {
   averageFlowIntensity: number;
   flowDistribution: Array<{ intensity: number; count: number; percentage: number }>;
@@ -54,7 +70,7 @@ export const Statistics: React.FC = () => {
   }, []);
 
   // 周期データに日別症状データを統合する関数（バッチAPI使用）
-  const enrichCyclesWithDailySymptoms = async (cycles: any[]) => {
+  const enrichCyclesWithDailySymptoms = async (cycles: CycleData[]) => {
     console.log("Statistics: Starting symptoms enrichment for", cycles.length, "cycles");
 
     if (cycles.length === 0) {
@@ -73,14 +89,14 @@ export const Statistics: React.FC = () => {
     console.log(`Statistics: Fetching symptoms data from ${earliestDate} to ${latestDate}`);
 
     // バッチAPIで期間内の全症状データを一括取得
-    let allSymptomsData: Record<string, any> = {};
+    let allSymptomsData: Record<string, DailySymptomsData> = {};
     try {
       const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
       if (response.success && response.data) {
-        allSymptomsData = response.data;
+        allSymptomsData = response.data as Record<string, DailySymptomsData>;
         console.log("Statistics: Batch API response:", allSymptomsData);
       }
-    } catch (error) {
+    } catch {
       console.log("Statistics: Failed to fetch symptoms data from API, using local storage fallback");
     }
 
@@ -167,7 +183,7 @@ export const Statistics: React.FC = () => {
       const cyclesResponse = await menstrualCycleAPI.getCycles();
       console.log("Statistics: API Response:", cyclesResponse);
 
-      const cycles = cyclesResponse.data || [];
+      const cycles = Array.isArray(cyclesResponse.data) ? cyclesResponse.data as CycleData[] : [];
       console.log("Statistics: Extracted cycles:", cycles);
       console.log("Statistics: Cycles count:", cycles.length);
 
@@ -186,16 +202,16 @@ export const Statistics: React.FC = () => {
         setSymptomStats(null);
         setFlowStats(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to load statistics:", error);
-      setError(error.message || "統計データの読み込みに失敗しました");
+      setError(error instanceof Error ? error.message : "統計データの読み込みに失敗しました");
       // エラー時は既存データを保持（リセットしない）
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateStatistics = async (cycles: any[]) => {
+  const calculateStatistics = async (cycles: CycleData[]) => {
     console.log("Statistics: Starting calculation with cycles:", cycles);
 
     // 完了した周期のみを対象とする
@@ -239,13 +255,13 @@ export const Statistics: React.FC = () => {
     // 周期統計の計算
     const cycleLengths = completedCycles.map((cycle) => {
       const start = new Date(cycle.start_date);
-      const end = new Date(cycle.end_date);
+      const end = cycle.end_date ? new Date(cycle.end_date) : new Date();
       return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     });
 
     const periodLengths = completedCycles.map((cycle) => {
       const start = new Date(cycle.start_date);
-      const end = new Date(cycle.end_date);
+      const end = cycle.end_date ? new Date(cycle.end_date) : new Date();
       return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     });
 
@@ -304,7 +320,7 @@ export const Statistics: React.FC = () => {
 
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
-            response.data.forEach((dayData: any) => {
+            response.data.forEach((dayData: DailySymptomsData) => {
               if (dayData.symptoms && Array.isArray(dayData.symptoms)) {
                 allSymptoms.push(...dayData.symptoms);
               }
@@ -312,15 +328,15 @@ export const Statistics: React.FC = () => {
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
-            Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
-              if (dayData && typeof dayData === "object" && dayData.symptoms && Array.isArray(dayData.symptoms)) {
+            Object.entries(response.data).forEach(([, dayData]) => {
+              if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
                 // console.log(`Statistics: Adding ${dayData.symptoms.length} symptoms from API for ${date}:`, dayData.symptoms);
-                allSymptoms.push(...dayData.symptoms);
+                allSymptoms.push(...(dayData as DailySymptomsData).symptoms!);
               }
             });
           }
         }
-      } catch (error) {
+      } catch {
         console.log("Statistics: Failed to fetch symptoms range for symptom statistics");
       }
 
@@ -342,7 +358,7 @@ export const Statistics: React.FC = () => {
                   allSymptoms.push(...parsed.symptoms);
                 }
               }
-            } catch (error) {
+            } catch {
               // エラーは無視
             }
           }
@@ -409,8 +425,8 @@ export const Statistics: React.FC = () => {
     console.log("Statistics: Most common symptoms calculated:", mostCommonSymptoms);
 
     // 各フェーズの症状を頻度順にソート
-    Object.keys(symptomsByPhase).forEach((phase) => {
-      (symptomsByPhase as any)[phase].sort((a: any, b: any) => b.count - a.count);
+    (Object.keys(symptomsByPhase) as Array<keyof typeof symptomsByPhase>).forEach((phase) => {
+      symptomsByPhase[phase].sort((a, b) => b.count - a.count);
     });
 
     const finalSymptomStats = {
@@ -432,7 +448,7 @@ export const Statistics: React.FC = () => {
     const cycleFlowIntensities = completedCycles.filter((cycle) => cycle.flow_intensity).map((cycle) => cycle.flow_intensity);
 
     // 日別症状データから流量データを収集
-    let allFlowIntensities = [...cycleFlowIntensities];
+    const allFlowIntensities = [...cycleFlowIntensities];
 
     // 範囲でAPIから症状データを取得
     if (completedCycles.length > 0) {
@@ -451,7 +467,7 @@ export const Statistics: React.FC = () => {
 
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
-            response.data.forEach((dayData: any) => {
+            response.data.forEach((dayData: DailySymptomsData) => {
               if (dayData.flowIntensity && dayData.flowIntensity > 0) {
                 console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} from API (array format)`);
                 allFlowIntensities.push(dayData.flowIntensity);
@@ -460,11 +476,11 @@ export const Statistics: React.FC = () => {
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
-            Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
-              // console.log(`Statistics: Checking API data for ${_date}:`, dayData);
-              if (dayData && typeof dayData === "object" && dayData.flowIntensity && dayData.flowIntensity > 0) {
-                console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} for ${_date} from API`);
-                allFlowIntensities.push(dayData.flowIntensity);
+            Object.entries(response.data).forEach(([date, dayData]) => {
+              // console.log(`Statistics: Checking API data for ${date}:`, dayData);
+              if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).flowIntensity && (dayData as DailySymptomsData).flowIntensity! > 0) {
+                console.log(`Statistics: Found flow intensity ${(dayData as DailySymptomsData).flowIntensity} for ${date} from API`);
+                allFlowIntensities.push((dayData as DailySymptomsData).flowIntensity!);
               }
             });
           }
@@ -511,7 +527,7 @@ export const Statistics: React.FC = () => {
     console.log("Statistics: Unique flow values:", [...new Set(flowIntensities)]);
 
     if (flowIntensities.length > 0) {
-      const avgFlow = flowIntensities.reduce((sum, intensity) => sum + intensity, 0) / flowIntensities.length;
+      const avgFlow = flowIntensities.filter(intensity => intensity != null).reduce((sum: number, intensity: number) => sum + intensity, 0) / flowIntensities.length;
 
       const flowDistribution = [1, 2, 3, 4, 5].map((intensity) => {
         const count = flowIntensities.filter((f) => f === intensity).length;
@@ -633,7 +649,7 @@ export const Statistics: React.FC = () => {
             <div className="flex gap-2">
               <select
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value as any)}
+                onChange={(e) => setTimeRange(e.target.value as "3months" | "6months" | "1year" | "all")}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px] w-full sm:w-auto touch-manipulation"
               >
                 <option value="3months">過去3ヶ月</option>

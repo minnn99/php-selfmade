@@ -1,11 +1,24 @@
 // API Base URL
 const API_BASE = 'http://localhost:8000/api';
 
+// API Response interface
+interface ApiResponse {
+  success: boolean;
+  data?: unknown;
+  message?: string;
+  [key: string]: unknown;
+}
+
 // Auth token management
 interface AuthData {
   token: string;
   expires_at: string;
-  user: any;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    [key: string]: unknown;
+  };
 }
 
 const getAuthToken = (): string | null => {
@@ -83,7 +96,7 @@ const stopTokenExpirationChecker = () => {
 const apiRequest = async (
   endpoint: string, 
   options: RequestInit = {}
-): Promise<any> => {
+): Promise<ApiResponse> => {
   const token = getAuthToken();
   
   const config: RequestInit = {
@@ -114,11 +127,11 @@ const apiRequest = async (
     });
     
     const apiError = new Error(error.message || `Request failed: ${response.status} ${response.statusText}`);
-    (apiError as any).response = { status: response.status, data: error };
+    (apiError as Error & { response?: { status: number; data: unknown } }).response = { status: response.status, data: error };
     throw apiError;
   }
 
-  const result = await response.json();
+  const result = await response.json() as ApiResponse;
   console.log('API Response:', { endpoint, result });
   return result;
 };
@@ -133,10 +146,11 @@ export const authAPI = {
     
     // Save auth data after successful login
     if (response.success && response.data) {
+      const responseData = response.data as { token: string; expires_at: string; user: AuthData['user'] };
       const authData: AuthData = {
-        token: response.data.token,
-        expires_at: response.data.expires_at,
-        user: response.data.user
+        token: responseData.token,
+        expires_at: responseData.expires_at,
+        user: responseData.user
       };
       setAuthData(authData);
       
@@ -162,10 +176,11 @@ export const authAPI = {
     
     // Save auth data after successful registration
     if (response.success && response.data) {
+      const responseData = response.data as { token: string; expires_at: string; user: AuthData['user'] };
       const authData: AuthData = {
-        token: response.data.token,
-        expires_at: response.data.expires_at,
-        user: response.data.user
+        token: responseData.token,
+        expires_at: responseData.expires_at,
+        user: responseData.user
       };
       setAuthData(authData);
     }
@@ -313,7 +328,7 @@ export const userDataAPI = {
   },
 
   // Save user settings
-  saveSettings: async (settings: Record<string, any>) => {
+  saveSettings: async (settings: Record<string, unknown>) => {
     return apiRequest('/user-data/settings', {
       method: 'POST',
       body: JSON.stringify({ settings }),

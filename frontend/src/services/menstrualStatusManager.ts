@@ -3,8 +3,18 @@ import { menstrualCycleAPI } from './api';
 
 interface MenstrualStatus {
   hasActiveCycle: boolean;
-  activeCycle: any;
-  lastCycle: any;
+  activeCycle: {
+    id: number;
+    start_date: string;
+    end_date?: string;
+    [key: string]: unknown;
+  } | null;
+  lastCycle: {
+    id: number;
+    start_date: string;
+    end_date?: string;
+    [key: string]: unknown;
+  } | null;
   daysSinceLastPeriod: number;
 }
 
@@ -60,7 +70,7 @@ class MenstrualStatusManager {
         try {
           console.log('MenstrualStatusManager - Loading status from API...');
           const response = await menstrualCycleAPI.getCurrentStatus();
-          this.status = response;
+          this.status = response.data as MenstrualStatus;
           
           // Notify all subscribers
           this.listeners.forEach(callback => callback(this.status));

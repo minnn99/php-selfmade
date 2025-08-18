@@ -24,9 +24,9 @@ export const useAuth = (): UseAuthReturn => {
   // Initialize authentication state
   useEffect(() => {
     checkInitialAuth();
-  }, []);
+  }, [checkInitialAuth]);
 
-  const checkInitialAuth = async () => {
+  const checkInitialAuth = useCallback(async () => {
     try {
       const isAuth = authAPI.isAuthenticated();
 
@@ -40,7 +40,19 @@ export const useAuth = (): UseAuthReturn => {
           authAPI.startTokenChecker();
         } else {
           // Try to fetch user from server
-          await refreshUserData();
+          try {
+            const response = await authAPI.getUser();
+            if (response.success) {
+              const responseData = response.data as { user: { id: number; name: string; email: string } };
+              setUser(responseData.user);
+              setIsAuthenticated(true);
+              authAPI.startTokenChecker();
+            }
+          } catch (error) {
+            console.error("Failed to refresh user data:", error);
+            setIsAuthenticated(false);
+            setUser(null);
+          }
         }
       } else {
         setIsAuthenticated(false);
@@ -53,28 +65,16 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const refreshUserData = async () => {
-    try {
-      const response = await authAPI.getUser();
-      if (response.success) {
-        setUser(response.data.user);
-        setIsAuthenticated(true);
-        authAPI.startTokenChecker();
-      }
-    } catch (error) {
-      console.error("Failed to refresh user data:", error);
-      await logout();
-    }
-  };
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await authAPI.login(email, password);
 
       if (response.success) {
-        setUser(response.data.user);
+        const responseData = response.data as { user: { id: number; name: string; email: string } };
+        setUser(responseData.user);
         setIsAuthenticated(true);
         authAPI.startTokenChecker();
         return true;
@@ -102,7 +102,7 @@ export const useAuth = (): UseAuthReturn => {
   const refreshAuth = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     await checkInitialAuth();
-  }, []);
+  }, [checkInitialAuth]);
 
   return {
     user,
