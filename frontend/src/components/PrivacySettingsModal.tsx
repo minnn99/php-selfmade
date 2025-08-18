@@ -36,8 +36,11 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
     const loadSettings = async () => {
       try {
         const response = await userDataAPI.getSettings();
-        if (response.success && response.data.privacySettings) {
-          setSettings(response.data.privacySettings);
+        if (response.success && response.data) {
+          const responseData = response.data as { privacySettings?: PrivacySettings };
+          if (responseData.privacySettings) {
+            setSettings(responseData.privacySettings);
+          }
         }
       } catch (error) {
         console.error('Failed to load privacy settings:', error);

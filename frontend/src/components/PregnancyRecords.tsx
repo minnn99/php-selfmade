@@ -44,8 +44,9 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     try {
       const response = await userDataAPI.getPregnancyRecords();
       if (response.success && response.data) {
-        setPregnancyRecords(response.data.records_data || []);
-        setPregnancyStartDate(response.data.start_date || "");
+        const responseData = response.data as { records_data?: PregnancyRecord[]; start_date?: string };
+        setPregnancyRecords(responseData.records_data || []);
+        setPregnancyStartDate(responseData.start_date || "");
       }
     } catch (error) {
       console.error("Failed to load pregnancy data:", error);

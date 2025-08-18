@@ -60,8 +60,11 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
     const loadSettings = async () => {
       try {
         const response = await userDataAPI.getSettings();
-        if (response.success && response.data.notificationSettings) {
-          setSettings(response.data.notificationSettings);
+        if (response.success && response.data) {
+          const responseData = response.data as { notificationSettings?: Record<string, unknown> };
+          if (responseData.notificationSettings) {
+            setSettings(responseData.notificationSettings as unknown as NotificationSettings);
+          }
         }
       } catch (error) {
         console.error('Failed to load notification settings:', error);

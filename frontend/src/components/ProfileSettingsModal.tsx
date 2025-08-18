@@ -54,8 +54,10 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       // APIから最新のユーザー情報を取得
       const [userResponse, settingsResponse] = await Promise.all([authAPI.getUser(), userDataAPI.getSettings()]);
 
-      const user = userResponse.data.user;
-      const savedProfile = settingsResponse.success ? settingsResponse.data.userProfile : null;
+      const userResponseData = userResponse.data as { user?: any };
+      const user = userResponseData.user;
+      const settingsResponseData = settingsResponse.data as { userProfile?: ProfileData };
+      const savedProfile = settingsResponse.success ? settingsResponseData.userProfile : null;
 
       if (savedProfile) {
         setProfileData({
