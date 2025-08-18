@@ -92,7 +92,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
     }
   };
 
-  const updateSetting = (category: keyof NotificationSettings, field: string, value: any) => {
+  const updateSetting = (category: keyof NotificationSettings, field: string, value: boolean | number | string) => {
     setSettings((prev) => ({
       ...prev,
       [category]: {

@@ -18,7 +18,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
-  const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
+  const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Subscribe to menstrual status updates
@@ -26,7 +26,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     console.log('Navigation - Subscribing to menstrual status updates');
     const unsubscribe = menstrualStatusManager.subscribe((status) => {
       console.log('Navigation - Received status update:', status);
-      setMenstrualStatus(status);
+      setMenstrualStatus(status as Record<string, unknown> | null);
     });
 
     return unsubscribe;
@@ -110,8 +110,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
       alert('生理が開始されました（予測5日間の期間が設定されました）');
-    } catch (error: any) {
-      alert('エラーが発生しました: ' + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert('エラーが発生しました: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -123,12 +124,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     setLoading(true);
     try {
       const today = getLocalDateString(new Date());
-      const startDate = menstrualStatus.activeCycle.start_date;
+      const startDate = (menstrualStatus.activeCycle as { start_date?: string }).start_date;
       
       await menstrualCycleAPI.endCycle(today);
       
       // 生理開始日から今日まで全ての日を生理中として設定
-      await updateCalendarForPeriod(startDate, today);
+      if (startDate) {
+        await updateCalendarForPeriod(startDate, today);
+      }
       
       // カスタムイベントを発火してカレンダーとセルフケアを更新
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
@@ -136,8 +139,9 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       // Reload status after ending
       await menstrualStatusManager.forceReloadStatus();
       alert('生理が終了されました');
-    } catch (error: any) {
-      alert('エラーが発生しました: ' + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert('エラーが発生しました: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -322,12 +326,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           {quickActions.map((action) => (
             <button
               key={action.id}
-              onClick={action.onClick}
-              disabled={action.disabled}
+              onClick={action.onClick as () => void}
+              disabled={action.disabled as boolean}
               className={`w-full flex items-center justify-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium text-white rounded-lg transition-colors ${action.color}`}
             >
-              <span className="mr-2">{action.icon}</span>
-              {loading ? '処理中...' : action.label}
+              <span className="mr-2">{action.icon as React.ReactNode}</span>
+              {loading === true ? '処理中...' : String(action.label)}
               {/* 生理中状態の表示 */}
               {action.id === 'period-end' && menstrualStatus?.hasActiveCycle && (
                 <span className="ml-1 text-xs opacity-90">(生理中)</span>

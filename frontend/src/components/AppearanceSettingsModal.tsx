@@ -45,7 +45,7 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
     onClose();
   };
 
-  const updateSetting = (category: keyof AppearanceSettings, field: string, value: any) => {
+  const updateSetting = (category: keyof AppearanceSettings, field: string, value: string) => {
     setSettings((prev) => ({
       ...prev,
       [category]: {

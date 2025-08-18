@@ -329,7 +329,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                 <label className="block text-xs sm:text-sm font-medium text-gray-700">データ範囲</label>
                 <select
                   value={exportDateRange}
-                  onChange={(e) => setExportDateRange(e.target.value as any)}
+                  onChange={(e) => setExportDateRange(e.target.value as "all" | "last12months" | "thisyear" | "custom")}
                   className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
                 >
                   <option value="all">全期間</option>

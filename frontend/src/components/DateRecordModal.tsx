@@ -18,7 +18,7 @@ export interface RecordData {
   healthNotes: string;
   flowIntensity?: number;
   cycleId?: number;
-  existingCycleData?: any;
+  existingCycleData?: Record<string, unknown>;
   partnerData?: {
     symptoms: string[];
     mood: string;

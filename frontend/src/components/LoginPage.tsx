@@ -29,21 +29,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelc
         setServerError(errorMessage);
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       
-      if (error.response?.status === 422) {
-        const validationErrors = error.response.data.errors;
-        if (validationErrors) {
-          const errorMessages = Object.values(validationErrors).flat();
-          setServerError(errorMessages.join(', '));
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { errors?: Record<string, string[]> } } };
+        if (axiosError.response?.status === 422) {
+          const validationErrors = axiosError.response.data?.errors;
+          if (validationErrors) {
+            const errorMessages = Object.values(validationErrors).flat();
+            setServerError(errorMessages.join(', '));
+          } else {
+            setServerError('入力内容に誤りがあります。');
+          }
+        } else if (axiosError.response?.status === 401) {
+          setServerError('メールアドレスまたはパスワードが正しくありません。');
         } else {
-          setServerError('入力内容に誤りがあります。');
+          setServerError('ネットワークエラーが発生しました。再度お試しください。');
         }
-      } else if (error.response?.status === 401) {
-        setServerError('メールアドレスまたはパスワードが正しくありません。');
       } else {
-        setServerError('ネットワークエラーが発生しました。再度お試しください。');
+        setServerError('予期しないエラーが発生しました。');
       }
     } finally {
       setIsLoading(false);

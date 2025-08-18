@@ -26,13 +26,13 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     console.log("DynamicAdvice - Subscribing to menstrual status updates");
     const unsubscribe = menstrualStatusManager.subscribe((status) => {
       console.log("DynamicAdvice - Received status update:", status);
-      updateAdviceBasedOnStatus(status);
+      updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
     });
 
     return unsubscribe;
   }, []);
 
-  const updateAdviceBasedOnStatus = async (status: any) => {
+  const updateAdviceBasedOnStatus = async (status: Record<string, unknown> | null) => {
     console.log("DynamicAdvice - Status received for advice update:", status);
 
     if (!status) {
@@ -196,7 +196,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     }
   };
 
-  const getDayOfPeriod = (todayData: any): number => {
+  const getDayOfPeriod = (todayData: Record<string, unknown>): number => {
     // 今日が開始日なら1日目
     if (todayData.isPeriodStart) {
       return 1;
@@ -220,7 +220,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     return 1;
   };
 
-  const getCycleDay = (status: any, currentDate: Date): number => {
+  const getCycleDay = (status: Record<string, unknown>, currentDate: Date): number => {
     // アクティブな周期がある場合、その開始日からの日数を返す
     if (status?.hasActiveCycle && status?.activeCycle?.start_date) {
       const activeCycleStart = new Date(status.activeCycle.start_date);

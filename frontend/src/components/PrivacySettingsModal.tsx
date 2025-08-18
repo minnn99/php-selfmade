@@ -68,7 +68,7 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
     }
   };
 
-  const updateSetting = (field: string, value: any) => {
+  const updateSetting = (field: string, value: boolean) => {
     setSettings(prev => ({
       ...prev,
       dataSharing: {

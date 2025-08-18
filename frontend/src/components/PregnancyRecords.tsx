@@ -278,7 +278,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
                     <label className="block text-xs font-medium text-gray-700 mb-1">種類</label>
                     <select
                       value={searchType}
-                      onChange={(e) => setSearchType(e.target.value as any)}
+                      onChange={(e) => setSearchType(e.target.value as "" | "symptom" | "test" | "appointment" | "note")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[36px] touch-manipulation"
                     >
                       <option value="">全て</option>
@@ -316,7 +316,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <select
               value={newRecord.type}
-              onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as any })}
+              onChange={(e) => setNewRecord({ ...newRecord, type: e.target.value as "symptom" | "test" | "appointment" | "note" })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
             >
               <option value="symptom">症状</option>
@@ -527,7 +527,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
                   <label className="block text-xs font-medium text-gray-700 mb-1">種類</label>
                   <select
                     value={editingRecord.type}
-                    onChange={(e) => setEditingRecord({ ...editingRecord, type: e.target.value as any })}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, type: e.target.value as "symptom" | "test" | "appointment" | "note" })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation"
                   >
                     <option value="symptom">症状</option>

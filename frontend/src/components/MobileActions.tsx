@@ -3,7 +3,7 @@ import { menstrualCycleAPI, userDataAPI } from '../services/api';
 import { menstrualStatusManager } from '../services/menstrualStatusManager';
 
 export const MobileActions: React.FC = () => {
-  const [menstrualStatus, setMenstrualStatus] = useState<any>(null);
+  const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Subscribe to menstrual status updates
@@ -110,8 +110,9 @@ export const MobileActions: React.FC = () => {
       }, 300);
       
       alert('生理が開始されました（5日間の期間が設定されました）');
-    } catch (error: any) {
-      alert('エラーが発生しました: ' + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert('エラーが発生しました: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -137,8 +138,9 @@ export const MobileActions: React.FC = () => {
       await menstrualStatusManager.forceReloadStatus();
       
       alert('生理が終了されました');
-    } catch (error: any) {
-      alert('エラーが発生しました: ' + error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert('エラーが発生しました: ' + errorMessage);
     } finally {
       setLoading(false);
     }

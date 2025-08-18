@@ -2,6 +2,26 @@ import React, { useState, useEffect, useMemo } from "react";
 import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../services/api";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
 
+interface CalendarDayData {
+  hasPeriod?: boolean;
+  isOvulation?: boolean;
+  isPredictedPeriod?: boolean;
+  isPeriodStart?: boolean;
+  isPeriodEnd?: boolean;
+  isActive?: boolean;
+  isFertile?: boolean;
+  cycleId?: number;
+  flowIntensity?: number;
+  partner_name?: string;
+  status?: string;
+  partner_daily_data?: {
+    symptoms?: string[];
+    mood?: string;
+    health_notes?: string;
+    flow_intensity?: number;
+  };
+}
+
 interface CalendarDay {
   year: number;
   month: number; // 0-indexed (JS標準)
@@ -27,8 +47,8 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [calendarApiData, setCalendarApiData] = useState<any>({});
-  const [partnerCalendarData, setPartnerCalendarData] = useState<any>({});
+  const [calendarApiData, setCalendarApiData] = useState<Record<string, CalendarDayData>>({});
+  const [partnerCalendarData, setPartnerCalendarData] = useState<Record<string, CalendarDayData>>({});
   const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
@@ -147,7 +167,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           if (!hasSymptoms && !hasMood && !hasHealthNotes && !hasFlowIntensity) {
             localStorage.removeItem(key);
           }
-        } catch (error) {
+        } catch {
           // 破損したデータも削除
           localStorage.removeItem(key);
         }
@@ -167,13 +187,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
       const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const filteredData: any = {};
+      const filteredData: Record<string, CalendarDayData> = {};
 
       Object.keys(rawData).forEach((dateKey) => {
         const keyDate = new Date(dateKey);
         if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
           // 30日以内、または表示中の月のデータのみ保持
-          filteredData[dateKey] = rawData[dateKey];
+          filteredData[dateKey] = rawData[dateKey] as CalendarDayData;
         }
       });
 
@@ -186,9 +206,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
 
           if (partnerData.success && (partnerData.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> })?.calendar_data) {
-            const partnerCalendarMap: any = {};
+            const partnerCalendarMap: Record<string, CalendarDayData> = {};
             (partnerData.data as { calendar_data: Array<{ date: string; [key: string]: unknown }> }).calendar_data.forEach((dayData) => {
-              partnerCalendarMap[dayData.date] = dayData;
+              partnerCalendarMap[dayData.date] = dayData as CalendarDayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
           } else {

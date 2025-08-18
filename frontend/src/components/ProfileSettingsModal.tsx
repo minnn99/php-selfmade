@@ -54,7 +54,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       // APIから最新のユーザー情報を取得
       const [userResponse, settingsResponse] = await Promise.all([authAPI.getUser(), userDataAPI.getSettings()]);
 
-      const userResponseData = userResponse.data as { user?: any };
+      const userResponseData = userResponse.data as { user?: { name?: string; email?: string; phone?: string; gender?: string } };
       const user = userResponseData.user;
       const settingsResponseData = settingsResponse.data as { userProfile?: ProfileData };
       const savedProfile = settingsResponse.success ? settingsResponseData.userProfile : null;
@@ -62,19 +62,19 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       if (savedProfile) {
         setProfileData({
           ...savedProfile,
-          fullName: user.name || savedProfile.fullName,
-          email: user.email || savedProfile.email,
-          phone: user.phone || savedProfile.phone,
-          gender: user.gender || savedProfile.gender,
+          fullName: user?.name || savedProfile.fullName,
+          email: user?.email || savedProfile.email,
+          phone: user?.phone || savedProfile.phone,
+          gender: user?.gender || savedProfile.gender,
         });
       } else {
         // 初期値をAPIデータから設定
         setProfileData((prev) => ({
           ...prev,
-          fullName: user.name || "",
-          email: user.email || "",
-          phone: user.phone || "",
-          gender: user.gender || "",
+          fullName: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phone || "",
+          gender: user?.gender || "",
         }));
       }
     } catch (error) {
@@ -316,7 +316,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as "basic" | "health")}
                 className={`flex-1 flex items-center justify-center space-x-1 sm:space-x-2 py-2 sm:py-3 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors min-h-[44px] ${
                   activeTab === tab.id ? "bg-white text-primary-700 shadow-sm" : "text-gray-600 hover:text-gray-900"
                 }`}

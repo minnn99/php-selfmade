@@ -35,7 +35,7 @@ export const OverviewCards: React.FC = () => {
         const year = today.getFullYear();
         const month = today.getMonth() + 1;
         
-        let combinedData: { [key: string]: any } = {};
+        let combinedData: Record<string, unknown> = {};
         
         // 男性ユーザーでパートナーと連携している場合はパートナーのデータを取得
         if ((gender === 'male' || gender === '男性') && isConnected) {
@@ -86,7 +86,7 @@ export const OverviewCards: React.FC = () => {
           
           if (dateKey > todayString) { // 明日以降のみ
             // 次の生理周期開始日を探す
-            if ((dayData as any).isPredictedPeriod) {
+            if ((dayData as { isPredictedPeriod?: boolean }).isPredictedPeriod) {
               // 前日をチェックして、連続する予測生理日の最初の日かどうか確認
               const previousDate = new Date(dateKey);
               previousDate.setDate(previousDate.getDate() - 1);
@@ -94,7 +94,7 @@ export const OverviewCards: React.FC = () => {
               const previousDayData = combinedData[previousDateKey];
               
               // 前日が予測生理日でない場合、この日が新しい周期の開始日
-              if (!previousDayData || !(previousDayData as any).isPredictedPeriod) {
+              if (!previousDayData || !(previousDayData as { isPredictedPeriod?: boolean }).isPredictedPeriod) {
                   
                 if (!nextCycleStartDate) {
                   const dateObj = new Date(dateKey);
@@ -109,7 +109,7 @@ export const OverviewCards: React.FC = () => {
               }
             }
             
-            if ((dayData as any).isOvulation && !nextOvulationDate) {
+            if ((dayData as { isOvulation?: boolean }).isOvulation && !nextOvulationDate) {
               nextOvulationDate = dateKey;
             }
             

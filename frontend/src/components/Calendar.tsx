@@ -672,7 +672,7 @@ export const Calendar: React.FC = () => {
     // まず calendarApiData から該当するサイクルの全ての日付を特定
     const cycleDates = [];
     for (const dateKey of Object.keys(calendarApiData)) {
-      const dayData = calendarApiData[dateKey] as any;
+      const dayData = calendarApiData[dateKey] as { cycleId?: number; [key: string]: unknown };
       if (dayData.cycleId === cycleId) {
         cycleDates.push(dateKey);
       }

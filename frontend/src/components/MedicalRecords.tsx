@@ -78,7 +78,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     }
   };
 
-  const saveToStorage = async (type: RecordType, data: any[]) => {
+  const saveToStorage = async (type: RecordType, data: HospitalVisit[] | TestResult[] | Medication[]) => {
     try {
       let apiType: "hospitalVisits" | "testResults" | "medications";
       switch (type) {
@@ -106,7 +106,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     const newId = Date.now().toString();
 
     switch (activeTab) {
-      case "visit":
+      case "visit": {
         if (!visitForm.date || !visitForm.hospitalName) {
           alert("日付と病院名は必須です");
           return;
@@ -126,8 +126,9 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
         saveToStorage("visit", [...hospitalVisits, newVisit]);
         setVisitForm({});
         break;
+      }
 
-      case "test":
+      case "test": {
         if (!testForm.date || !testForm.testType) {
           alert("日付と検査種類は必須です");
           return;
@@ -144,8 +145,9 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
         saveToStorage("test", [...testResults, newTest]);
         setTestForm({});
         break;
+      }
 
-      case "medication":
+      case "medication": {
         if (!medicationForm.name || !medicationForm.prescribedDate) {
           alert("薬名と処方日は必須です");
           return;
@@ -166,6 +168,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
         saveToStorage("medication", [...medications, newMedication]);
         setMedicationForm({});
         break;
+      }
     }
 
     setShowAddForm(false);
@@ -174,18 +177,21 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
   const handleEditRecord = (id: string) => {
     setEditingRecord(id);
     switch (activeTab) {
-      case "visit":
+      case "visit": {
         const visit = hospitalVisits.find((v) => v.id === id);
         if (visit) setVisitForm(visit);
         break;
-      case "test":
+      }
+      case "test": {
         const test = testResults.find((t) => t.id === id);
         if (test) setTestForm(test);
         break;
-      case "medication":
+      }
+      case "medication": {
         const medication = medications.find((m) => m.id === id);
         if (medication) setMedicationForm(medication);
         break;
+      }
     }
     setShowAddForm(true);
   };
@@ -194,23 +200,24 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     if (!editingRecord) return;
 
     switch (activeTab) {
-      case "visit":
+      case "visit": {
         const updatedVisits = hospitalVisits.map((v) => (v.id === editingRecord ? { ...v, ...visitForm } : v));
         saveToStorage("visit", updatedVisits);
         setVisitForm({});
         break;
-
-      case "test":
+      }
+      case "test": {
         const updatedTests = testResults.map((t) => (t.id === editingRecord ? { ...t, ...testForm } : t));
         saveToStorage("test", updatedTests);
         setTestForm({});
         break;
-
-      case "medication":
+      }
+      case "medication": {
         const updatedMedications = medications.map((m) => (m.id === editingRecord ? { ...m, ...medicationForm } : m));
         saveToStorage("medication", updatedMedications);
         setMedicationForm({});
         break;
+      }
     }
 
     setEditingRecord(null);
