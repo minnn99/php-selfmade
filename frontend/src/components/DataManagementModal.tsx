@@ -7,11 +7,11 @@ interface DataManagementModalProps {
 }
 
 interface ExportData {
-  cycles: any[];
+  cycles: Array<Record<string, unknown>>;
   settings: {
-    appearance?: any;
-    notifications?: any;
-    privacy?: any;
+    appearance?: Record<string, unknown>;
+    notifications?: Record<string, unknown>;
+    privacy?: Record<string, unknown>;
   };
   exportDate: string;
   version: string;
@@ -32,7 +32,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
     try {
       // 生理周期データを取得
       const cyclesResponse = await menstrualCycleAPI.getCycles();
-      let cycles = cyclesResponse.data || [];
+      let cycles = Array.isArray(cyclesResponse.data) ? cyclesResponse.data as Array<Record<string, unknown>> : [] as Array<Record<string, unknown>>;
 
       // 日付範囲でフィルタリング
       if (exportDateRange !== "all") {
@@ -46,24 +46,27 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           case "thisyear":
             startDate = new Date(now.getFullYear(), 0, 1);
             break;
-          case "custom":
+          case "custom": {
             startDate = new Date(customStartDate);
             const endDate = new Date(customEndDate);
-            cycles = cycles.filter((cycle: any) => {
-              const cycleDate = new Date(cycle.start_date);
+            cycles = cycles.filter((cycle: Record<string, unknown>) => {
+              const cycleDate = new Date(cycle.start_date as string);
               return cycleDate >= startDate && cycleDate <= endDate;
             });
             break;
+          }
           default:
             startDate = new Date(0);
         }
 
         if (exportDateRange !== "custom") {
-          cycles = cycles.filter((cycle: any) => {
-            const cycleDate = new Date(cycle.start_date);
+          cycles = (cycles as Array<Record<string, unknown>>).filter((cycle: Record<string, unknown>) => {
+            const cycleDate = new Date(cycle.start_date as string);
             return cycleDate >= startDate;
           });
         }
+      } else {
+        cycles = [] as Array<Record<string, unknown>>;
       }
 
       if (exportFormat === "json") {
@@ -115,7 +118,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
   };
 
   // CSV形式に変換
-  const convertToCSV = (cycles: any[]) => {
+  const convertToCSV = (cycles: Array<Record<string, unknown>>) => {
     const headers = ["開始日", "終了日", "周期長", "生理期間", "出血量", "症状", "メモ", "作成日"];
 
     const rows = cycles.map((cycle) => [
@@ -151,7 +154,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
       try {
         importData = JSON.parse(text);
-      } catch (error) {
+      } catch {
         alert("無効なJSONファイルです。");
         return;
       }
@@ -175,14 +178,14 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
       for (const cycle of importData.cycles) {
         try {
           await menstrualCycleAPI.startCycle({
-            start_date: cycle.start_date,
-            flow_intensity: cycle.flow_intensity,
-            symptoms: cycle.symptoms,
-            notes: cycle.notes,
+            start_date: cycle.start_date as string,
+            flow_intensity: cycle.flow_intensity as number | undefined,
+            symptoms: cycle.symptoms as string[] | undefined,
+            notes: cycle.notes as string | undefined,
           });
 
           if (cycle.end_date) {
-            await menstrualCycleAPI.endCycle(cycle.end_date);
+            await menstrualCycleAPI.endCycle(cycle.end_date as string);
           }
           successCount++;
         } catch (error) {
@@ -221,7 +224,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
     try {
       const cyclesResponse = await menstrualCycleAPI.getCycles();
       const backupData: ExportData = {
-        cycles: cyclesResponse.data || [],
+        cycles: Array.isArray(cyclesResponse.data) ? cyclesResponse.data as Array<Record<string, unknown>> : [],
         settings: {
           appearance: JSON.parse(localStorage.getItem("appearanceSettings") || "null"),
           notifications: JSON.parse(localStorage.getItem("notificationSettings") || "null"),

@@ -24,12 +24,12 @@ export const OverviewCards: React.FC = () => {
       try {
         // まずユーザー情報とパートナー状況を取得
         const userData = await authAPI.getUser();
-        const gender = userData.data?.user?.gender || '';
+        const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || '';
         setUserGender(gender);
 
         const partnerStatus = await partnerAPI.getStatus();
-        const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
-        setIsConnectedToPartner(isConnected);
+        const isConnected = partnerStatus.success && (partnerStatus.data as { is_connected?: boolean })?.is_connected;
+        setIsConnectedToPartner(!!isConnected);
 
         const today = new Date();
         const year = today.getFullYear();
@@ -46,13 +46,13 @@ export const OverviewCards: React.FC = () => {
           
           if (response.success && nextMonthResponse.success) {
             // パートナーAPIからのデータを変換
-            const currentMonthData: { [key: string]: any } = {};
-            response.data.calendar_data.forEach((dayData: any) => {
+            const currentMonthData: { [key: string]: unknown } = {};
+            (response.data as { calendar_data: Array<{ date: string; [key: string]: unknown }> }).calendar_data.forEach((dayData) => {
               currentMonthData[dayData.date] = dayData;
             });
             
-            const nextMonthData: { [key: string]: any } = {};
-            nextMonthResponse.data.calendar_data.forEach((dayData: any) => {
+            const nextMonthData: { [key: string]: unknown } = {};
+            (nextMonthResponse.data as { calendar_data: Array<{ date: string; [key: string]: unknown }> }).calendar_data.forEach((dayData) => {
               nextMonthData[dayData.date] = dayData;
             });
             
@@ -65,7 +65,7 @@ export const OverviewCards: React.FC = () => {
           const nextMonthYear = month === 12 ? year + 1 : year;
           const nextMonthResponse = await menstrualCycleAPI.getCalendarData(nextMonthYear, nextMonth);
           
-          combinedData = { ...response.data, ...nextMonthResponse.data };
+          combinedData = { ...response.data as Record<string, unknown>, ...nextMonthResponse.data as Record<string, unknown> };
         }
         
         // Find next cycle start date and ovulation dates from calendar data
@@ -135,7 +135,7 @@ export const OverviewCards: React.FC = () => {
             const statusResponse = await menstrualCycleAPI.getCurrentStatus();
             
             if (statusResponse.hasActiveCycle && statusResponse.activeCycle) {
-              const cycleStart = new Date(statusResponse.activeCycle.start_date);
+              const cycleStart = new Date((statusResponse.activeCycle as { start_date: string }).start_date);
               const diffTime = today.getTime() - cycleStart.getTime();
               currentCycleDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
             }

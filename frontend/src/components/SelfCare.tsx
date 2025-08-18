@@ -38,21 +38,22 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       // APIデータとローカルストレージデータの両方を取得
       const apiData = await menstrualCycleAPI.getCalendarData(year, month);
-      const todayApiData = apiData.data?.[todayString];
+      const todayApiData = (apiData.data as Record<string, unknown>)?.[todayString];
       
       // ローカルストレージから今日の症状データを取得
       const localData = localStorage.getItem(`daily-symptoms-${todayString}`);
       let localParsedData = null;
       try {
         localParsedData = localData ? JSON.parse(localData) : null;
-      } catch (error) {
-        console.error(`Failed to parse local data for ${todayString}:`, error);
+      } catch {
+        console.error(`Failed to parse local data for ${todayString}`);
       }
 
       // 生理中の判定（APIデータまたはローカルデータ）
-      const hasPeriod = todayApiData?.hasPeriod || localParsedData?.hasPeriod || 
-                       todayApiData?.isPeriodStart || localParsedData?.isPeriodStart ||
-                       todayApiData?.isPeriodEnd || localParsedData?.isPeriodEnd;
+      const todayTypedData = todayApiData as { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean } | undefined;
+      const hasPeriod = todayTypedData?.hasPeriod || localParsedData?.hasPeriod || 
+                       todayTypedData?.isPeriodStart || localParsedData?.isPeriodStart ||
+                       todayTypedData?.isPeriodEnd || localParsedData?.isPeriodEnd;
       
       if (hasPeriod) {
         console.log("SelfCare - Today status: menstrual (period detected)");
@@ -60,7 +61,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       }
 
       // 排卵期の判定
-      if (todayApiData?.isOvulation || todayApiData?.isFertile) {
+      if (todayTypedData?.isOvulation || todayTypedData?.isFertile) {
         console.log("SelfCare - Today status: ovulation");
         return "ovulation";
       }
@@ -88,7 +89,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
             const futureIndex = todayIndex + i;
             if (futureIndex < keys.length) {
               const futureDate = keys[futureIndex];
-              const futureData = apiData.data[futureDate];
+              const futureData = (apiData.data as Record<string, { isPredictedPeriod?: boolean; hasPeriod?: boolean }>)[futureDate];
               if (futureData?.isPredictedPeriod || futureData?.hasPeriod) {
                 console.log("SelfCare - Today status: pms (predicted period within 7 days)");
                 return "pms";

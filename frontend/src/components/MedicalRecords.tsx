@@ -68,9 +68,10 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     try {
       const response = await userDataAPI.getMedicalRecords();
       if (response.success) {
-        setHospitalVisits(response.data.hospitalVisits || []);
-        setTestResults(response.data.testResults || []);
-        setMedications(response.data.medications || []);
+        const responseData = response.data as { hospitalVisits?: HospitalVisit[]; testResults?: TestResult[]; medications?: Medication[] };
+        setHospitalVisits(responseData.hospitalVisits || []);
+        setTestResults(responseData.testResults || []);
+        setMedications(responseData.medications || []);
       }
     } catch (error) {
       console.error("Failed to load medical records:", error);

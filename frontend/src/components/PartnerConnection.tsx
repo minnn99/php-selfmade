@@ -21,7 +21,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
       try {
         // ユーザー情報を取得
         const userData = await authAPI.getUser();
-        const gender = userData.data?.user?.gender || "";
+        const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
         setUserGender(gender);
 
         // パートナー状況を取得
@@ -54,11 +54,12 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
       const response = await partnerAPI.getStatus();
 
       if (response.success && response.data) {
-        setIsConnected(response.data.is_connected);
-        if (response.data.partner) {
+        const responseData = response.data as { is_connected?: boolean; partner?: { name: string; gender: string } };
+        setIsConnected(!!responseData.is_connected);
+        if (responseData.partner) {
           setPartnerInfo({
-            name: response.data.partner.name,
-            gender: response.data.partner.gender,
+            name: responseData.partner.name,
+            gender: responseData.partner.gender,
           });
         }
       }
@@ -79,7 +80,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
       const response = await partnerAPI.generateInvite();
 
       if (response.success && response.data) {
-        setGeneratedCode(response.data.invite_code);
+        const responseData = response.data as { invite_code?: string };
+        setGeneratedCode(responseData.invite_code || "");
         alert("招待コードが生成されました！\nパートナーにコードを共有してください。");
       } else {
         alert(response.message || "招待コードの生成に失敗しました。");
@@ -112,11 +114,14 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
       const response = await partnerAPI.joinPartner(inviteCode);
 
       if (response.success && response.data) {
+        const responseData = response.data as { partner?: { name: string; gender: string } };
         setIsConnected(true);
-        setPartnerInfo({
-          name: response.data.partner.name,
-          gender: response.data.partner.gender,
-        });
+        if (responseData.partner) {
+          setPartnerInfo({
+            name: responseData.partner.name,
+            gender: responseData.partner.gender,
+          });
+        }
         setActiveTab("status");
         setInviteCode("");
         alert("パートナーと連携しました！\n今後、健康データがパートナーと共有されます。");

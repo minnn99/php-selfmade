@@ -67,17 +67,17 @@ export const Calendar: React.FC = () => {
     const loadData = async () => {
       // まずユーザー情報を読み込み
       const userData = await authAPI.getUser();
-      const gender = userData.data?.user?.gender || "";
+      const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
       setUserGender(gender);
       console.log("Calendar: User gender set to:", gender);
 
       // パートナー状況を確認
       const partnerStatus = await partnerAPI.getStatus();
-      const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
-      setIsConnectedToPartner(isConnected);
+      const isConnected = partnerStatus.success && (partnerStatus.data as { is_connected?: boolean })?.is_connected;
+      setIsConnectedToPartner(!!isConnected);
       console.log("Calendar: Partner connection status:", {
         success: partnerStatus.success,
-        is_connected: partnerStatus.data?.is_connected,
+        is_connected: (partnerStatus.data as { is_connected?: boolean })?.is_connected,
         isConnected,
       });
 
@@ -233,7 +233,7 @@ export const Calendar: React.FC = () => {
     // 月切り替え時はローディング状態を設定しない（スムーズな切り替えのため）
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
-      const rawData = data.data || {};
+      const rawData = (data.data as Record<string, CalendarDayData>) || {};
 
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
@@ -265,9 +265,9 @@ export const Calendar: React.FC = () => {
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
           console.log("Calendar: Partner data response:", partnerData);
 
-          if (partnerData.success && partnerData.data?.calendar_data) {
+          if (partnerData.success && (partnerData.data as { calendar_data?: Array<CalendarDayData & { date: string }> })?.calendar_data) {
             const partnerCalendarMap: Record<string, CalendarDayData> = {};
-            partnerData.data.calendar_data.forEach((dayData: CalendarDayData & { date: string }) => {
+            (partnerData.data as { calendar_data: Array<CalendarDayData & { date: string }> }).calendar_data.forEach((dayData) => {
               partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
@@ -477,8 +477,8 @@ export const Calendar: React.FC = () => {
         if (cycleData) {
           // 選択した日付が開始日・終了日かを判定
           const selectedDateStr = getLocalDateString(date);
-          const isStartDate = cycleData.start_date === selectedDateStr;
-          const isEndDate = cycleData.end_date === selectedDateStr;
+          const isStartDate = (cycleData as { start_date?: string }).start_date === selectedDateStr;
+          const isEndDate = (cycleData as { end_date?: string }).end_date === selectedDateStr;
 
           return {
             isPeriodStart: isStartDate,
@@ -486,8 +486,8 @@ export const Calendar: React.FC = () => {
             symptoms: localSymptoms, // ローカルデータを使用
             mood: localMood, // ローカルデータを使用
             healthNotes: localHealthNotes, // ローカルデータを使用
-            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : cycleData.flow_intensity,
-            cycleId: cycleData.id,
+            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : (cycleData as { flow_intensity?: number }).flow_intensity,
+            cycleId: (cycleData as { id?: number }).id,
             existingCycleData: cycleData,
             partnerData: partnerDailyData, // パートナーデータを追加
           };
@@ -575,7 +575,7 @@ export const Calendar: React.FC = () => {
               console.log("Current status response:", response);
 
               if (response.hasActiveCycle && response.activeCycle) {
-                const activeCycle = response.activeCycle;
+                const activeCycle = response.activeCycle as { id: number; start_date: string };
                 console.log(`Found active cycle: ID=${activeCycle.id}, start=${activeCycle.start_date}`);
 
                 await menstrualCycleAPI.updateCycle(activeCycle.id, { end_date: dateStr });

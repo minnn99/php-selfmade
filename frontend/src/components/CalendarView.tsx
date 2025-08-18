@@ -45,12 +45,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     const loadData = async () => {
       // まずユーザー情報を読み込み
       const userData = await authAPI.getUser();
-      const gender = userData.data?.user?.gender || "";
+      const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
       setUserGender(gender);
       // パートナー状況を確認
       const partnerStatus = await partnerAPI.getStatus();
-      const isConnected = partnerStatus.success && partnerStatus.data?.is_connected;
-      setIsConnectedToPartner(isConnected);
+      const isConnected = partnerStatus.success && (partnerStatus.data as { is_connected?: boolean })?.is_connected;
+      setIsConnectedToPartner(!!isConnected);
 
       // ユーザー情報取得後にカレンダーデータを読み込み
       await loadCalendarData(gender, isConnected);
@@ -162,7 +162,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
-      const rawData = data.data || {};
+      const rawData = (data.data as Record<string, unknown>) || {};
 
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
@@ -185,9 +185,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         try {
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
 
-          if (partnerData.success && partnerData.data?.calendar_data) {
+          if (partnerData.success && (partnerData.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> })?.calendar_data) {
             const partnerCalendarMap: any = {};
-            partnerData.data.calendar_data.forEach((dayData: any) => {
+            (partnerData.data as { calendar_data: Array<{ date: string; [key: string]: unknown }> }).calendar_data.forEach((dayData) => {
               partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
@@ -423,8 +423,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         if (cycleData) {
           // 選択した日付が開始日・終了日かを判定
           const selectedDateStr = getLocalDateString(date);
-          const isStartDate = cycleData.start_date === selectedDateStr;
-          const isEndDate = cycleData.end_date === selectedDateStr;
+          const isStartDate = (cycleData as { start_date?: string }).start_date === selectedDateStr;
+          const isEndDate = (cycleData as { end_date?: string }).end_date === selectedDateStr;
 
           return {
             isPeriodStart: isStartDate,
@@ -432,8 +432,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
             symptoms: localSymptoms, // ローカルデータを使用
             mood: localMood, // ローカルデータを使用
             healthNotes: localHealthNotes, // ローカルデータを使用
-            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : cycleData.flow_intensity,
-            cycleId: cycleData.id,
+            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : (cycleData as { flow_intensity?: number }).flow_intensity,
+            cycleId: (cycleData as { id?: number }).id,
             existingCycleData: cycleData,
             partnerData: partnerDailyData, // パートナーデータを追加
           };

@@ -21,11 +21,6 @@ export const useAuth = (): UseAuthReturn => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize authentication state
-  useEffect(() => {
-    checkInitialAuth();
-  }, [checkInitialAuth]);
-
   const checkInitialAuth = useCallback(async () => {
     try {
       const isAuth = authAPI.isAuthenticated();
@@ -67,6 +62,10 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, []);
 
+  // Initialize authentication state
+  useEffect(() => {
+    checkInitialAuth();
+  }, [checkInitialAuth]);
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
