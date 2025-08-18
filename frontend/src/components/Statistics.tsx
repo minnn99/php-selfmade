@@ -288,22 +288,20 @@ export const Statistics: React.FC = () => {
 
     // 2. 日別症状データから直接収集（API + localStorage）
     if (completedCycles.length > 0) {
-      const allDates = completedCycles.map(cycle => ({
+      const allDates = completedCycles.map((cycle) => ({
         start: cycle.start_date,
-        end: cycle.end_date || new Date().toISOString().split('T')[0]
+        end: cycle.end_date || new Date().toISOString().split("T")[0],
       }));
-      
-      const earliestDate = allDates.reduce((min, cycle) => 
-        cycle.start < min ? cycle.start : min, allDates[0].start);
-      const latestDate = allDates.reduce((max, cycle) => 
-        cycle.end > max ? cycle.end : max, allDates[0].end);
-      
+
+      const earliestDate = allDates.reduce((min, cycle) => (cycle.start < min ? cycle.start : min), allDates[0].start);
+      const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
+
       // APIから症状データを取得
       try {
         const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
         if (response.success && response.data) {
-          console.log('Statistics: API response data type and structure:', typeof response.data, response.data);
-          
+          console.log("Statistics: API response data type and structure:", typeof response.data, response.data);
+
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: any) => {
@@ -313,9 +311,9 @@ export const Statistics: React.FC = () => {
             });
           }
           // レスポンスデータがオブジェクトの場合の処理
-          else if (typeof response.data === 'object' && response.data !== null) {
+          else if (typeof response.data === "object" && response.data !== null) {
             Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
-              if (dayData && typeof dayData === 'object' && dayData.symptoms && Array.isArray(dayData.symptoms)) {
+              if (dayData && typeof dayData === "object" && dayData.symptoms && Array.isArray(dayData.symptoms)) {
                 // console.log(`Statistics: Adding ${dayData.symptoms.length} symptoms from API for ${date}:`, dayData.symptoms);
                 allSymptoms.push(...dayData.symptoms);
               }
@@ -323,18 +321,18 @@ export const Statistics: React.FC = () => {
           }
         }
       } catch (error) {
-        console.log('Statistics: Failed to fetch symptoms range for symptom statistics');
+        console.log("Statistics: Failed to fetch symptoms range for symptom statistics");
       }
-      
+
       // ローカルストレージからも収集
-      completedCycles.forEach(cycle => {
+      completedCycles.forEach((cycle) => {
         if (cycle.start_date) {
           const startDate = new Date(cycle.start_date);
           const endDate = cycle.end_date ? new Date(cycle.end_date) : new Date();
-          
+
           for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            
+            const dateStr = d.toISOString().split("T")[0];
+
             try {
               const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
               if (localData) {
@@ -352,7 +350,7 @@ export const Statistics: React.FC = () => {
       });
     }
 
-    console.log('Statistics: All collected symptoms before processing:', allSymptoms);
+    console.log("Statistics: All collected symptoms before processing:", allSymptoms);
 
     // 症状の周期別分類（全ての症状データを使用）
     allSymptoms.forEach((symptom: string) => {
@@ -424,32 +422,33 @@ export const Statistics: React.FC = () => {
     setSymptomStats(finalSymptomStats);
 
     // 流量統計の計算 - 日別症状データから流量データを収集
-    console.log('Statistics: Checking flow data in cycles:', completedCycles);
-    console.log('Statistics: Cycles with flow_intensity:', completedCycles.filter(cycle => cycle.flow_intensity));
-    
+    console.log("Statistics: Checking flow data in cycles:", completedCycles);
+    console.log(
+      "Statistics: Cycles with flow_intensity:",
+      completedCycles.filter((cycle) => cycle.flow_intensity)
+    );
+
     // 周期データからの流量データ
     const cycleFlowIntensities = completedCycles.filter((cycle) => cycle.flow_intensity).map((cycle) => cycle.flow_intensity);
-    
+
     // 日別症状データから流量データを収集
     let allFlowIntensities = [...cycleFlowIntensities];
-    
+
     // 範囲でAPIから症状データを取得
     if (completedCycles.length > 0) {
-      const allDates = completedCycles.map(cycle => ({
+      const allDates = completedCycles.map((cycle) => ({
         start: cycle.start_date,
-        end: cycle.end_date || new Date().toISOString().split('T')[0]
+        end: cycle.end_date || new Date().toISOString().split("T")[0],
       }));
-      
-      const earliestDate = allDates.reduce((min, cycle) => 
-        cycle.start < min ? cycle.start : min, allDates[0].start);
-      const latestDate = allDates.reduce((max, cycle) => 
-        cycle.end > max ? cycle.end : max, allDates[0].end);
-      
+
+      const earliestDate = allDates.reduce((min, cycle) => (cycle.start < min ? cycle.start : min), allDates[0].start);
+      const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
+
       try {
         const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
         if (response.success && response.data) {
-          console.log('Statistics: Symptoms range data for flow calculation:', response.data);
-          
+          console.log("Statistics: Symptoms range data for flow calculation:", response.data);
+
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: any) => {
@@ -460,32 +459,32 @@ export const Statistics: React.FC = () => {
             });
           }
           // レスポンスデータがオブジェクトの場合の処理
-          else if (typeof response.data === 'object' && response.data !== null) {
+          else if (typeof response.data === "object" && response.data !== null) {
             Object.entries(response.data).forEach(([_date, dayData]: [string, any]) => {
               // console.log(`Statistics: Checking API data for ${_date}:`, dayData);
-              if (dayData && typeof dayData === 'object' && dayData.flowIntensity && dayData.flowIntensity > 0) {
+              if (dayData && typeof dayData === "object" && dayData.flowIntensity && dayData.flowIntensity > 0) {
                 console.log(`Statistics: Found flow intensity ${dayData.flowIntensity} for ${_date} from API`);
                 allFlowIntensities.push(dayData.flowIntensity);
               }
             });
           }
         } else {
-          console.log('Statistics: API response failed or no data:', response);
+          console.log("Statistics: API response failed or no data:", response);
         }
       } catch (error) {
-        console.log('Statistics: Failed to fetch symptoms range for flow data, using local storage fallback:', error);
+        console.log("Statistics: Failed to fetch symptoms range for flow data, using local storage fallback:", error);
       }
     }
-    
+
     // ローカルストレージからもフォールバック
-    completedCycles.forEach(cycle => {
+    completedCycles.forEach((cycle) => {
       if (cycle.start_date) {
         const startDate = new Date(cycle.start_date);
         const endDate = cycle.end_date ? new Date(cycle.end_date) : new Date();
-        
+
         for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split('T')[0];
-          
+          const dateStr = d.toISOString().split("T")[0];
+
           try {
             const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
             if (localData) {
@@ -502,14 +501,14 @@ export const Statistics: React.FC = () => {
         }
       }
     });
-    
+
     // 有効な値のみをフィルタ（重複除去はしない - 各日のデータは独立）
-    console.log('Statistics: All collected flow intensities before filtering:', allFlowIntensities);
-    const flowIntensities = allFlowIntensities.filter(intensity => intensity && intensity > 0);
-    
-    console.log('Statistics: Final flow intensities array after deduplication and filtering:', flowIntensities);
-    console.log('Statistics: Flow intensities length:', flowIntensities.length);
-    console.log('Statistics: Unique flow values:', [...new Set(flowIntensities)]);
+    console.log("Statistics: All collected flow intensities before filtering:", allFlowIntensities);
+    const flowIntensities = allFlowIntensities.filter((intensity) => intensity && intensity > 0);
+
+    console.log("Statistics: Final flow intensities array after deduplication and filtering:", flowIntensities);
+    console.log("Statistics: Flow intensities length:", flowIntensities.length);
+    console.log("Statistics: Unique flow values:", [...new Set(flowIntensities)]);
 
     if (flowIntensities.length > 0) {
       const avgFlow = flowIntensities.reduce((sum, intensity) => sum + intensity, 0) / flowIntensities.length;
@@ -528,7 +527,7 @@ export const Statistics: React.FC = () => {
         flowDistribution,
       });
     } else {
-      console.log('Statistics: No flow data available, setting empty flow stats');
+      console.log("Statistics: No flow data available, setting empty flow stats");
       // 流量データがない場合でも基本的な構造を設定
       setFlowStats({
         averageFlowIntensity: 0,
@@ -537,8 +536,8 @@ export const Statistics: React.FC = () => {
           { intensity: 2, count: 0, percentage: 0 },
           { intensity: 3, count: 0, percentage: 0 },
           { intensity: 4, count: 0, percentage: 0 },
-          { intensity: 5, count: 0, percentage: 0 }
-        ]
+          { intensity: 5, count: 0, percentage: 0 },
+        ],
       });
     }
   };
@@ -642,20 +641,6 @@ export const Statistics: React.FC = () => {
                 <option value="1year">過去1年</option>
                 <option value="all">全期間</option>
               </select>
-              <button
-                onClick={() => {
-                  Object.keys(localStorage).forEach((key) => {
-                    if (key.startsWith("daily-symptoms-")) {
-                      localStorage.removeItem(key);
-                    }
-                  });
-                  console.log("Local symptoms data cleared");
-                  loadStatistics(false);
-                }}
-                className="px-3 py-2 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition-colors"
-              >
-                症状データクリア
-              </button>
             </div>
           </div>
         </div>

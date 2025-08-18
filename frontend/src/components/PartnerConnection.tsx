@@ -217,16 +217,12 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         {activeTab === "status" && (
           <div className="space-y-4">
             {isConnected ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+              <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                   <div className="text-center sm:text-left">
-                    <h3 className="text-base sm:text-lg font-medium text-green-900">連携中</h3>
-                    <p className="text-sm sm:text-base text-green-700">パートナー: {partnerInfo?.name}</p>
-                    <p className="text-xs sm:text-sm text-green-600 mt-1">健康データを共有しています</p>
-                  </div>
-                  <div className="flex items-center justify-center sm:justify-end">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-xs sm:text-sm text-green-700">オンライン</span>
+                    <h3 className="text-base sm:text-lg font-medium text-pink-900">連携中</h3>
+                    <p className="text-sm sm:text-base text-pink-700">パートナー: {partnerInfo?.name}</p>
+                    <p className="text-xs sm:text-sm text-pink-600 mt-1">健康データを共有しています</p>
                   </div>
                 </div>
                 <button

@@ -190,10 +190,27 @@ export const OverviewCards: React.FC = () => {
   };
 
   const getProgressPercentage = (dateString: string | null, averageCycleLength: number | null) => {
-    if (!dateString || !averageCycleLength) return 0;
+    if (!dateString) return 0;
+    
     const daysUntil = getDaysUntil(dateString);
-    if (daysUntil === null || daysUntil < 0) return 0;
-    return Math.max(0, Math.min(100, ((averageCycleLength - daysUntil) / averageCycleLength) * 100));
+    if (daysUntil === null || daysUntil < 0) return 100; // 過去の日付の場合は100%
+    
+    // 一般的な28日周期を基準にした進行度を計算
+    const defaultCycleLength = 28;
+    const usedCycleLength = averageCycleLength || defaultCycleLength;
+    
+    // 次の生理日までの進行度を計算
+    // daysUntilが大きい場合（周期の初期）は進行度が小さく
+    // daysUntilが小さい場合（周期の終期）は進行度が大きく
+    let progressPercentage;
+    if (daysUntil > usedCycleLength) {
+      // 予定日が遠い場合は、次の周期として計算
+      progressPercentage = 0;
+    } else {
+      progressPercentage = ((usedCycleLength - daysUntil) / usedCycleLength) * 100;
+    }
+    
+    return Math.max(0, Math.min(100, progressPercentage));
   };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
