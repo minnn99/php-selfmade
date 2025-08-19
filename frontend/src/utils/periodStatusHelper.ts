@@ -112,13 +112,13 @@ export const initializeTodayPeriodStatus = () => {
   const checkAndUpdate = () => {
     const status = menstrualStatusManager.getCurrentStatus();
     
-    if (status === null) {
+    if (!status) {
       // Status not loaded yet, wait a bit more
       setTimeout(checkAndUpdate, 100);
       return;
     }
     
-    if (status.hasActiveCycle) {
+    if (status?.hasActiveCycle) {
       updateDailyDataWithPeriodStatus(today);
       
       // Dispatch event to update UI components
