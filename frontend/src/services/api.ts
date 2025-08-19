@@ -358,7 +358,7 @@ export const userDataAPI = {
   },
 
   // Save pregnancy records
-  savePregnancyRecords: async (startDate: string | null, recordsData: Record<string, unknown>, isActive: boolean = true) => {
+  savePregnancyRecords: async (startDate: string | null, recordsData: unknown, isActive: boolean = true) => {
     return apiRequest('/user-data/pregnancy-records', {
       method: 'POST',
       body: JSON.stringify({
@@ -375,7 +375,7 @@ export const userDataAPI = {
   },
 
   // Save medical records
-  saveMedicalRecords: async (type: 'hospitalVisits' | 'testResults' | 'medications', data: Record<string, unknown>[]) => {
+  saveMedicalRecords: async (type: 'hospitalVisits' | 'testResults' | 'medications', data: unknown[]) => {
     return apiRequest('/user-data/medical-records', {
       method: 'POST',
       body: JSON.stringify({
