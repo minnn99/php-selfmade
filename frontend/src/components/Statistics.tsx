@@ -288,6 +288,7 @@ export const Statistics: React.FC = () => {
     // 症状統計の計算 - 日別症状データも直接収集
     console.log("Statistics: Starting symptom calculation with cycles:", completedCycles);
     const allSymptoms: string[] = [];
+    const symptomsWithPhase: Array<{ symptom: string; phase: 'menstrual' | 'follicular' | 'ovulatory' | 'luteal'; date: string }> = [];
     const symptomsByPhase = {
       menstrual: [] as Array<{ symptom: string; count: number }>,
       follicular: [] as Array<{ symptom: string; count: number }>,
@@ -295,12 +296,48 @@ export const Statistics: React.FC = () => {
       luteal: [] as Array<{ symptom: string; count: number }>,
     };
 
-    // 1. 周期データから症状を収集
+    // 日付から周期段階を判定する関数
+    const getCyclePhase = (date: string, cycles: CycleData[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
+      const targetDate = new Date(date);
+      
+      // 該当する周期を見つける
+      const cycle = cycles.find(c => {
+        const startDate = new Date(c.start_date);
+        const endDate = c.end_date ? new Date(c.end_date) : new Date(startDate.getTime() + 35 * 24 * 60 * 60 * 1000); // デフォルト35日
+        return targetDate >= startDate && targetDate <= endDate;
+      });
+      
+      if (!cycle) return 'follicular'; // デフォルト
+      
+      const cycleStart = new Date(cycle.start_date);
+      const dayOfCycle = Math.floor((targetDate.getTime() - cycleStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      
+      // 実際の生理終了日がある場合はそれを使用、なければデフォルト5日
+      let menstrualEndDay = 5;
+      if (cycle.end_date && cycle.start_date) {
+        const actualMenstrualLength = Math.floor((new Date(cycle.end_date).getTime() - new Date(cycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
+        if (actualMenstrualLength > 0 && actualMenstrualLength <= 10) { // 妥当な範囲
+          menstrualEndDay = actualMenstrualLength;
+        }
+      }
+      
+      // 周期段階の判定
+      if (dayOfCycle <= menstrualEndDay) return 'menstrual';      // 生理期
+      else if (dayOfCycle <= 13) return 'follicular'; // 卵胞期
+      else if (dayOfCycle <= 16) return 'ovulatory';  // 排卵期
+      else return 'luteal';                           // 黄体期
+    };
+
+    // 1. 周期データから症状を収集（周期開始日の症状として生理期に分類）
     completedCycles.forEach((cycle) => {
       console.log(`Statistics: Processing cycle ${cycle.id} symptoms:`, cycle.symptoms);
       if (cycle.symptoms && Array.isArray(cycle.symptoms)) {
         console.log(`Statistics: Adding ${cycle.symptoms.length} symptoms from cycle ${cycle.id}`);
-        allSymptoms.push(...cycle.symptoms);
+        cycle.symptoms.forEach(symptom => {
+          allSymptoms.push(symptom);
+          // 周期データの症状は生理開始日の症状として扱う
+          symptomsWithPhase.push({ symptom, phase: 'menstrual', date: cycle.start_date });
+        });
       }
     });
 
@@ -323,17 +360,24 @@ export const Statistics: React.FC = () => {
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: DailySymptomsData) => {
-              if (dayData.symptoms && Array.isArray(dayData.symptoms)) {
-                allSymptoms.push(...dayData.symptoms);
+              if (dayData.symptoms && Array.isArray(dayData.symptoms) && dayData.date) {
+                const phase = getCyclePhase(String(dayData.date), completedCycles);
+                dayData.symptoms.forEach(symptom => {
+                  allSymptoms.push(symptom);
+                  symptomsWithPhase.push({ symptom, phase, date: String(dayData.date) });
+                });
               }
             });
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
-            Object.entries(response.data).forEach(([, dayData]) => {
+            Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
-                // console.log(`Statistics: Adding ${dayData.symptoms.length} symptoms from API for ${date}:`, dayData.symptoms);
-                allSymptoms.push(...(dayData as DailySymptomsData).symptoms!);
+                const phase = getCyclePhase(date, completedCycles);
+                (dayData as DailySymptomsData).symptoms!.forEach(symptom => {
+                  allSymptoms.push(symptom);
+                  symptomsWithPhase.push({ symptom, phase, date });
+                });
               }
             });
           }
@@ -356,8 +400,11 @@ export const Statistics: React.FC = () => {
               if (localData) {
                 const parsed = JSON.parse(localData);
                 if (parsed.symptoms && Array.isArray(parsed.symptoms)) {
-                  // console.log(`Statistics: Adding ${parsed.symptoms.length} symptoms from localStorage for ${dateStr}:`, parsed.symptoms);
-                  allSymptoms.push(...parsed.symptoms);
+                  const phase = getCyclePhase(dateStr, completedCycles);
+                  parsed.symptoms.forEach((symptom: string) => {
+                    allSymptoms.push(symptom);
+                    symptomsWithPhase.push({ symptom, phase, date: dateStr });
+                  });
                 }
               }
             } catch {
@@ -369,39 +416,15 @@ export const Statistics: React.FC = () => {
     }
 
     console.log("Statistics: All collected symptoms before processing:", allSymptoms);
+    console.log("Statistics: Symptoms with phase information:", symptomsWithPhase);
 
-    // 症状の周期別分類（全ての症状データを使用）
-    allSymptoms.forEach((symptom: string) => {
-      // 症状の特徴に基づいて周期段階を推定
-      if (symptom.includes("生理") || symptom.includes("月経") || symptom.includes("出血")) {
-        const existing = symptomsByPhase.menstrual.find((s) => s.symptom === symptom);
-        if (existing) {
-          existing.count++;
-        } else {
-          symptomsByPhase.menstrual.push({ symptom, count: 1 });
-        }
-      } else if (symptom.includes("排卵") || symptom.includes("透明") || symptom.includes("伸びる")) {
-        const existing = symptomsByPhase.ovulatory.find((s) => s.symptom === symptom);
-        if (existing) {
-          existing.count++;
-        } else {
-          symptomsByPhase.ovulatory.push({ symptom, count: 1 });
-        }
-      } else if (symptom.includes("PMS") || symptom.includes("イライラ") || symptom.includes("むくみ")) {
-        const existing = symptomsByPhase.luteal.find((s) => s.symptom === symptom);
-        if (existing) {
-          existing.count++;
-        } else {
-          symptomsByPhase.luteal.push({ symptom, count: 1 });
-        }
+    // 症状の周期別分類（日付ベースで正確に分類）
+    symptomsWithPhase.forEach(({ symptom, phase }) => {
+      const existing = symptomsByPhase[phase].find((s) => s.symptom === symptom);
+      if (existing) {
+        existing.count++;
       } else {
-        // その他の症状は卵胞期に分類
-        const existing = symptomsByPhase.follicular.find((s) => s.symptom === symptom);
-        if (existing) {
-          existing.count++;
-        } else {
-          symptomsByPhase.follicular.push({ symptom, count: 1 });
-        }
+        symptomsByPhase[phase].push({ symptom, count: 1 });
       }
     });
 
