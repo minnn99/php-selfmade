@@ -86,17 +86,18 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
       alert(`全ての生理周期データが削除されました\n削除件数: ${response.deleted_count || 0}件`);
       onClose();
       onDataDeleted(); // データ削除成功時に親に通知
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete all cycles:", error);
 
       let errorMessage = "全削除に失敗しました。";
-      if (error.response) {
-        const errorData = error.response.data;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string }, status: number } };
+        const errorData = axiosError.response.data;
         if (errorData.message) {
           errorMessage += `\nエラー: ${errorData.message}`;
         }
-        errorMessage += `\nステータス: ${error.response.status}`;
-      } else if (error.message) {
+        errorMessage += `\nステータス: ${axiosError.response.status}`;
+      } else if (error instanceof Error) {
         errorMessage += `\nエラー: ${error.message}`;
       }
       alert(errorMessage); // ここもカスタムモーダルに置き換えるのが理想

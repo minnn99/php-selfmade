@@ -96,6 +96,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 // Higher-Order Component version for easier usage
+// eslint-disable-next-line react-refresh/only-export-components
 export const withAuthProtection = <P extends object>(
   WrappedComponent: React.ComponentType<P>,
   options?: {

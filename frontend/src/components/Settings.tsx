@@ -42,6 +42,30 @@ interface PrivacySettings {
   };
 }
 
+interface AppearanceSettings {
+  theme: {
+    mode: "light" | "dark" | "auto";
+  };
+  language: {
+    locale: string;
+  };
+}
+
+interface ProfileData {
+  nickname: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  birthDate: string;
+  gender: string;
+  height: string;
+  weight: string;
+  bloodType: string;
+  allergies: string;
+  medications: string;
+  medicalHistory: string;
+}
+
 interface SettingsProps {
   onDataDeleted: () => void;
   onLogout?: () => void;
@@ -152,12 +176,12 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     // ここで実際の保存処理を実装
   };
 
-  const handleAppearanceSave = (settings: any) => {
+  const handleAppearanceSave = (settings: AppearanceSettings) => {
     console.log("Appearance settings saved:", settings);
     // ここで実際の保存処理を実装
   };
 
-  const handleProfileSave = (profileData: any) => {
+  const handleProfileSave = (profileData: ProfileData) => {
     console.log("Profile data saved:", profileData);
     // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
   };
@@ -187,17 +211,18 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
       // ページをリロードしてログイン画面へ
       window.location.reload();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to delete account:", error);
 
       let errorMessage = "アカウント削除に失敗しました。";
-      if (error.response) {
-        const errorData = error.response.data;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string }, status: number } };
+        const errorData = axiosError.response.data;
         if (errorData.message) {
           errorMessage += `\nエラー: ${errorData.message}`;
         }
-        errorMessage += `\nステータス: ${error.response.status}`;
-      } else if (error.message) {
+        errorMessage += `\nステータス: ${axiosError.response.status}`;
+      } else if (error instanceof Error) {
         errorMessage += `\nエラー: ${error.message}`;
       }
       alert(errorMessage);

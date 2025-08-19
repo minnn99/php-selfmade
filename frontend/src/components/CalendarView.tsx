@@ -263,7 +263,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         return false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Remove refreshKey dependency to avoid unnecessary re-renders
 
   // カレンダーの日付データを生成（APIデータを使用）
@@ -378,7 +377,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     return days;
   };
 
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey, generateCalendarDays]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
 
   // 日付がクリックされた時の処理
   const handleDateClick = async (day: CalendarDay) => {

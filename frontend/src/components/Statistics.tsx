@@ -68,6 +68,7 @@ export const Statistics: React.FC = () => {
     return () => {
       window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 周期データに日別症状データを統合する関数（バッチAPI使用）

@@ -772,7 +772,8 @@ export const Calendar: React.FC = () => {
     setExistingDataForModal(undefined);
   };
 
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey, generateCalendarDays]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {
