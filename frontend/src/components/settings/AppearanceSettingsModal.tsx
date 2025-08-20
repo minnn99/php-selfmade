@@ -35,24 +35,59 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
   useEffect(() => {
     const savedSettings = localStorage.getItem("appearanceSettings");
     if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+      const parsedSettings = JSON.parse(savedSettings);
+      setSettings(parsedSettings);
+      applyTheme(parsedSettings.theme.mode);
+    } else {
+      // システムのダークモード設定を検出
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialMode = prefersDark ? 'auto' : 'light';
+      applyTheme(initialMode);
     }
   }, []);
 
+  const applyTheme = (mode: "light" | "dark" | "auto") => {
+    const root = document.documentElement;
+    
+    if (mode === 'auto') {
+      // システム設定に従う
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    } else if (mode === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  };
+
   const handleSave = () => {
     localStorage.setItem("appearanceSettings", JSON.stringify(settings));
+    applyTheme(settings.theme.mode);
     onSave(settings);
     onClose();
   };
 
   const updateSetting = (category: keyof AppearanceSettings, field: string, value: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [field]: value,
-      },
-    }));
+    setSettings((prev) => {
+      const newSettings = {
+        ...prev,
+        [category]: {
+          ...prev[category],
+          [field]: value,
+        },
+      };
+      
+      // テーマ変更時はリアルタイムプレビュー
+      if (category === 'theme' && field === 'mode') {
+        applyTheme(value as "light" | "dark" | "auto");
+      }
+      
+      return newSettings;
+    });
   };
 
   if (!isOpen) return null;
@@ -88,9 +123,9 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
               <label className="block text-sm font-medium text-gray-700 whitespace-nowrap">テーマモード</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { value: "light", label: "ライト", icon: "" },
-                  { value: "dark", label: "ダーク", icon: "" },
-                  { value: "auto", label: "自動", icon: "" },
+                  { value: "light", label: "ライト", icon: "☀️" },
+                  { value: "dark", label: "ダーク", icon: "🌙" },
+                  { value: "auto", label: "自動", icon: "🔄" },
                 ].map((mode) => (
                   <label key={mode.value} className="flex items-center">
                     <input

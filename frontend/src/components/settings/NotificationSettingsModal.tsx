@@ -54,6 +54,14 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
     },
   });
   const [loading, setLoading] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+
+  // 通知権限をチェック
+  useEffect(() => {
+    if (isOpen && 'Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, [isOpen]);
 
   // MySQLから設定を読み込み
   useEffect(() => {
@@ -75,6 +83,21 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       loadSettings();
     }
   }, [isOpen]);
+
+  // 通知権限を要求
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        // テスト通知を送信
+        new Notification('Pairiod', {
+          body: '通知が有効になりました',
+          icon: '/favicon.ico'
+        });
+      }
+    }
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -277,6 +300,37 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
               <h3 className="text-base sm:text-lg font-medium text-gray-900">一般設定</h3>
               <p className="text-xs sm:text-sm text-gray-500 leading-tight">プッシュ通知と音声設定</p>
             </div>
+            
+            {/* ブラウザ通知権限 */}
+            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">ブラウザ通知権限</span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  notificationPermission === 'granted' 
+                    ? 'bg-green-100 text-green-700' 
+                    : notificationPermission === 'denied'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {notificationPermission === 'granted' ? '許可済み' : 
+                   notificationPermission === 'denied' ? '拒否' : '未設定'}
+                </span>
+              </div>
+              {notificationPermission !== 'granted' && (
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">
+                    ブラウザ通知を受信するには権限が必要です
+                  </p>
+                  <button
+                    onClick={requestNotificationPermission}
+                    className="text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg transition-colors"
+                  >
+                    権限を許可
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2 sm:space-y-3">
               <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <span className="text-sm font-medium text-gray-700">プッシュ通知</span>

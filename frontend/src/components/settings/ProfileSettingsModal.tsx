@@ -49,32 +49,53 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     }
   }, [isOpen]);
 
+  // Listen for profile updates to refresh data when modal is open
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      if (isOpen) {
+        loadProfileData();
+      }
+    };
+
+    window.addEventListener('userProfileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+    };
+  }, [isOpen]);
+
   const loadProfileData = async () => {
     try {
-      // APIから最新のユーザー情報を取得
+      // まずローカル認証データから取得（最新の更新内容を反映）
+      const authData = authAPI.getAuthData();
+      
+      // APIから設定データを取得
       const [userResponse, settingsResponse] = await Promise.all([authAPI.getUser(), userDataAPI.getSettings()]);
 
       const userResponseData = userResponse.data as { user?: { name?: string; email?: string; phone?: string; gender?: string } };
-      const user = userResponseData.user;
+      const apiUser = userResponseData.user;
       const settingsResponseData = settingsResponse.data as { userProfile?: ProfileData };
       const savedProfile = settingsResponse.success ? settingsResponseData.userProfile : null;
+
+      // ローカル認証データを優先し、不足分をAPIデータで補完（型安全性を確保）
+      const localUser = authData?.user;
+      const userData = {
+        fullName: (typeof localUser?.name === 'string' ? localUser.name : '') || (typeof apiUser?.name === 'string' ? apiUser.name : '') || "",
+        email: (typeof localUser?.email === 'string' ? localUser.email : '') || (typeof apiUser?.email === 'string' ? apiUser.email : '') || "",
+        phone: (typeof localUser?.phone === 'string' ? localUser.phone : '') || (typeof apiUser?.phone === 'string' ? apiUser.phone : '') || "",
+        gender: (typeof localUser?.gender === 'string' ? localUser.gender : '') || (typeof apiUser?.gender === 'string' ? apiUser.gender : '') || "",
+      };
 
       if (savedProfile) {
         setProfileData({
           ...savedProfile,
-          fullName: user?.name || savedProfile.fullName,
-          email: user?.email || savedProfile.email,
-          phone: user?.phone || savedProfile.phone,
-          gender: user?.gender || savedProfile.gender,
+          ...userData, // ローカルデータで基本情報を上書き
         });
       } else {
-        // 初期値をAPIデータから設定
+        // 初期値を設定
         setProfileData((prev) => ({
           ...prev,
-          fullName: user?.name || "",
-          email: user?.email || "",
-          phone: user?.phone || "",
-          gender: user?.gender || "",
+          ...userData,
         }));
       }
     } catch (error) {
@@ -85,11 +106,34 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   const handleSave = async () => {
     setLoading(true);
     try {
+      // 1. ローカル認証データを更新（API実装まで一時的な対応）
+      const authData = authAPI.getAuthData();
+      if (authData) {
+        const updatedAuthData = {
+          ...authData,
+          user: {
+            ...authData.user,
+            name: profileData.fullName,
+            email: profileData.email,
+            phone: profileData.phone,
+          }
+        };
+        localStorage.setItem('auth_data', JSON.stringify(updatedAuthData));
+      }
+
+      // 2. 詳細プロフィール情報を設定として保存
       await userDataAPI.saveSettings({
         userProfile: profileData,
       });
+
       onSave(profileData);
       onClose();
+      
+      // カスタムイベントを発火してユーザー情報の再読み込みを促す
+      window.dispatchEvent(new CustomEvent('userProfileUpdated'));
+      
+      alert("プロフィールが保存されました");
+      
     } catch (error) {
       console.error("Failed to save profile data:", error);
       alert("プロフィールの保存に失敗しました。");
@@ -153,7 +197,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">ニックネーム</label>
           <input
             type="text"
-            value={profileData.nickname}
+            value={profileData.nickname || ""}
             onChange={(e) => updateField("nickname", e.target.value)}
             placeholder="表示用の名前"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -163,7 +207,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">本名</label>
           <input
             type="text"
-            value={profileData.fullName}
+            value={profileData.fullName || ""}
             onChange={(e) => updateField("fullName", e.target.value)}
             placeholder="ミンジェ"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -173,7 +217,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">メールアドレス</label>
           <input
             type="email"
-            value={profileData.email}
+            value={profileData.email || ""}
             onChange={(e) => updateField("email", e.target.value)}
             placeholder="minjae@test.com"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -183,7 +227,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">電話番号</label>
           <input
             type="tel"
-            value={profileData.phone}
+            value={profileData.phone || ""}
             onChange={(e) => updateField("phone", e.target.value)}
             placeholder="090-1234-5678"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -193,7 +237,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">生年月日</label>
           <input
             type="date"
-            value={profileData.birthDate}
+            value={profileData.birthDate || ""}
             onChange={(e) => updateField("birthDate", e.target.value)}
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           />
@@ -217,7 +261,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">身長 (cm)</label>
           <input
             type="number"
-            value={profileData.height}
+            value={profileData.height || ""}
             onChange={(e) => updateField("height", e.target.value)}
             placeholder="160"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -227,7 +271,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">体重 (kg)</label>
           <input
             type="number"
-            value={profileData.weight}
+            value={profileData.weight || ""}
             onChange={(e) => updateField("weight", e.target.value)}
             placeholder="50"
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
@@ -236,7 +280,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">血液型</label>
           <select
-            value={profileData.bloodType}
+            value={profileData.bloodType || ""}
             onChange={(e) => updateField("bloodType", e.target.value)}
             className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
           >
@@ -258,7 +302,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">アレルギー</label>
         <textarea
-          value={profileData.allergies}
+          value={profileData.allergies || ""}
           onChange={(e) => updateField("allergies", e.target.value)}
           rows={3}
           placeholder="食物アレルギー、薬物アレルギーなど"
@@ -269,7 +313,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在服用中の薬</label>
         <textarea
-          value={profileData.medications}
+          value={profileData.medications || ""}
           onChange={(e) => updateField("medications", e.target.value)}
           rows={3}
           placeholder="薬名、用量、服用理由など"
@@ -280,7 +324,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">既往歴</label>
         <textarea
-          value={profileData.medicalHistory}
+          value={profileData.medicalHistory || ""}
           onChange={(e) => updateField("medicalHistory", e.target.value)}
           rows={4}
           placeholder="過去の病気、手術歴、入院歴など"

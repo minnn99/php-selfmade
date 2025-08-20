@@ -225,6 +225,33 @@ export const authAPI = {
   stopTokenChecker: stopTokenExpirationChecker,
 
   // Delete user account
+  updateUser: async (userData: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    [key: string]: unknown;
+  }) => {
+    const response = await apiRequest('/user', {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+    
+    // Update local auth data if update successful
+    if (response.success && response.data) {
+      const authData = getAuthData();
+      if (authData) {
+        const updatedUserData = response.data as { user: AuthData['user'] };
+        const updatedAuthData: AuthData = {
+          ...authData,
+          user: { ...authData.user, ...updatedUserData.user }
+        };
+        setAuthData(updatedAuthData);
+      }
+    }
+    
+    return response;
+  },
+
   deleteAccount: async () => {
     return apiRequest('/user', {
       method: 'DELETE',

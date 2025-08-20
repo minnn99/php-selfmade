@@ -50,13 +50,34 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
+        // まずローカル認証データから取得を試行
+        const authData = authAPI.getAuthData();
+        if (authData?.user) {
+          const user = authData.user;
+          // Ensure string types for display
+          const userName = typeof user.name === 'string' ? user.name : '';
+          const userFurigana = typeof user.furigana === 'string' ? user.furigana : '';
+          const userGender = typeof user.gender === 'string' ? user.gender : '';
+          
+          const displayName = userName || userFurigana || "ユーザー";
+          setUserName(displayName);
+          setUserGender(userGender);
+          setUserLoading(false);
+          return;
+        }
+
+        // ローカルデータがない場合はAPIから取得
         const response = await authAPI.getUser();
         const user = (response.data as { user?: { name?: string; furigana?: string; gender?: string } })?.user;
         if (user) {
           // 名前またはフリガナを表示（名前が優先）
-          const displayName = user.name || user.furigana || "ユーザー";
+          const userName = typeof user.name === 'string' ? user.name : '';
+          const userFurigana = typeof user.furigana === 'string' ? user.furigana : '';
+          const userGender = typeof user.gender === 'string' ? user.gender : '';
+          
+          const displayName = userName || userFurigana || "ユーザー";
           setUserName(displayName);
-          setUserGender(user.gender || "");
+          setUserGender(userGender);
         }
       } catch (error) {
         console.error("Failed to fetch user info:", error);
@@ -68,6 +89,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     };
 
     fetchUserInfo();
+
+    // プロフィール更新時の再読み込みリスナー
+    const handleProfileUpdate = () => {
+      fetchUserInfo();
+    };
+
+    window.addEventListener('userProfileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('userProfileUpdated', handleProfileUpdate);
+    };
   }, []);
 
   useEffect(() => {

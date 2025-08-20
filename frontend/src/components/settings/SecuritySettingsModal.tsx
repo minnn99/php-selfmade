@@ -54,6 +54,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +85,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
     }));
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
       alert("全ての項目を入力してください");
       return;
@@ -100,11 +101,43 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
       return;
     }
 
-    // 実際の実装では、サーバーでパスワード変更処理
-    updateSetting("passwordPolicy", "lastChanged", new Date().toISOString().split("T")[0]);
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setShowPasswordForm(false);
-    alert("パスワードが変更されました");
+    // パスワード強度チェック
+    const validation = validatePassword(passwordForm.newPassword);
+    if (!validation.isValid) {
+      alert("パスワードがポリシーの要件を満たしていません");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      // TODO: 実際のAPIでパスワード変更（changePasswordメソッドが実装されたら有効化）
+      // await authAPI.changePassword({
+      //   currentPassword: passwordForm.currentPassword,
+      //   newPassword: passwordForm.newPassword
+      // });
+      
+      // 現在は設定のみローカル保存
+      updateSetting("passwordPolicy", "lastChanged", new Date().toISOString().split("T")[0]);
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordForm(false);
+      alert("パスワード設定が保存されました（実際の変更はAPI実装後に有効になります）");
+    } catch (error: unknown) {
+      console.error("Password change failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "パスワード変更に失敗しました";
+      alert(errorMessage);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const validatePassword = (password: string) => {
+    const length = password.length >= settings.passwordPolicy.minLength;
+    const uppercase = settings.passwordPolicy.requireUppercase ? /[A-Z]/.test(password) : true;
+    const numbers = settings.passwordPolicy.requireNumbers ? /[0-9]/.test(password) : true;
+    const symbols = settings.passwordPolicy.requireSymbols ? /[!@#$%^&*(),.?":{}|<>]/.test(password) : true;
+    const isValid = length && uppercase && numbers && symbols;
+    
+    return { length, uppercase, numbers, symbols, isValid };
   };
 
   const generateBackupCodes = () => {
@@ -199,9 +232,10 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                   </div>
                   <button
                     onClick={handlePasswordChange}
-                    className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"
+                    disabled={passwordLoading}
+                    className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"
                   >
-                    パスワードを変更
+                    {passwordLoading ? "変更中..." : "パスワードを変更"}
                   </button>
                 </div>
               )}
