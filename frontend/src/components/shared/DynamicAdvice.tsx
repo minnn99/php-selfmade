@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { menstrualStatusManager } from "../services/menstrualStatusManager";
-import { menstrualCycleAPI } from "../services/api";
+import { menstrualStatusManager } from "../../services/menstrualStatusManager";
+import { menstrualCycleAPI } from "../../services/api";
 
 interface DynamicAdviceProps {
   className?: string;

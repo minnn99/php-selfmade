@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI, userDataAPI } from "../services/api";
-import { menstrualStatusManager } from "../services/menstrualStatusManager";
-import { DynamicAdvice } from "./DynamicAdvice";
+import { menstrualCycleAPI, userDataAPI } from "../../services/api";
+import { menstrualStatusManager } from "../../services/menstrualStatusManager";
+import { DynamicAdvice } from "../shared/DynamicAdvice";
 
 interface NavigationItem {
   id: string;

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { MainLayout } from "./components/MainLayout";
-import { LoginPage } from "./components/LoginPage";
-import { SignupPage } from "./components/SignupPage";
-import { WelcomeScreen } from "./components/WelcomeScreen";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { MainLayout } from "./components/layout/MainLayout";
+import { LoginPage } from "./components/auth/LoginPage";
+import { SignupPage } from "./components/auth/SignupPage";
+import { WelcomeScreen } from "./components/auth/WelcomeScreen";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { authAPI } from "./services/api";
 import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 

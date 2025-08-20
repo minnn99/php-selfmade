@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { PrivacyPolicyModal } from './PrivacyPolicyModal';
-import { TermsOfServiceModal } from './TermsOfServiceModal';
+import { PrivacyPolicyModal } from '../modals/PrivacyPolicyModal';
+import { TermsOfServiceModal } from '../modals/TermsOfServiceModal';
 
 interface SignupFormProps {
   onSignup: (data: SignupData) => void;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { authAPI, partnerAPI } from "../services/api";
+import { authAPI, partnerAPI } from "../../services/api";
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface PartnerConnectionProps {
   // 将来的にAPI連携時に使用予定

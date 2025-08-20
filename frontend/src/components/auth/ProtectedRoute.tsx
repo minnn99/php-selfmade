@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI } from '../../services/api';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

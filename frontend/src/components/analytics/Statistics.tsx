@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI, dailySymptomsAPI } from "../services/api";
+import { menstrualCycleAPI, dailySymptomsAPI } from "../../services/api";
 
 interface CycleStats {
   averageCycleLength: number;

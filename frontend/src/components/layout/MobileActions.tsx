@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { menstrualCycleAPI, userDataAPI } from '../services/api';
-import { menstrualStatusManager } from '../services/menstrualStatusManager';
+import { menstrualCycleAPI, userDataAPI } from '../../services/api';
+import { menstrualStatusManager } from '../../services/menstrualStatusManager';
 
 export const MobileActions: React.FC = () => {
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);

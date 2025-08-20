@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI } from "../services/api";
+import { menstrualCycleAPI } from "../../services/api";
 
 interface SelfCareProps {
   className?: string;

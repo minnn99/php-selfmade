@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { authAPI, userDataAPI } from "../services/api";
+import { authAPI, userDataAPI } from "../../services/api";
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;

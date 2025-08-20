@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { userDataAPI } from "../services/api";
+import { userDataAPI } from "../../services/api";
 
 interface MedicalRecordsProps {
   className?: string;

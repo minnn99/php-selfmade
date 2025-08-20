@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { OverviewCards } from "./OverviewCards";
-import { Calendar } from "./Calendar";
-import { CalendarView } from "./CalendarView";
-import { Statistics } from "./Statistics";
-import { Settings } from "./Settings";
+import { OverviewCards } from "../analytics/OverviewCards";
+import { Calendar } from "../calendar/Calendar";
+import { CalendarView } from "../calendar/CalendarView";
+import { Statistics } from "../analytics/Statistics";
+import { Settings } from "../settings/Settings";
 import { Navigation } from "./Navigation";
-import { TodaySection } from "./TodaySection";
-import { SettingsSidebar } from "./SettingsSidebar";
-import { PartnerConnection } from "./PartnerConnection";
-import { PregnancySupport } from "./PregnancySupport";
-import { SelfCare } from "./SelfCare";
-import { MedicalRecords } from "./MedicalRecords";
-import { NotificationPopup } from "./NotificationPopup";
-import { NotificationBadge } from "./NotificationBadge";
-import { ConfirmationModal } from "./ConfirmationModal";
+import { TodaySection } from "../analytics/TodaySection";
+import { SettingsSidebar } from "../settings/SettingsSidebar";
+import { PartnerConnection } from "../medical/PartnerConnection";
+import { PregnancySupport } from "../medical/PregnancySupport";
+import { SelfCare } from "../analytics/SelfCare";
+import { MedicalRecords } from "../medical/MedicalRecords";
+import { NotificationPopup } from "../modals/NotificationPopup";
+import { NotificationBadge } from "../shared/NotificationBadge";
+import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { MobileActions } from "./MobileActions";
 
 interface MainLayoutProps {

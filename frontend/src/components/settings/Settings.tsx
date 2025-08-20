@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI, authAPI, dailySymptomsAPI } from "../services/api";
-import { ConfirmationModal } from "./ConfirmationModal";
+import { menstrualCycleAPI, authAPI, dailySymptomsAPI } from "../../services/api";
+import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { PrivacySettingsModal } from "./PrivacySettingsModal";
 import { AppearanceSettingsModal } from "./AppearanceSettingsModal";
-import { DataManagementModal } from "./DataManagementModal";
+import { DataManagementModal } from "../modals/DataManagementModal";
 import { ProfileSettingsModal } from "./ProfileSettingsModal";
-import { SupportModal } from "./SupportModal";
+import { SupportModal } from "../modals/SupportModal";
 import { SecuritySettingsModal } from "./SecuritySettingsModal";
 
 // 型のインポート

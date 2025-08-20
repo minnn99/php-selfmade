@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { menstrualCycleAPI, partnerAPI, authAPI } from '../services/api';
+import { menstrualCycleAPI, partnerAPI, authAPI } from '../../services/api';
 
 interface PredictionData {
   nextPeriodDate: string | null; // 次の生理周期開始予定日

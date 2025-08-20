@@ -1,26 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../services/api";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
-
-interface CalendarDayData {
-  hasPeriod?: boolean;
-  isOvulation?: boolean;
-  isPredictedPeriod?: boolean;
-  isPeriodStart?: boolean;
-  isPeriodEnd?: boolean;
-  isActive?: boolean;
-  isFertile?: boolean;
-  cycleId?: number;
-  flowIntensity?: number;
-  partner_name?: string;
-  status?: string;
-  partner_daily_data?: {
-    symptoms?: string[];
-    mood?: string;
-    health_notes?: string;
-    flow_intensity?: number;
-  };
-}
+import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../../services/api";
+import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 
 interface CalendarDay {
   year: number;
@@ -35,26 +16,47 @@ interface CalendarDay {
   isPeriodStart: boolean;
   isPeriodEnd: boolean;
   isActive: boolean;
-  isFertile?: boolean;
+  isFertile: boolean;
   hasPartnerPeriod?: boolean;
   hasPartnerSymptoms?: boolean;
   partnerName?: string;
 }
 
-interface CalendarViewProps {
-  refreshKey?: number; // 外部からのデータ更新をトリガーするためのキー
+interface CalendarDayData {
+  hasPeriod?: boolean;
+  isOvulation?: boolean;
+  isPredictedPeriod?: boolean;
+  isPeriodStart?: boolean;
+  isPeriodEnd?: boolean;
+  isActive?: boolean;
+  isFertile?: boolean;
+  cycleId?: number;
+  flowIntensity?: number;
+  partner_name?: string;
+  symptoms?: string[];
+  partner_daily_data?: {
+    symptoms?: string[];
+    mood?: string;
+    health_notes?: string;
+    flow_intensity?: number;
+  };
 }
 
-export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
+export const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [calendarApiData, setCalendarApiData] = useState<Record<string, CalendarDayData>>({});
   const [partnerCalendarData, setPartnerCalendarData] = useState<Record<string, CalendarDayData>>({});
   const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
+  const [refreshKey, setRefreshKey] = useState(0); // カレンダー強制再描画用
   const [userGender, setUserGender] = useState<string>("");
   const [isConnectedToPartner, setIsConnectedToPartner] = useState(false);
+
+  const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+
+  const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
 
   // 現在の月の年と月を取得
   const currentYear = currentDate.getFullYear();
@@ -67,13 +69,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
       const userData = await authAPI.getUser();
       const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
       setUserGender(gender);
+      console.log("Calendar: User gender set to:", gender);
+
       // パートナー状況を確認
       const partnerStatus = await partnerAPI.getStatus();
       const isConnected = partnerStatus.success && (partnerStatus.data as { is_connected?: boolean })?.is_connected;
       setIsConnectedToPartner(!!isConnected);
+      console.log("Calendar: Partner connection status:", {
+        success: partnerStatus.success,
+        is_connected: (partnerStatus.data as { is_connected?: boolean })?.is_connected,
+        isConnected,
+      });
 
       // ユーザー情報取得後にカレンダーデータを読み込み
       await loadCalendarData(gender, isConnected);
+
+      // MenstrualStatusManagerを初期化（認証後に実行）
+      try {
+        await menstrualStatusManager.loadStatus();
+        // Auto-update period status after loading
+        const { autoUpdatePeriodStatusForActiveCycle } = await import("../../utils/periodStatusHelper");
+        autoUpdatePeriodStatusForActiveCycle();
+      } catch (error) {
+        console.error("Failed to initialize menstrual status manager:", error);
+      }
 
       // 初回読み込み時にローカルストレージデータを移行
       await migrateLocalStorageData();
@@ -83,8 +102,43 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentYear, currentMonth, refreshKey]);
+  }, [currentYear, currentMonth]);
 
+  // Listen for menstrual data updates with debounce (DISABLED FOR SYMPTOMS)
+  useEffect(() => {
+    let timeoutId: number;
+
+    const handleDataUpdate = () => {
+      console.log("Calendar - Menstrual data updated event received, but ignoring to prevent display issues");
+      
+      // COMPLETELY DISABLE automatic calendar reloading
+      // This prevents period display from disappearing when entering symptoms
+      // Calendar will only update on manual navigation or page refresh
+      
+      // Clear existing timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      // DO NOT reload calendar data automatically
+      // Only refresh the key for minimal updates
+      timeoutId = setTimeout(() => {
+        console.log("Calendar - Minimal refresh only");
+        setRefreshKey((prev) => prev + 1); // 最小限の再描画のみ
+      }, 100);
+    };
+
+    window.addEventListener("menstrualDataUpdated", handleDataUpdate);
+
+    return () => {
+      window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
+  // 古いローカルストレージデータをクリーンアップする関数
   // ローカルストレージデータをAPIに移行する関数
   const migrateLocalStorageData = async () => {
     const migrationKey = "symptoms-data-migrated";
@@ -149,41 +203,38 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     }
   };
 
-  // 古いローカルストレージデータをクリーンアップする関数
   const cleanupOldLocalStorageData = () => {
-    const currentYearMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
+    // 一回だけ実行する7月データの完全クリーンアップ
+    const hasCleanedJuly = localStorage.getItem("july-data-cleanup-completed");
+    if (hasCleanedJuly) return;
 
-    // 現在月のローカルストレージキーを取得
+    // 全ての7月のデータを強制削除（古いバージョンで保存された可能性のあるデータ）
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(`daily-symptoms-${currentYearMonth}`)) {
-        try {
-          const data = JSON.parse(localStorage.getItem(key) || "{}");
-          const hasSymptoms = data.symptoms && data.symptoms.length > 0;
-          const hasMood = data.mood && data.mood.trim() !== "";
-          const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
-          const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
-
-          // 全てのデータが空の場合は削除
-          if (!hasSymptoms && !hasMood && !hasHealthNotes && !hasFlowIntensity) {
-            localStorage.removeItem(key);
-          }
-        } catch {
-          // 破損したデータも削除
-          localStorage.removeItem(key);
-        }
+      if (key && key.startsWith("daily-symptoms-2025-07-")) {
+        keys.push(key);
       }
     }
+
+    if (keys.length > 0) {
+      keys.forEach((key) => {
+        localStorage.removeItem(key);
+      });
+      console.log(`Cleaned up ${keys.length} old July data entries`);
+    }
+
+    localStorage.setItem("july-data-cleanup-completed", "true");
   };
 
   const loadCalendarData = async (gender?: string, isConnected?: boolean) => {
     // パラメータが指定されていない場合は現在の状態を使用
     const currentGender = gender ?? userGender;
     const currentConnected = isConnected ?? isConnectedToPartner;
-
+    // 月切り替え時はローディング状態を設定しない（スムーズな切り替えのため）
     try {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
-      const rawData = (data.data as Record<string, unknown>) || {};
+      const rawData = (data.data as Record<string, CalendarDayData>) || {};
 
       // 古いデータをフィルタリング（30日以上前のデータは無視）
       const currentDate = new Date();
@@ -194,25 +245,36 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         const keyDate = new Date(dateKey);
         if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
           // 30日以内、または表示中の月のデータのみ保持
-          filteredData[dateKey] = rawData[dateKey] as CalendarDayData;
+          filteredData[dateKey] = rawData[dateKey];
+        } else {
+          // console.log(`Filtering out old data for ${dateKey}`);
         }
       });
 
       setCalendarApiData(filteredData);
 
       // 男性ユーザーで、パートナーと連動している場合、パートナーのカレンダーデータも読み込み
+      console.log("Calendar: Loading partner data check", {
+        currentConnected,
+        currentGender,
+        isMale: currentGender === "male" || currentGender === "男性",
+      });
 
       if (currentConnected && (currentGender === "male" || currentGender === "男性")) {
         try {
+          console.log("Calendar: Fetching partner calendar data for", currentYear, currentMonth + 1);
           const partnerData = await partnerAPI.getPartnerCalendar(currentYear, currentMonth + 1);
+          console.log("Calendar: Partner data response:", partnerData);
 
-          if (partnerData.success && (partnerData.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> })?.calendar_data) {
+          if (partnerData.success && (partnerData.data as { calendar_data?: Array<CalendarDayData & { date: string }> })?.calendar_data) {
             const partnerCalendarMap: Record<string, CalendarDayData> = {};
-            (partnerData.data as { calendar_data: Array<{ date: string; [key: string]: unknown }> }).calendar_data.forEach((dayData) => {
-              partnerCalendarMap[dayData.date] = dayData as CalendarDayData;
+            (partnerData.data as { calendar_data: Array<CalendarDayData & { date: string }> }).calendar_data.forEach((dayData) => {
+              partnerCalendarMap[dayData.date] = dayData;
             });
             setPartnerCalendarData(partnerCalendarMap);
+            console.log("Calendar: Partner calendar map set:", partnerCalendarMap);
           } else {
+            console.log("Calendar: No partner calendar data found");
             setPartnerCalendarData({});
           }
         } catch (error) {
@@ -220,6 +282,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
           setPartnerCalendarData({});
         }
       } else {
+        console.log("Calendar: Not loading partner data - not male or not connected");
         setPartnerCalendarData({});
       }
     } catch (error) {
@@ -229,43 +292,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     }
   };
 
-  // 月の名前
-  const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-
-  // 週の名前
-  const dayNames = ["日", "月", "火", "水", "木", "金", "土"];
-
-  // 前月・次月への移動
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
-  };
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
-  };
-
   // Helper function to check if a date has user input data stored locally
-  const hasUserInputForDate = useMemo(() => {
-    return (dateKey: string): boolean => {
-      const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-      if (!storedData) return false;
+  const hasUserInputForDate = (dateKey: string): boolean => {
+    const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
+    if (!storedData) return false;
 
-      try {
-        const data = JSON.parse(storedData);
-        // Check if any meaningful data exists (not just empty/default values)
-        return (
-          (data.symptoms && data.symptoms.length > 0) ||
-          (data.mood && data.mood.trim() !== "") ||
-          (data.healthNotes && data.healthNotes.trim() !== "") ||
-          (data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0)
-        );
-      } catch {
-        return false;
-      }
-    };
-  }, []); // Remove refreshKey dependency to avoid unnecessary re-renders
+    try {
+      const data = JSON.parse(storedData);
+      // Check if any meaningful data exists (not just empty/default values)
+      const hasSymptoms = data.symptoms && Array.isArray(data.symptoms) && data.symptoms.length > 0;
+      const hasMood = data.mood && typeof data.mood === "string" && data.mood.trim() !== "";
+      const hasHealthNotes = data.healthNotes && typeof data.healthNotes === "string" && data.healthNotes.trim() !== "";
+      const hasFlowIntensity =
+        data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === "number" && data.flowIntensity > 0;
 
-  // カレンダーの日付データを生成（APIデータを使用）
+      // 黄色の点は症状・気分・健康ノート・経血量のみで判定（生理フラグは除外）
+      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
+
+      return result;
+    } catch {
+      return false;
+    }
+  };
+
+
   const generateCalendarDays = (): CalendarDay[] => {
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
@@ -295,18 +345,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -325,18 +371,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
     }
@@ -357,18 +399,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
         isToday: false,
         hasPeriod: dayData?.hasPeriod || false,
         hasSymptoms: hasUserInputForDate(dateKey),
-        isOvulation: dayData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || false,
-        isFertile: dayData?.isFertile || false,
-        hasPartnerPeriod: partnerData?.status === "period" || false,
-        hasPartnerSymptoms: partnerData?.partner_daily_data
-          ? Boolean((partnerData.partner_daily_data.symptoms && partnerData.partner_daily_data.symptoms.length > 0) ||
-            (partnerData.partner_daily_data.mood && String(partnerData.partner_daily_data.mood).trim() !== "") ||
-            (partnerData.partner_daily_data.health_notes && String(partnerData.partner_daily_data.health_notes).trim() !== ""))
-          : false,
+        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
+        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
+        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
+        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
+        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
+        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        hasPartnerPeriod: partnerData?.hasPeriod || false,
+        hasPartnerSymptoms: (partnerData?.symptoms && Array.isArray(partnerData.symptoms) && partnerData.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
       });
       nextMonthDate++;
@@ -377,28 +415,23 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     return days;
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
-
-  // 日付がクリックされた時の処理
-  const handleDateClick = async (day: CalendarDay) => {
-    if (day.isCurrentMonth && !loading) {
-      const clickedDate = new Date(day.year, day.month, day.date);
-      setSelectedDateForModal(clickedDate);
-
-      try {
-        setLoading(true);
-        // 既存の周期データを取得
-        const existingData = await getExistingDataForDate(clickedDate);
-        setExistingDataForModal(existingData);
-        setIsModalOpen(true);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
   };
 
-  // 選択された日の既存データを取得
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  };
+
+  // ローカルタイムゾーンで日付文字列を取得
+  const getLocalDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // 既存データ取得機能
   const getExistingDataForDate = async (date: Date): Promise<RecordData | undefined> => {
     const dateKey = getLocalDateString(date);
     const dayData = calendarApiData[dateKey];
@@ -479,12 +512,22 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     };
   };
 
-  // ローカルタイムゾーンで日付文字列を取得
-  const getLocalDateString = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  // 日付がクリックされた時の処理
+  const handleDateClick = async (day: CalendarDay) => {
+    if (day.isCurrentMonth && !loading) {
+      const clickedDate = new Date(day.year, day.month, day.date);
+      setSelectedDateForModal(clickedDate);
+
+      try {
+        setLoading(true);
+        // 既存の周期データを取得
+        const existingData = await getExistingDataForDate(clickedDate);
+        setExistingDataForModal(existingData);
+        setIsModalOpen(true);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   // モーダルのデータ保存処理
@@ -494,106 +537,227 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     try {
       const dateStr = getLocalDateString(selectedDateForModal);
 
-      // 症状、気分、メモ、経血量のいずれかが入力されている場合のみ保存
+      // データの存在チェック
       const hasSymptoms = data.symptoms.length > 0;
       const hasMood = data.mood && data.mood.trim() !== "";
       const hasHealthNotes = data.healthNotes && data.healthNotes.trim() !== "";
       const hasFlowIntensity = data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0;
+      const hasPeriodInfo = data.isPeriodStart || data.isPeriodEnd;
 
-      // 1. 症状データをAPIに保存
+      // 1. まず生理周期情報をAPIに保存（失敗したらローカル保存しない）
+      if (hasPeriodInfo) {
+        if (data.cycleId) {
+          // 既存の周期IDがある場合：周期の更新
+          const updateData: Record<string, string> = {};
+
+          if (data.isPeriodStart) {
+            updateData.start_date = dateStr;
+          } else if (data.isPeriodEnd) {
+            updateData.end_date = dateStr;
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
+            console.log(`API SUCCESS: Updated cycle ${data.cycleId}:`, updateData);
+          }
+        } else {
+          // 既存の周期IDがない場合
+          if (data.isPeriodStart) {
+            await menstrualCycleAPI.startCycle({
+              start_date: dateStr,
+            });
+            console.log(`API SUCCESS: Started new cycle on ${dateStr}`);
+          } else if (data.isPeriodEnd) {
+            // 終了日を設定する場合、直接アクティブな周期を取得
+            console.log(`Setting end date for active cycle on ${dateStr}`);
+
+            try {
+              const response = await menstrualCycleAPI.getCurrentStatus();
+              console.log("Current status response:", response);
+
+              if (response.hasActiveCycle && response.activeCycle) {
+                const activeCycle = response.activeCycle as { id: number; start_date: string };
+                console.log(`Found active cycle: ID=${activeCycle.id}, start=${activeCycle.start_date}`);
+
+                await menstrualCycleAPI.updateCycle(activeCycle.id, { end_date: dateStr });
+                console.log(`API SUCCESS: Updated cycle ${activeCycle.id} with end date ${dateStr}`);
+              } else {
+                throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
+              }
+            } catch (error) {
+              console.error("Error getting current status:", error);
+              throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
+            }
+          }
+        }
+      }
+
+      // 2. 症状データをAPIに保存
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
         try {
-          console.log(`Calendar: Saving symptoms data to API for ${dateStr}:`, {
+          await dailySymptomsAPI.saveSymptoms({
             date: dateStr,
             symptoms: data.symptoms,
             mood: data.mood,
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
           });
-          
-          const apiResponse = await dailySymptomsAPI.saveSymptoms({
-            date: dateStr,
-            symptoms: data.symptoms,
-            mood: data.mood,
-            healthNotes: data.healthNotes,
-            flowIntensity: data.flowIntensity,
-          });
-          
-          console.log(`Calendar: API save response for ${dateStr}:`, apiResponse);
+          console.log(`API SUCCESS: Saved symptoms data for ${dateStr}`);
         } catch (error) {
           console.error(`API ERROR: Failed to save symptoms data for ${dateStr}:`, error);
           // 症状データのAPI保存が失敗してもローカルストレージには保存する
         }
       }
 
-      // 2. ローカルストレージにも保存（バックアップとして）
+      // 3. ローカルストレージにも保存（バックアップとして）
       const dailyRecord = {
         date: dateStr,
         symptoms: data.symptoms,
         mood: data.mood,
         healthNotes: data.healthNotes,
         flowIntensity: data.flowIntensity,
+        isPeriodStart: data.isPeriodStart,
+        isPeriodEnd: data.isPeriodEnd,
+        hasPeriod: data.isPeriodStart || data.isPeriodEnd || false,
         timestamp: new Date().toISOString(),
       };
 
-      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
-        console.log(`Calendar: Saving to localStorage for ${dateStr}:`, dailyRecord);
+      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo) {
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
+        console.log(`LOCAL SAVE: Saved data for ${dateStr}:`, dailyRecord);
       } else {
-        // データがない場合は削除
         localStorage.removeItem(`daily-symptoms-${dateStr}`);
+        console.log(`LOCAL REMOVE: Removed data for ${dateStr}`);
       }
 
-      // 3. 生理周期情報はAPIに保存（症状・経血量データは除く）
-      if (data.cycleId) {
-        // 既存の周期IDがある場合：周期の更新（症状・経血量データは送信しない）
-        const updateData: { start_date?: string; end_date?: string } = {};
-
-        if (data.isPeriodStart) {
-          // 開始日を更新
-          updateData.start_date = dateStr;
-        } else if (data.isPeriodEnd) {
-          // 終了日を更新
-          updateData.end_date = dateStr;
-        }
-
-        // 更新データがある場合のみAPI呼び出し
-        if (Object.keys(updateData).length > 0) {
-          await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
-        }
-      } else {
-        // 既存の周期IDがない場合：新規作成（症状・経血量データは送信しない）
-        if (data.isPeriodStart) {
-          await menstrualCycleAPI.startCycle({
-            start_date: dateStr,
-            // flow_intensity, symptoms, notes は送信しない
-          });
-        } else if (data.isPeriodEnd) {
-          await menstrualCycleAPI.endCycle(dateStr);
-        }
-      }
-
-      // データ更新イベントを発火
-      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
       alert("記録が保存されました！");
+      
+      // 生理周期情報が変更された場合のみ、強制的にカレンダー更新
+      if (hasPeriodInfo) {
+        console.log("Period info changed - manual calendar reload required");
+        
+        setTimeout(async () => {
+          await loadCalendarData();
+          
+          try {
+            const { menstrualStatusManager } = await import("../../services/menstrualStatusManager");
+            await menstrualStatusManager.forceReloadStatus();
+          } catch (error) {
+            console.error("Failed to reload menstrual status:", error);
+          }
+          
+          setRefreshKey((prev) => prev + 1);
+        }, 100);
+      } else {
+        console.log("Symptoms only - calendar display preserved");
+        // 症状のみの場合は一切更新しない
+        // カレンダーAPIデータはそのまま維持され、生理日表示は保持される
+      }
     } catch (error: unknown) {
       console.error("Failed to save record:", error);
       let errorMessage = "記録の保存に失敗しました。";
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response: { data: { message?: string } } };
-        if (axiosError.response?.data?.message) {
-          errorMessage = axiosError.response.data.message;
+        const apiError = error as { response?: { data?: { message?: string } } };
+        if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
         }
       }
       alert(errorMessage);
     }
   };
 
-  // 削除処理
+  // ローカルストレージから生理データを削除する関数（完全削除版）
+  const clearPeriodDataFromLocalStorage = (cycleId: number) => {
+    console.log(`Clearing period data for cycle ID: ${cycleId}`);
+
+    // まず calendarApiData から該当するサイクルの全ての日付を特定
+    const cycleDates = [];
+    for (const dateKey of Object.keys(calendarApiData)) {
+      const dayData = calendarApiData[dateKey] as { cycleId?: number; [key: string]: unknown };
+      if (dayData.cycleId === cycleId) {
+        cycleDates.push(dateKey);
+      }
+    }
+
+    console.log(`Found ${cycleDates.length} dates for cycle ${cycleId}:`, cycleDates);
+
+    // 該当する日付のローカルストレージを完全削除
+    cycleDates.forEach((dateString) => {
+      const localStorageKey = `daily-symptoms-${dateString}`;
+      const existingData = localStorage.getItem(localStorageKey);
+
+      if (existingData) {
+        console.log(`Removing localStorage data for ${dateString}`);
+        localStorage.removeItem(localStorageKey);
+      }
+    });
+
+    // さらに、現在の月の全ての日付で生理関連データをクリア（追加の安全策）
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // 今月の全ての日をチェック
+    for (let day = 1; day <= 31; day++) {
+      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const localStorageKey = `daily-symptoms-${dateString}`;
+      const existingData = localStorage.getItem(localStorageKey);
+
+      if (existingData) {
+        try {
+          const data = JSON.parse(existingData);
+          // 生理関連のフラグがある場合はクリア
+          if (data.hasPeriod || data.isPeriodStart || data.isPeriodEnd) {
+            console.log(`Clearing period flags from ${dateString}`);
+
+            const updatedData = {
+              ...data,
+              isPeriodStart: false,
+              isPeriodEnd: false,
+              hasPeriod: false,
+              flowIntensity: undefined,
+            };
+
+            // 他に意味のあるデータがない場合は完全に削除
+            const hasOtherData =
+              (updatedData.symptoms && updatedData.symptoms.length > 0) ||
+              (updatedData.mood && updatedData.mood.trim() !== "") ||
+              (updatedData.healthNotes && updatedData.healthNotes.trim() !== "");
+
+            if (hasOtherData) {
+              localStorage.setItem(localStorageKey, JSON.stringify(updatedData));
+            } else {
+              localStorage.removeItem(localStorageKey);
+            }
+          }
+        } catch (e) {
+          console.error(`Error processing localStorage data for ${dateString}:`, e);
+        }
+      }
+    }
+  };
+
+  // 削除処理（改良版）
   const handleDelete = async (cycleId: number) => {
     try {
+      console.log(`Starting deletion process for cycle ${cycleId}`);
+
+      // ローカルストレージを先に削除（API削除前に実行）
+      clearPeriodDataFromLocalStorage(cycleId);
+
+      // API からサイクルを削除
       await menstrualCycleAPI.deleteCycle(cycleId);
+      console.log(`Successfully deleted cycle ${cycleId} from API`);
+
+      // カレンダーデータを再読み込み
+      await loadCalendarData(); // 既存の状態を使用
+
+      // カレンダーを強制再描画
+      setRefreshKey((prev) => prev + 1);
+
+      // カスタムイベントを発火してアプリ全体を更新
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+
       alert("生理周期が削除されました");
     } catch (error: unknown) {
       console.error("Failed to delete cycle:", error);
@@ -607,6 +771,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     setSelectedDateForModal(null);
     setExistingDataForModal(undefined);
   };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {
@@ -632,12 +799,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
     } else if (day.isToday) {
       // 今日のみの場合
       baseStyle += "bg-purple-500 text-white font-bold rounded-lg ";
-    } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd) {
-      // 生理期間中・開始日・終了日の場合（既存の赤いスタイル）
+    } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd || day.hasPartnerPeriod) {
+      // 生理期間中・開始日・終了日・パートナーの生理期間の場合（統一して赤いスタイル）
       baseStyle += "bg-red-500 text-white rounded-lg ";
-    } else if (day.hasPartnerPeriod) {
-      // パートナーの生理期間の場合（ピンク色で表示）
-      baseStyle += "bg-pink-300 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
       baseStyle += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
@@ -682,7 +846,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-      {/* ローディングオーバーレイを削除してスムーズな切り替えを実現 */}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div>
@@ -743,12 +906,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
             <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">生理日</span>
           </div>
-          {isConnectedToPartner && (userGender === "male" || userGender === "男性") && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-pink-300 rounded-full flex-shrink-0"></div>
-              <span className="text-gray-600">パートナーの生理日</span>
-            </div>
-          )}
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-100 border border-red-300 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">予測生理日</span>
@@ -765,12 +922,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ refreshKey }) => {
             <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600">症状記録</span>
           </div>
-          {isConnectedToPartner && (userGender === "male" || userGender === "男性") && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0"></div>
-              <span className="text-gray-600">パートナーの症状</span>
-            </div>
-          )}
         </div>
       </div>
 

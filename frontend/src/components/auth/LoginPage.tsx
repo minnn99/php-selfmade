@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { LoginForm } from './LoginForm';
 import { SignupPage } from './SignupPage';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
-import { authAPI } from '../services/api';
+import { authAPI } from '../../services/api';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;

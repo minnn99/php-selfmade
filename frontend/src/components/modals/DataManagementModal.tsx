@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI } from "../services/api";
+import { menstrualCycleAPI } from "../../services/api";
 
 interface DataManagementModalProps {
   isOpen: boolean;

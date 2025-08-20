@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI } from "../services/api";
-import { ConfirmationModal } from "./ConfirmationModal"; // 追加
+import { menstrualCycleAPI } from "../../services/api";
+import { ConfirmationModal } from "../modals/ConfirmationModal"; // 追加
 
 interface SettingsSidebarProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI } from "../services/api";
-import { ConfirmationModal } from "./ConfirmationModal";
+import { menstrualCycleAPI } from "../../services/api";
+import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { PregnancyRecords } from "./PregnancyRecords";
 
 interface PregnancySupportProps {

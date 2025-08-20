@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DailyRecordModal } from "./DailyRecordModal";
+import { DailyRecordModal } from "../calendar/DailyRecordModal";
 
 interface DailyRecordData {
   mood: string;
