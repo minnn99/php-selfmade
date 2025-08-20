@@ -52,33 +52,49 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       try {
         // まずローカル認証データから取得を試行
         const authData = authAPI.getAuthData();
-        if (authData?.user) {
-          const user = authData.user;
-          // Ensure string types for display
-          const userName = typeof user.name === 'string' ? user.name : '';
-          const userFurigana = typeof user.furigana === 'string' ? user.furigana : '';
-          const userGender = typeof user.gender === 'string' ? user.gender : '';
-          
-          const displayName = userName || userFurigana || "ユーザー";
-          setUserName(displayName);
-          setUserGender(userGender);
-          setUserLoading(false);
-          return;
+        
+        // APIから基本ユーザーデータと設定データを並行取得
+        const [userResponse, settingsResponse] = await Promise.all([
+          authAPI.getUser().catch(() => ({ success: false, data: null })),
+          import('../../services/api').then(api => api.userDataAPI.getSettings().catch(() => ({ success: false, data: null })))
+        ]);
+
+        const apiUser = (userResponse.data as { user?: { name?: string; furigana?: string; gender?: string } })?.user;
+        const settings = (settingsResponse.data as { userProfile?: { nickname?: string; fullName?: string } })?.userProfile;
+        
+        // ローカル認証データを取得
+        const localUser = authData?.user;
+        
+        // 表示名の優先順位: 1.設定のニックネーム 2.ローカル認証データの名前 3.API名前 4.フリガナ 5.デフォルト
+        let displayName = "ユーザー";
+        let userGender = "";
+        
+        // ニックネーム（設定データ）を最優先
+        if (settings?.nickname && typeof settings.nickname === 'string' && settings.nickname.trim()) {
+          displayName = settings.nickname.trim();
+        }
+        // 次にローカル認証データの名前
+        else if (localUser?.name && typeof localUser.name === 'string' && localUser.name.trim()) {
+          displayName = localUser.name.trim();
+        }
+        // 次にAPI名前
+        else if (apiUser?.name && typeof apiUser.name === 'string' && apiUser.name.trim()) {
+          displayName = apiUser.name.trim();
+        }
+        // 最後にフリガナ
+        else if (apiUser?.furigana && typeof apiUser.furigana === 'string' && apiUser.furigana.trim()) {
+          displayName = apiUser.furigana.trim();
         }
 
-        // ローカルデータがない場合はAPIから取得
-        const response = await authAPI.getUser();
-        const user = (response.data as { user?: { name?: string; furigana?: string; gender?: string } })?.user;
-        if (user) {
-          // 名前またはフリガナを表示（名前が優先）
-          const userName = typeof user.name === 'string' ? user.name : '';
-          const userFurigana = typeof user.furigana === 'string' ? user.furigana : '';
-          const userGender = typeof user.gender === 'string' ? user.gender : '';
-          
-          const displayName = userName || userFurigana || "ユーザー";
-          setUserName(displayName);
-          setUserGender(userGender);
+        // 性別を設定（ローカル優先、次にAPI）
+        if (localUser?.gender && typeof localUser.gender === 'string') {
+          userGender = localUser.gender;
+        } else if (apiUser?.gender && typeof apiUser.gender === 'string') {
+          userGender = apiUser.gender;
         }
+
+        setUserName(displayName);
+        setUserGender(userGender);
       } catch (error) {
         console.error("Failed to fetch user info:", error);
         setUserName("ユーザー"); // フォールバック
