@@ -15,6 +15,7 @@ import { NotificationPopup } from "../modals/NotificationPopup";
 import { NotificationBadge } from "../shared/NotificationBadge";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { MobileActions } from "./MobileActions";
+import { authAPI } from "../../services/api";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -28,6 +29,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [userName, setUserName] = useState<string>("");
+  const [userGender, setUserGender] = useState<string>("");
+  const [userLoading, setUserLoading] = useState(true);
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -42,6 +46,30 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     setShowLogoutModal(false);
   };
 
+  // ユーザー情報を取得
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await authAPI.getUser();
+        const user = (response.data as { user?: { name?: string; furigana?: string; gender?: string } })?.user;
+        if (user) {
+          // 名前またはフリガナを表示（名前が優先）
+          const displayName = user.name || user.furigana || "ユーザー";
+          setUserName(displayName);
+          setUserGender(user.gender || "");
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+        setUserName("ユーザー"); // フォールバック
+        setUserGender("");
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
   useEffect(() => {
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 1024); // lg breakpoint
@@ -51,6 +79,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
+
+  // 性別に基づく色分けのヘルパー関数
+  const getGenderColors = (gender: string) => {
+    const isMale = gender === 'male' || gender === '男性';
+    
+    return {
+      bgColor: isMale ? 'bg-blue-50' : 'bg-primary-50',
+      borderColor: isMale ? 'border-blue-200' : 'border-primary-200',
+      iconBg: isMale ? 'bg-blue-100' : 'bg-primary-100',
+      iconColor: isMale ? 'text-blue-600' : 'text-primary-600',
+      textColor: isMale ? 'text-blue-700' : 'text-primary-700',
+      textSecondary: isMale ? 'text-blue-600' : 'text-primary-600'
+    };
+  };
 
   // データ削除成功時にカレンダーをリフレッシュするためのハンドラ
   const handleDataDeleted = () => {
@@ -63,7 +105,25 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       <header className="bg-white shadow-sm border-b border-medical sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Pairiod</h1>
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Pairiod</h1>
+              {/* ユーザー名表示 */}
+              {(() => {
+                const colors = getGenderColors(userGender);
+                return (
+                  <div className={`hidden sm:flex items-center space-x-2 px-3 py-1.5 ${colors.bgColor} rounded-full border ${colors.borderColor}`}>
+                    <div className={`w-6 h-6 ${colors.iconBg} rounded-full flex items-center justify-center`}>
+                      <svg className={`w-3 h-3 ${colors.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <span className={`text-sm font-medium ${colors.textColor}`}>
+                      {userLoading ? "..." : userName}
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Notification Button - Always visible */}
               <div className="relative">
@@ -135,6 +195,25 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               </svg>
             </button>
           </div>
+          {/* モバイル版ユーザー情報 */}
+          {(() => {
+            const colors = getGenderColors(userGender);
+            return (
+              <div className={`mt-4 flex items-center space-x-3 p-3 ${colors.bgColor} rounded-lg border ${colors.borderColor}`}>
+                <div className={`w-8 h-8 ${colors.iconBg} rounded-full flex items-center justify-center`}>
+                  <svg className={`w-4 h-4 ${colors.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className={`text-sm font-medium ${colors.textColor}`}>
+                    {userLoading ? "読み込み中..." : userName}
+                  </p>
+                  <p className={`text-xs ${colors.textSecondary}`}>ログイン中</p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
         <div className="overflow-y-auto h-full pb-20">
           <Navigation 
