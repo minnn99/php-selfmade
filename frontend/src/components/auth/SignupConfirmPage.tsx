@@ -3,6 +3,7 @@ import React from "react";
 interface SignupData {
   name: string;
   furigana: string;
+  nickname: string;
   gender: string;
   phone: string;
   email: string;
@@ -52,6 +53,13 @@ export const SignupConfirmPage: React.FC<SignupConfirmPageProps> = ({ signupData
             <div className="border-b border-neutral-200 pb-3 sm:pb-4">
               <label className="block text-sm font-medium text-neutral-600 mb-1">フリガナ</label>
               <p className="text-base sm:text-lg text-neutral-900 font-medium break-words">{signupData.furigana}</p>
+            </div>
+
+            {/* Nickname */}
+            <div className="border-b border-neutral-200 pb-3 sm:pb-4">
+              <label className="block text-sm font-medium text-neutral-600 mb-1">ニックネーム</label>
+              <p className="text-base sm:text-lg text-neutral-900 font-medium break-words">{signupData.nickname}</p>
+              <p className="text-xs text-neutral-500 mt-1">ヘッダーに表示される名前です</p>
             </div>
 
             {/* Gender */}

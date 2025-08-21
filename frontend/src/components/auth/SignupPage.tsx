@@ -5,6 +5,7 @@ import { SignupConfirmPage } from './SignupConfirmPage';
 interface SignupData {
   name: string;
   furigana: string;
+  nickname: string;
   gender: string;
   phone: string;
   email: string;
@@ -49,14 +50,54 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           phone: signupData.phone,
           email: signupData.email,
           password: signupData.password,
+          password_confirmation: signupData.password,
         }),
       });
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // 登録成功
-        alert(`${result.data.user.name}さん、新規登録が完了しました！ログイン画面に戻ります。`);
+        // 登録成功 - ニックネームを設定データとして保存
+        try {
+          // 認証トークンを設定
+          const authData = {
+            token: result.data.token,
+            expires_at: result.data.expires_at,
+            user: result.data.user
+          };
+          localStorage.setItem('auth_data', JSON.stringify(authData));
+
+          // ニックネームを設定データとして保存
+          const settingsResponse = await fetch('http://localhost:8000/api/user-data/settings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${result.data.token}`,
+            },
+            body: JSON.stringify({
+              settings: {
+                userProfile: {
+                  nickname: signupData.nickname,
+                  fullName: signupData.name,
+                  email: signupData.email,
+                  phone: signupData.phone,
+                  gender: signupData.gender,
+                }
+              }
+            }),
+          });
+
+          if (settingsResponse.ok) {
+            console.log('ニックネームの設定が完了しました');
+          } else {
+            console.warn('ニックネームの設定に失敗しましたが、登録は成功しました');
+          }
+        } catch (settingsError) {
+          console.warn('ニックネームの設定でエラーが発生しました:', settingsError);
+        }
+
+        alert(`${signupData.nickname || signupData.name}さん、新規登録が完了しました！ログイン画面に戻ります。`);
         
         // ログイン画面に戻る
         if (onShowLogin) {

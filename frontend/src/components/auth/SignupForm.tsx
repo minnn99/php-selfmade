@@ -12,6 +12,7 @@ interface SignupFormProps {
 interface SignupData {
   name: string;
   furigana: string;
+  nickname: string;
   gender: string;
   phone: string;
   email: string;
@@ -29,6 +30,7 @@ interface PasswordValidation {
 interface ValidationErrors {
   name?: string;
   furigana?: string;
+  nickname?: string;
   gender?: string;
   phone?: string;
   email?: string;
@@ -40,6 +42,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
   const [formData, setFormData] = useState<SignupData>({
     name: initialData?.name || '',
     furigana: initialData?.furigana || '',
+    nickname: initialData?.nickname || '',
     gender: initialData?.gender || '',
     phone: initialData?.phone || '',
     email: initialData?.email || '',
@@ -60,6 +63,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
   const [touched, setTouched] = useState({
     name: false,
     furigana: false,
+    nickname: false,
     gender: false,
     phone: false,
     email: false,
@@ -98,6 +102,20 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
     // カタカナ（全角）のみ許可、長音符（ー）、濁点・半濁点も含む
     if (!/^[\u30A1-\u30FC\u30FC\s]+$/.test(furigana.trim())) {
       return "フリガナは全角カタカナのみ入力してください";
+    }
+    return undefined;
+  };
+
+  const validateNickname = (nickname: string): string | undefined => {
+    if (!nickname.trim()) {
+      return "ニックネームは必須です";
+    }
+    if (nickname.trim().length < 1 || nickname.trim().length > 20) {
+      return "ニックネームは1文字以上20文字以内で入力してください";
+    }
+    // 日本語・英語・数字・一部記号を許可
+    if (!/^[\u3041-\u3096\u30A1-\u30FC\u4E00-\u9FAFa-zA-Z0-9_\-\s]+$/.test(nickname.trim())) {
+      return "ニックネームは日本語・英語・数字・アンダースコア・ハイフンのみ使用できます";
     }
     return undefined;
   };
@@ -187,6 +205,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
         case 'furigana':
           error = validateFurigana(value);
           break;
+        case 'nickname':
+          error = validateNickname(value);
+          break;
         case 'gender':
           error = validateGender(value);
           break;
@@ -224,17 +245,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
     // 全フィールドをバリデーション
     const nameError = validateName(formData.name);
     const furiganaError = validateFurigana(formData.furigana);
+    const nicknameError = validateNickname(formData.nickname);
     const genderError = validateGender(formData.gender);
     const phoneError = validatePhone(formData.phone);
     const emailError = validateEmail(formData.email);
     const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
     
-    const hasErrors = nameError || furiganaError || genderError || phoneError || emailError || !passwordValidation.isValid || confirmPasswordError;
+    const hasErrors = nameError || furiganaError || nicknameError || genderError || phoneError || emailError || !passwordValidation.isValid || confirmPasswordError;
     
     if (hasErrors) {
       setErrors({
         name: nameError,
         furigana: furiganaError,
+        nickname: nicknameError,
         gender: genderError,
         phone: phoneError,
         email: emailError,
@@ -243,6 +266,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
       setTouched({
         name: true,
         furigana: true,
+        nickname: true,
         gender: true,
         phone: true,
         email: true,
@@ -324,6 +348,35 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
               />
               {errors.furigana && touched.furigana && (
                 <p className="mt-1 text-sm text-red-600">{errors.furigana}</p>
+              )}
+            </div>
+
+            {/* Nickname Field */}
+            <div>
+              <label htmlFor="nickname" className="block text-sm font-medium text-neutral-700 mb-2">
+                ニックネーム <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="nickname"
+                name="nickname"
+                type="text"
+                required
+                value={formData.nickname}
+                onChange={handleChange}
+                onBlur={() => handleBlur('nickname')}
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  errors.nickname && touched.nickname
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-medical focus:ring-primary-500'
+                }`}
+                placeholder="タロウ"
+                maxLength={20}
+              />
+              <p className="mt-1 text-xs text-neutral-500">
+                ヘッダーに表示される名前です（20文字以内）
+              </p>
+              {errors.nickname && touched.nickname && (
+                <p className="mt-1 text-sm text-red-600">{errors.nickname}</p>
               )}
             </div>
 
@@ -556,6 +609,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 !agreedToTerms ||
                 !formData.name.trim() ||
                 !formData.furigana.trim() ||
+                !formData.nickname.trim() ||
                 !formData.gender ||
                 !formData.phone.trim() ||
                 !formData.email.trim()

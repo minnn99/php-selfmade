@@ -14,6 +14,7 @@ import { MedicalRecords } from "../medical/MedicalRecords";
 import { NotificationPopup } from "../modals/NotificationPopup";
 import { NotificationBadge } from "../shared/NotificationBadge";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
+import { SessionExpiredModal } from "../modals/SessionExpiredModal";
 import { MobileActions } from "./MobileActions";
 import { authAPI } from "../../services/api";
 
@@ -32,6 +33,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [userName, setUserName] = useState<string>("");
   const [userGender, setUserGender] = useState<string>("");
   const [userLoading, setUserLoading] = useState(true);
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -45,6 +48,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const handleLogoutCancel = () => {
     setShowLogoutModal(false);
   };
+
+  const handleSessionExpiredClose = () => {
+    setShowSessionExpiredModal(false);
+    // ログアウト処理を実行（既にapi.tsで処理中だが、確実にするため）
+    onLogout();
+  };
+
 
   // ユーザー情報を取得
   useEffect(() => {
@@ -117,6 +127,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       window.removeEventListener('userProfileUpdated', handleProfileUpdate);
     };
   }, []);
+
+  // セッション期限切れイベントのリスナー
+  useEffect(() => {
+    const handleSessionExpired = (event: CustomEvent) => {
+      const message = event.detail?.message || 'セッションの有効期限が切れました。再度ログインしてください。';
+      setSessionExpiredMessage(message);
+      setShowSessionExpiredModal(true);
+    };
+
+    window.addEventListener('sessionExpired', handleSessionExpired as EventListener);
+
+    return () => {
+      window.removeEventListener('sessionExpired', handleSessionExpired as EventListener);
+    };
+  }, []);
+
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -352,6 +378,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           onCancel={handleLogoutCancel}
         />
       )}
+
+      {/* Session Expired Modal */}
+      <SessionExpiredModal
+        isOpen={showSessionExpiredModal}
+        onClose={handleSessionExpiredClose}
+        message={sessionExpiredMessage}
+      />
     </div>
   );
 };
