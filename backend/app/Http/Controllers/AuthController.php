@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -206,6 +204,72 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'パスワードリセットのメールを送信しました。'
         ]);
+    }
+
+    /**
+     * パスワード変更
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'currentPassword' => 'required|string',
+            'newPassword' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/[A-Z]/', // 大文字を含む
+                'regex:/[0-9]/'  // 数字を含む
+            ],
+            'password_confirmation' => 'required|string|same:newPassword',
+        ], [
+            'currentPassword.required' => '現在のパスワードを入力してください。',
+            'newPassword.required' => '新しいパスワードを入力してください。',
+            'newPassword.min' => '新しいパスワードは8文字以上で入力してください。',
+            'newPassword.regex' => '新しいパスワードは大文字と数字を含む必要があります。',
+            'password_confirmation.required' => 'パスワード確認を入力してください。',
+            'password_confirmation.same' => 'パスワード確認が一致しません。',
+        ]);
+
+        $user = $request->user();
+
+        // 現在のパスワードを確認
+        if (!Hash::check($request->currentPassword, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => '現在のパスワードが正しくありません。',
+                'errors' => [
+                    'currentPassword' => ['現在のパスワードが正しくありません。']
+                ]
+            ], 400);
+        }
+
+        // 新しいパスワードが現在のパスワードと同じでないかチェック
+        if (Hash::check($request->newPassword, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => '新しいパスワードは現在のパスワードと異なるものを設定してください。',
+                'errors' => [
+                    'newPassword' => ['新しいパスワードは現在のパスワードと異なるものを設定してください。']
+                ]
+            ], 400);
+        }
+
+        return DB::transaction(function () use ($request, $user) {
+            // パスワードを更新
+            $user->password = Hash::make($request->newPassword);
+            $user->save();
+
+            // セキュリティのため他のセッションをすべて無効化（オプション）
+            // $user->tokens()->where('id', '!=', $request->user()->currentAccessToken()->id)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'パスワードが正常に変更されました。',
+                'data' => [
+                    'updated_at' => $user->updated_at->toISOString(),
+                ]
+            ]);
+        });
     }
 
     /**

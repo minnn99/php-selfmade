@@ -267,6 +267,18 @@ export const authAPI = {
     });
   },
 
+  // Change password
+  changePassword: async (passwordData: {
+    currentPassword: string;
+    newPassword: string;
+    password_confirmation: string;
+  }) => {
+    return apiRequest("/user/change-password", {
+      method: "POST",
+      body: JSON.stringify(passwordData),
+    });
+  },
+
   // Export utility functions
   getAuthData,
   isTokenExpired

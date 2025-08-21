@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { authAPI } from "../../services/api";
 
 interface SecuritySettingsModalProps {
   isOpen: boolean;
@@ -110,20 +111,41 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
 
     setPasswordLoading(true);
     try {
-      // TODO: 実際のAPIでパスワード変更（changePasswordメソッドが実装されたら有効化）
-      // await authAPI.changePassword({
-      //   currentPassword: passwordForm.currentPassword,
-      //   newPassword: passwordForm.newPassword
-      // });
+      // 実際のAPIでパスワード変更
+      const response = await authAPI.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+        password_confirmation: passwordForm.confirmPassword
+      });
       
-      // 現在は設定のみローカル保存
-      updateSetting("passwordPolicy", "lastChanged", new Date().toISOString().split("T")[0]);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setShowPasswordForm(false);
-      alert("パスワード設定が保存されました（実際の変更はAPI実装後に有効になります）");
+      if (response.success) {
+        // パスワード変更成功時の処理
+        updateSetting("passwordPolicy", "lastChanged", new Date().toISOString().split("T")[0]);
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setShowPasswordForm(false);
+        alert("パスワードが正常に変更されました");
+      } else {
+        alert(response.message || "パスワード変更に失敗しました");
+      }
     } catch (error: unknown) {
       console.error("Password change failed:", error);
-      const errorMessage = error instanceof Error ? error.message : "パスワード変更に失敗しました";
+      
+      // APIエラーのハンドリング
+      let errorMessage = "パスワード変更に失敗しました";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const apiError = error as { response: { status: number; data: { message?: string } } };
+        if (apiError.response.status === 400) {
+          errorMessage = "現在のパスワードが間違っているか、新しいパスワードが要件を満たしていません";
+        } else if (apiError.response.status === 401) {
+          errorMessage = "認証エラーです。再度ログインしてください";
+        } else if (apiError.response.data.message) {
+          errorMessage = apiError.response.data.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       alert(errorMessage);
     } finally {
       setPasswordLoading(false);
@@ -202,42 +224,61 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               </div>
 
               {showPasswordForm && (
-                <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
+                <form onSubmit={(e) => { e.preventDefault(); handlePasswordChange(); }} className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
+                  {/* Hidden username field for accessibility and password managers */}
+                  <input
+                    type="text"
+                    name="username"
+                    autoComplete="username"
+                    style={{ display: 'none' }}
+                    readOnly
+                    tabIndex={-1}
+                    aria-hidden="true"
+                  />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在のパスワード</label>
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在のパスワード</label>
                     <input
+                      id="currentPassword"
+                      name="currentPassword"
                       type="password"
+                      autoComplete="current-password"
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード</label>
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード</label>
                     <input
+                      id="newPassword"
+                      name="newPassword"
                       type="password"
+                      autoComplete="new-password"
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード（確認）</label>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード（確認）</label>
                     <input
+                      id="confirmPassword"
+                      name="confirmPassword"
                       type="password"
+                      autoComplete="new-password"
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
                     />
                   </div>
                   <button
-                    onClick={handlePasswordChange}
+                    type="submit"
                     disabled={passwordLoading}
                     className="w-full px-4 py-3 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium min-h-[44px] flex items-center justify-center touch-manipulation"
                   >
                     {passwordLoading ? "変更中..." : "パスワードを変更"}
                   </button>
-                </div>
+                </form>
               )}
 
               <div className="space-y-2 sm:space-y-3">
