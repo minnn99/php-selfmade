@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PrivacyPolicyModal } from '../modals/PrivacyPolicyModal';
 import { TermsOfServiceModal } from '../modals/TermsOfServiceModal';
+import { CustomSelect } from '../shared/CustomSelect';
 
 interface SignupFormProps {
   onSignup: (data: SignupData) => void;
@@ -382,26 +383,29 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
 
             {/* Gender Field */}
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="gender" className="block text-sm font-medium text-neutral-700 mb-2" id="gender-label">
                 性別 <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomSelect
                 id="gender"
                 name="gender"
-                required
                 value={formData.gender}
-                onChange={handleChange}
+                onChange={(value) => {
+                  setFormData(prev => ({ ...prev, gender: value }));
+                  // Real-time validation if touched
+                  if (touched.gender) {
+                    setErrors(prev => ({ ...prev, gender: validateGender(value) }));
+                  }
+                }}
                 onBlur={() => handleBlur('gender')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 text-base min-h-[44px] touch-manipulation ${
-                  errors.gender && touched.gender
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
-                }`}
-              >
-                <option value="">選択してください</option>
-                <option value="female">女性</option>
-                <option value="male">男性</option>
-              </select>
+                options={[
+                  { value: "female", label: "女性" },
+                  { value: "male", label: "男性" }
+                ]}
+                placeholder="選択してください"
+                error={!!(errors.gender && touched.gender)}
+                required
+              />
               {errors.gender && touched.gender && (
                 <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
               )}

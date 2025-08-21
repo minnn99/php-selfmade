@@ -7,11 +7,6 @@ interface SecuritySettingsModalProps {
 }
 
 interface SecuritySettings {
-  twoFactorAuth: {
-    enabled: boolean;
-    method: "sms" | "email" | "app";
-    backupCodes: string[];
-  };
   passwordPolicy: {
     requireUppercase: boolean;
     requireNumbers: boolean;
@@ -29,11 +24,6 @@ interface SecuritySettings {
 
 export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ isOpen, onClose }) => {
   const [settings, setSettings] = useState<SecuritySettings>({
-    twoFactorAuth: {
-      enabled: false,
-      method: "email",
-      backupCodes: [],
-    },
     passwordPolicy: {
       requireUppercase: true,
       requireNumbers: true,
@@ -162,24 +152,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
     return { length, uppercase, numbers, symbols, isValid };
   };
 
-  const generateBackupCodes = () => {
-    const codes = [];
-    for (let i = 0; i < 10; i++) {
-      codes.push(Math.random().toString(36).substring(2, 10).toUpperCase());
-    }
-    updateSetting("twoFactorAuth", "backupCodes", codes);
-    alert("バックアップコードが生成されました");
-  };
-
-  const enable2FA = () => {
-    updateSetting("twoFactorAuth", "enabled", true);
-    generateBackupCodes();
-    alert(
-      `${
-        settings.twoFactorAuth.method === "sms" ? "SMS" : settings.twoFactorAuth.method === "email" ? "メール" : "認証アプリ"
-      }による2段階認証が有効になりました`
-    );
-  };
 
   if (!isOpen) return null;
 
@@ -307,66 +279,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
             </div>
           </div>
 
-          {/* 2段階認証 */}
-          <div className="space-y-3 sm:space-y-4">
-            <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">2段階認証</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン時の追加セキュリティ</p>
-            </div>
-
-            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-start sm:items-center justify-between">
-                <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700">2段階認証</span>
-                  <p className="text-xs text-gray-500 mt-1">{settings.twoFactorAuth.enabled ? "有効" : "無効"}</p>
-                </div>
-                <button
-                  onClick={() => (settings.twoFactorAuth.enabled ? updateSetting("twoFactorAuth", "enabled", false) : enable2FA())}
-                  className={`px-3 py-2 text-sm rounded-lg transition-colors min-h-[44px] flex items-center justify-center flex-shrink-0 ${
-                    settings.twoFactorAuth.enabled
-                      ? "bg-red-600 hover:bg-red-700 active:bg-red-800 text-white"
-                      : "bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white"
-                  }`}
-                >
-                  {settings.twoFactorAuth.enabled ? "無効にする" : "有効にする"}
-                </button>
-              </div>
-
-              {settings.twoFactorAuth.enabled && (
-                <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">認証方法</label>
-                    <select
-                      value={settings.twoFactorAuth.method}
-                      onChange={(e) => updateSetting("twoFactorAuth", "method", e.target.value)}
-                      className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
-                    >
-                      <option value="email">メール</option>
-                      <option value="sms">SMS</option>
-                      <option value="app">認証アプリ</option>
-                    </select>
-                  </div>
-
-                  {settings.twoFactorAuth.backupCodes.length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <p className="text-sm font-medium text-yellow-800 mb-2">バックアップコード</p>
-                      <p className="text-xs text-yellow-700 mb-2">デバイスにアクセスできない場合に使用してください</p>
-                      <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                        {settings.twoFactorAuth.backupCodes.slice(0, 4).map((code, index) => (
-                          <span key={index} className="bg-yellow-100 px-2 py-1 rounded">
-                            {code}
-                          </span>
-                        ))}
-                      </div>
-                      <button onClick={generateBackupCodes} className="mt-2 text-xs text-yellow-700 hover:text-yellow-900 underline">
-                        新しいコードを生成
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* ログインセキュリティ */}
           <div className="space-y-3 sm:space-y-4">

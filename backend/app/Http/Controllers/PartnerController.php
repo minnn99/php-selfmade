@@ -373,6 +373,45 @@ class PartnerController extends Controller
             $predictions = $this->calculatePredictionsForPartner($partnerUser, $startOfMonth, $extendedEndOfMonth);
             $calendarData = array_merge($calendarData, $predictions);
             
+            // パートナーの日別症状データを取得して追加
+            $dailySymptoms = \App\Models\DailySymptom::where('user_id', $partnerUser->id)
+                ->whereBetween('symptom_date', [$startOfMonth, $endOfMonth])
+                ->get();
+            
+            // 日別症状データをカレンダーデータに統合
+            foreach ($dailySymptoms as $symptom) {
+                $date = $symptom->symptom_date->format('Y-m-d');
+                $symptomsData = $symptom->symptoms_data ?? [];
+                
+                // 既存のカレンダーデータがある場合は追加、ない場合は新規作成
+                if (!isset($calendarData[$date])) {
+                    $calendarData[$date] = [
+                        'date' => $date,
+                        'hasPeriod' => false,
+                        'isPeriodStart' => false,
+                        'isPeriodEnd' => false,
+                        'isActive' => false,
+                        'isPredictedPeriod' => false,
+                        'isOvulation' => false,
+                        'isFertile' => false,
+                        'flowIntensity' => null,
+                        'symptoms' => [],
+                        'cycleId' => null,
+                        'notes' => null,
+                        'is_partner_data' => true,
+                        'partner_name' => $partnerUser->name
+                    ];
+                }
+                
+                // パートナーの日別症状データを追加
+                $calendarData[$date]['partner_daily_data'] = [
+                    'symptoms' => $symptomsData['symptoms'] ?? [],
+                    'mood' => $symptomsData['mood'] ?? '',
+                    'health_notes' => $symptomsData['healthNotes'] ?? '',
+                    'flow_intensity' => $symptomsData['flowIntensity'] ?? null
+                ];
+            }
+            
             // 表示月範囲内のデータのみにフィルタリング
             $filteredData = [];
             foreach ($calendarData as $date => $data) {
