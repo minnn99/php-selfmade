@@ -42,13 +42,20 @@ interface CalendarDayData {
   };
 }
 
+interface SymptomsData {
+  symptoms: string[];
+  mood: string;
+  healthNotes: string;
+  flowIntensity?: number;
+}
+
 export const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [calendarApiData, setCalendarApiData] = useState<Record<string, CalendarDayData>>({});
   const [partnerCalendarData, setPartnerCalendarData] = useState<Record<string, CalendarDayData>>({});
-  const [symptomsData, setSymptomsData] = useState<Record<string, any>>({});
+  const [symptomsData, setSymptomsData] = useState<Record<string, SymptomsData>>({});
   const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0); // カレンダー強制再描画用
@@ -254,12 +261,17 @@ export const Calendar: React.FC = () => {
         const symptomsResponse = await dailySymptomsAPI.getSymptomsRange(startDate, endDate);
         
         if (symptomsResponse.success && symptomsResponse.data) {
-          const symptomsMap: Record<string, any> = {};
-          const symptomsDataResponse = symptomsResponse.data as Record<string, any>;
+          const symptomsMap: Record<string, SymptomsData> = {};
+          const symptomsDataResponse = symptomsResponse.data as Record<string, unknown>;
           
           // オブジェクトの各キー（日付）を処理
           Object.keys(symptomsDataResponse).forEach((dateKey) => {
-            const symptomData = symptomsDataResponse[dateKey];
+            const symptomData = symptomsDataResponse[dateKey] as {
+              symptoms?: string[];
+              mood?: string;
+              health_notes?: string;
+              flow_intensity?: number;
+            };
             // 日付キーをYYYY-MM-DD形式に変換（時刻部分を削除）
             const formattedDate = dateKey.split(' ')[0]; // "2025-08-01 00:00:00" -> "2025-08-01"
             
