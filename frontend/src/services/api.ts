@@ -143,8 +143,16 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
     // 401 Unauthorized error - token expired or invalid
     if (response.status === 401) {
       console.log("401 Unauthorized - Token may be expired");
-      logout(true); // Show notification for unauthorized access
-      return { success: false, message: "認証が必要です" };
+      
+      // ログインエンドポイントの場合はlogout()を呼ばない（認証失敗のためログアウト不要）
+      if (!endpoint.includes("/login")) {
+        logout(true); // Show notification for unauthorized access
+      }
+      
+      // 401エラーはエラーとしてthrowして、呼び出し元でcatchできるようにする
+      const authError = new Error("認証が必要です");
+      (authError as Error & { response?: { status: number; data: unknown } }).response = { status: response.status, data: error };
+      throw authError;
     }
 
     const apiError = new Error(error.message || `Request failed: ${response.status} ${response.statusText}`);

@@ -13,26 +13,38 @@ function App() {
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "signup" | "main">("login");
 
   useEffect(() => {
-    // 初回起動チェック
-    const hasVisited = localStorage.getItem("has_visited");
+    let mounted = true;
+    
+    const checkAuth = () => {
+      // 初回起動チェック
+      const hasVisited = localStorage.getItem("has_visited");
 
-    // 新しい認証システムで認証状態をチェック
-    const isAuth = authAPI.isAuthenticated();
+      // 新しい認証システムで認証状態をチェック
+      const isAuth = authAPI.isAuthenticated();
 
-    if (isAuth) {
-      setIsAuthenticated(true);
-      setCurrentView("main");
-      // Start automatic token expiration checking
-      authAPI.startTokenChecker();
-      // Initialize today's period status when authenticated
-      initializeTodayPeriodStatus();
-    } else if (!hasVisited) {
-      setCurrentView("welcome");
-    } else {
-      setCurrentView("login");
-    }
+      if (!mounted) return; // コンポーネントがアンマウントされている場合は何もしない
 
-    setIsLoading(false);
+      if (isAuth) {
+        setIsAuthenticated(true);
+        setCurrentView("main");
+        // Start automatic token expiration checking
+        authAPI.startTokenChecker();
+        // Initialize today's period status when authenticated
+        initializeTodayPeriodStatus();
+      } else if (!hasVisited) {
+        setCurrentView("welcome");
+      } else {
+        setCurrentView("login");
+      }
+
+      setIsLoading(false);
+    };
+
+    checkAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // ページ遷移時にスクロール位置をトップに戻す
@@ -47,6 +59,13 @@ function App() {
     setIsAuthenticated(false);
     setCurrentView("login");
   };
+
+  // ログイン画面表示時はトークンチェッカーを停止
+  useEffect(() => {
+    if (!isAuthenticated && currentView === "login") {
+      authAPI.stopTokenChecker();
+    }
+  }, [isAuthenticated, currentView]);
 
   const handleGetStarted = () => {
     // 訪問フラグをセットして新規登録ページへ
@@ -102,7 +121,7 @@ function App() {
   };
 
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />;
+    return <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />;
   }
 
   return (

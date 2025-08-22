@@ -48,6 +48,7 @@ export const Calendar: React.FC = () => {
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
   const [calendarApiData, setCalendarApiData] = useState<Record<string, CalendarDayData>>({});
   const [partnerCalendarData, setPartnerCalendarData] = useState<Record<string, CalendarDayData>>({});
+  const [symptomsData, setSymptomsData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false); // 日付クリック時のローディング専用
   const [existingDataForModal, setExistingDataForModal] = useState<RecordData | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0); // カレンダー強制再描画用
@@ -246,6 +247,39 @@ export const Calendar: React.FC = () => {
 
       setCalendarApiData(filteredData);
 
+      // 症状データをAPIから取得（現在月の範囲）
+      try {
+        const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
+        const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-31`;
+        const symptomsResponse = await dailySymptomsAPI.getSymptomsRange(startDate, endDate);
+        
+        if (symptomsResponse.success && symptomsResponse.data) {
+          const symptomsMap: Record<string, any> = {};
+          const symptomsDataResponse = symptomsResponse.data as Record<string, any>;
+          
+          // オブジェクトの各キー（日付）を処理
+          Object.keys(symptomsDataResponse).forEach((dateKey) => {
+            const symptomData = symptomsDataResponse[dateKey];
+            // 日付キーをYYYY-MM-DD形式に変換（時刻部分を削除）
+            const formattedDate = dateKey.split(' ')[0]; // "2025-08-01 00:00:00" -> "2025-08-01"
+            
+            symptomsMap[formattedDate] = {
+              symptoms: symptomData.symptoms || [],
+              mood: symptomData.mood || "",
+              healthNotes: symptomData.health_notes || "",
+              flowIntensity: symptomData.flow_intensity,
+            };
+          });
+          
+          setSymptomsData(symptomsMap);
+        } else {
+          setSymptomsData({});
+        }
+      } catch (error) {
+        console.error("Failed to load symptoms data:", error);
+        setSymptomsData({});
+      }
+
       // 男性ユーザーで、パートナーと連動している場合、パートナーのカレンダーデータも読み込み
       if (currentConnected && (currentGender === "male" || currentGender === "男性")) {
         try {
@@ -274,27 +308,23 @@ export const Calendar: React.FC = () => {
     }
   };
 
-  // Helper function to check if a date has user input data stored locally
+  // Helper function to check if a date has user input data from API
   const hasUserInputForDate = (dateKey: string): boolean => {
-    const storedData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-    if (!storedData) return false;
-
-    try {
-      const data = JSON.parse(storedData);
-      // Check if any meaningful data exists (not just empty/default values)
-      const hasSymptoms = data.symptoms && Array.isArray(data.symptoms) && data.symptoms.length > 0;
-      const hasMood = data.mood && typeof data.mood === "string" && data.mood.trim() !== "";
-      const hasHealthNotes = data.healthNotes && typeof data.healthNotes === "string" && data.healthNotes.trim() !== "";
-      const hasFlowIntensity =
-        data.flowIntensity !== undefined && data.flowIntensity !== null && typeof data.flowIntensity === "number" && data.flowIntensity > 0;
-
-      // 黄色の点は症状・気分・健康ノート・経血量のみで判定（生理フラグは除外）
-      const result = hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity;
-
-      return result;
-    } catch {
+    const data = symptomsData[dateKey];
+    
+    if (!data) {
       return false;
     }
+
+    // Check if any meaningful data exists (not just empty/default values)
+    const result = (
+      (data.symptoms && Array.isArray(data.symptoms) && data.symptoms.length > 0) ||
+      (data.mood && data.mood.trim() !== "") ||
+      (data.healthNotes && data.healthNotes.trim() !== "") ||
+      (data.flowIntensity !== undefined && data.flowIntensity !== null && data.flowIntensity > 0)
+    );
+    
+    return result;
   };
 
   // Helper function to check if a date has symptoms data (user or partner)
@@ -340,20 +370,25 @@ export const Calendar: React.FC = () => {
       const dateKey = `${prevMonthYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
       const partnerData = partnerCalendarData[dateKey];
+      
+      // 男性ユーザーで、パートナーと連動している場合、パートナーのデータを優先
+      const isMaleUser = userGender === "male" || userGender === "男性";
+      const displayData = (isMaleUser && isConnectedToPartner) ? partnerData : dayData;
+      
       days.push({
         year: prevMonthYear,
         month: prevMonth,
         date,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: displayData?.hasPeriod || false,
         hasSymptoms: hasSymptomsForDate(dateKey, partnerData),
-        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
-        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        isOvulation: displayData?.isOvulation || false,
+        isPredictedPeriod: displayData?.isPredictedPeriod || false,
+        isPeriodStart: displayData?.isPeriodStart || false,
+        isPeriodEnd: displayData?.isPeriodEnd || false,
+        isActive: displayData?.isActive || false,
+        isFertile: displayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
         hasPartnerSymptoms: (partnerData?.partner_daily_data?.symptoms && Array.isArray(partnerData.partner_daily_data.symptoms) && partnerData.partner_daily_data.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
@@ -366,20 +401,25 @@ export const Calendar: React.FC = () => {
       const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
       const partnerData = partnerCalendarData[dateKey];
+      
+      // 男性ユーザーで、パートナーと連動している場合、パートナーのデータを優先
+      const isMaleUser = userGender === "male" || userGender === "男性";
+      const displayData = (isMaleUser && isConnectedToPartner) ? partnerData : dayData;
+      
       days.push({
         year: currentYear,
         month: currentMonth,
         date,
         isCurrentMonth: true,
         isToday,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: displayData?.hasPeriod || false,
         hasSymptoms: hasSymptomsForDate(dateKey, partnerData),
-        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
-        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        isOvulation: displayData?.isOvulation || false,
+        isPredictedPeriod: displayData?.isPredictedPeriod || false,
+        isPeriodStart: displayData?.isPeriodStart || false,
+        isPeriodEnd: displayData?.isPeriodEnd || false,
+        isActive: displayData?.isActive || false,
+        isFertile: displayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
         hasPartnerSymptoms: (partnerData?.partner_daily_data?.symptoms && Array.isArray(partnerData.partner_daily_data.symptoms) && partnerData.partner_daily_data.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
@@ -394,20 +434,25 @@ export const Calendar: React.FC = () => {
       const dateKey = `${nextMonthYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(nextMonthDate).padStart(2, "0")}`;
       const dayData = calendarApiData[dateKey];
       const partnerData = partnerCalendarData[dateKey];
+      
+      // 男性ユーザーで、パートナーと連動している場合、パートナーのデータを優先
+      const isMaleUser = userGender === "male" || userGender === "男性";
+      const displayData = (isMaleUser && isConnectedToPartner) ? partnerData : dayData;
+      
       days.push({
         year: nextMonthYear,
         month: nextMonth,
         date: nextMonthDate,
         isCurrentMonth: false,
         isToday: false,
-        hasPeriod: dayData?.hasPeriod || false,
+        hasPeriod: displayData?.hasPeriod || false,
         hasSymptoms: hasSymptomsForDate(dateKey, partnerData),
-        isOvulation: dayData?.isOvulation || partnerData?.isOvulation || false,
-        isPredictedPeriod: dayData?.isPredictedPeriod || partnerData?.isPredictedPeriod || false,
-        isPeriodStart: dayData?.isPeriodStart || partnerData?.isPeriodStart || false,
-        isPeriodEnd: dayData?.isPeriodEnd || partnerData?.isPeriodEnd || false,
-        isActive: dayData?.isActive || partnerData?.hasPeriod || false,
-        isFertile: dayData?.isFertile || partnerData?.isFertile || false,
+        isOvulation: displayData?.isOvulation || false,
+        isPredictedPeriod: displayData?.isPredictedPeriod || false,
+        isPeriodStart: displayData?.isPeriodStart || false,
+        isPeriodEnd: displayData?.isPeriodEnd || false,
+        isActive: displayData?.isActive || false,
+        isFertile: displayData?.isFertile || false,
         hasPartnerPeriod: partnerData?.hasPeriod || false,
         hasPartnerSymptoms: (partnerData?.partner_daily_data?.symptoms && Array.isArray(partnerData.partner_daily_data.symptoms) && partnerData.partner_daily_data.symptoms.length > 0) || false,
         partnerName: partnerData?.partner_name,
@@ -440,23 +485,18 @@ export const Calendar: React.FC = () => {
     const dayData = calendarApiData[dateKey];
     const partnerData = partnerCalendarData[dateKey];
 
-    // ローカルストレージから症状・気分・メモ・経血量データを取得
+    // APIから取得した症状・気分・メモ・経血量データを取得
     let localSymptoms: string[] = [];
     let localMood = "";
     let localHealthNotes = "";
     let localFlowIntensity: number | undefined = undefined;
 
-    try {
-      const localData = localStorage.getItem(`daily-symptoms-${dateKey}`);
-      if (localData) {
-        const parsed = JSON.parse(localData);
-        localSymptoms = parsed.symptoms || [];
-        localMood = parsed.mood || "";
-        localHealthNotes = parsed.healthNotes || "";
-        localFlowIntensity = parsed.flowIntensity;
-      }
-    } catch (error) {
-      console.error("Failed to parse local symptoms data:", error);
+    const symptomsForDate = symptomsData[dateKey];
+    if (symptomsForDate) {
+      localSymptoms = symptomsForDate.symptoms || [];
+      localMood = symptomsForDate.mood || "";
+      localHealthNotes = symptomsForDate.healthNotes || "";
+      localFlowIntensity = symptomsForDate.flowIntensity;
     }
 
     // パートナーのデータがある場合は含める
@@ -776,7 +816,7 @@ export const Calendar: React.FC = () => {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, refreshKey]);
+  const calendarDays = useMemo(() => generateCalendarDays(), [currentYear, currentMonth, calendarApiData, partnerCalendarData, symptomsData, refreshKey]);
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {

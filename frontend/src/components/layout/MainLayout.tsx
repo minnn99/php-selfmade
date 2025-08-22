@@ -65,7 +65,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         
         // APIから基本ユーザーデータと設定データを並行取得
         const [userResponse, settingsResponse] = await Promise.all([
-          authAPI.getUser().catch(() => ({ success: false, data: null })),
+          authAPI.getUser().catch((error) => {
+            // 401エラーの場合は通知処理が既にapi.tsで実行されているので、エラーを再スロー
+            if (error?.response?.status === 401) {
+              throw error;
+            }
+            return { success: false, data: null };
+          }),
           import('../../services/api').then(api => api.userDataAPI.getSettings().catch(() => ({ success: false, data: null })))
         ]);
 
@@ -107,7 +113,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         setUserGender(userGender);
       } catch (error) {
         console.error("Failed to fetch user info:", error);
-        setUserName("ユーザー"); // フォールバック
+        
+        // 401エラーの場合は、api.tsで既に通知処理が実行されているため、ここでは何もしない
+        if ((error as { response?: { status: number } })?.response?.status === 401) {
+          // セッション切れの場合は、ユーザー情報をクリアして処理を中断
+          setUserName("");
+          setUserGender("");
+          setUserLoading(false);
+          return;
+        }
+        
+        // その他のエラーの場合はフォールバック値を設定
+        setUserName("ユーザー");
         setUserGender("");
       } finally {
         setUserLoading(false);
