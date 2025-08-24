@@ -118,7 +118,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
         alert(response.message || "パスワード変更に失敗しました");
       }
     } catch (error: unknown) {
-      console.error("Password change failed:", error);
       
       // APIエラーのハンドリング
       let errorMessage = "パスワード変更に失敗しました";

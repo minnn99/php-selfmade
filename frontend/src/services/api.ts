@@ -64,20 +64,22 @@ const logout = (showNotification = false) => {
       detail: { message: 'セッションの有効期限が切れました。再度ログインしてください。' }
     }));
     
-    // 少し遅延してからリダイレクト（通知を確実に表示するため）
-    setTimeout(() => {
-      performLogout();
-    }, 100);
+    // 通知表示時はローカルストレージのクリアのみ行い、リダイレクトは App.tsx で制御
+    clearAuthData();
   } else {
     performLogout();
   }
 };
 
-const performLogout = () => {
+const clearAuthData = () => {
   localStorage.removeItem("auth_data");
   localStorage.removeItem("auth_token"); // 後方互換性のため
   localStorage.removeItem("rememberMe"); // Clear remember me setting
   sessionStorage.removeItem("redirectAfterLogin"); // Clear any pending redirects
+};
+
+const performLogout = () => {
+  clearAuthData();
 
   // Redirect to login page
   window.location.href = "/";
@@ -96,7 +98,6 @@ const startTokenExpirationChecker = () => {
   tokenCheckInterval = window.setInterval(() => {
     const authData = getAuthData();
     if (authData && isTokenExpired(authData.expires_at)) {
-      console.log("Token expired, logging out...");
       logout(true); // Show notification when session expires
     }
   }, 60000); // Check every minute
@@ -122,27 +123,14 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
     ...options,
   };
 
-  console.log("API Request:", {
-    endpoint,
-    hasToken: !!token,
-    method: options.method || "GET",
-  });
 
   const response = await fetch(`${API_BASE}${endpoint}`, config);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Request failed" }));
-    console.error("API Error:", {
-      status: response.status,
-      statusText: response.statusText,
-      error,
-      endpoint,
-      token: !!token,
-    });
 
     // 401 Unauthorized error - token expired or invalid
     if (response.status === 401) {
-      console.log("401 Unauthorized - Token may be expired");
       
       // ログインエンドポイントの場合はlogout()を呼ばない（認証失敗のためログアウト不要）
       if (!endpoint.includes("/login")) {
@@ -161,7 +149,6 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
   }
 
   const result = (await response.json()) as ApiResponse;
-  console.log("API Response:", { endpoint, result });
   return result;
 };
 
@@ -214,9 +201,8 @@ export const authAPI = {
     try {
       await apiRequest("/logout", { method: "POST" });
     } catch (error) {
-      console.warn("Logout API call failed:", error);
     } finally {
-      logout(); // Always clear local auth data
+      performLogout(); // Always clear local auth data and redirect
     }
   },
 

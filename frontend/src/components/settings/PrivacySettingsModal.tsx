@@ -43,7 +43,6 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
           }
         }
       } catch (error) {
-        console.error('Failed to load privacy settings:', error);
       }
     };
 
@@ -61,7 +60,6 @@ export const PrivacySettingsModal: React.FC<PrivacySettingsModalProps> = ({
       onSave(settings);
       onClose();
     } catch (error) {
-      console.error('Failed to save privacy settings:', error);
       alert('設定の保存に失敗しました。');
     } finally {
       setLoading(false);

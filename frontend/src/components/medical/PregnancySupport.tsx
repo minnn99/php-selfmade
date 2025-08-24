@@ -69,7 +69,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
         });
       }
     } catch (error) {
-      console.error("Failed to load ovulation data:", error);
+      // Failed to load ovulation data
     }
   };
 

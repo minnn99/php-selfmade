@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { OverviewCards } from "../analytics/OverviewCards";
 import { Calendar } from "../calendar/Calendar";
-import { CalendarView } from "../calendar/CalendarView";
 import { Statistics } from "../analytics/Statistics";
 import { Settings } from "../settings/Settings";
 import { Navigation } from "./Navigation";
@@ -25,7 +24,6 @@ interface MainLayoutProps {
 export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentView, setCurrentView] = useState<string>("dashboard");
-  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0); // 追加
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -112,7 +110,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         setUserName(displayName);
         setUserGender(userGender);
       } catch (error) {
-        console.error("Failed to fetch user info:", error);
         
         // 401エラーの場合は、api.tsで既に通知処理が実行されているため、ここでは何もしない
         if ((error as { response?: { status: number } })?.response?.status === 401) {
@@ -187,7 +184,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
 
   // データ削除成功時にカレンダーをリフレッシュするためのハンドラ
   const handleDataDeleted = () => {
-    setCalendarRefreshKey(prevKey => prevKey + 1);
+    // カレンダーデータ更新イベントを発火
+    window.dispatchEvent(new Event('menstrualDataUpdated'));
   };
 
   return (
@@ -338,10 +336,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               </>
             )}
 
-            {currentView === "calendar" && (
-              <CalendarView refreshKey={calendarRefreshKey} />
-            )}
-
             {currentView === "statistics" && (
               <Statistics />
             )}
@@ -384,7 +378,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       <SettingsSidebar 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        onDataDeleted={handleDataDeleted} // 追加
+        onDataDeleted={handleDataDeleted}
       />
 
       {/* Logout Confirmation Modal */}

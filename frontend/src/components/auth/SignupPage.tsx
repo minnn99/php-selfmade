@@ -89,12 +89,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           });
 
           if (settingsResponse.ok) {
-            console.log('ニックネームの設定が完了しました');
           } else {
-            console.warn('ニックネームの設定に失敗しましたが、登録は成功しました');
           }
         } catch (settingsError) {
-          console.warn('ニックネームの設定でエラーが発生しました:', settingsError);
         }
 
         alert(`${signupData.nickname || signupData.name}さん、新規登録が完了しました！ログイン画面に戻ります。`);
@@ -111,7 +108,6 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
       }
       
     } catch (error) {
-      console.error('Signup error:', error);
       alert('ネットワークエラーが発生しました。再度お試しください。');
     } finally {
       setIsLoading(false);

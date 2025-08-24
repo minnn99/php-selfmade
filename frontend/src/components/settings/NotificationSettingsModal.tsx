@@ -75,7 +75,6 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           }
         }
       } catch (error) {
-        console.error('Failed to load notification settings:', error);
       }
     };
 
@@ -108,7 +107,6 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       onSave(settings);
       onClose();
     } catch (error) {
-      console.error('Failed to save notification settings:', error);
       alert('設定の保存に失敗しました。');
     } finally {
       setLoading(false);

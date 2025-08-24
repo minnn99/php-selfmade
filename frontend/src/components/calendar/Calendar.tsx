@@ -92,7 +92,6 @@ export const Calendar: React.FC = () => {
         const { autoUpdatePeriodStatusForActiveCycle } = await import("../../utils/periodStatusHelper");
         autoUpdatePeriodStatusForActiveCycle();
       } catch (error) {
-        console.error("Failed to initialize menstrual status manager:", error);
       }
 
       // 初回読み込み時にローカルストレージデータを移行
@@ -110,7 +109,6 @@ export const Calendar: React.FC = () => {
     let timeoutId: number;
 
     const handleDataUpdate = () => {
-      console.log("Calendar - Menstrual data updated event received, but ignoring to prevent display issues");
       
       // COMPLETELY DISABLE automatic calendar reloading
       // This prevents period display from disappearing when entering symptoms
@@ -124,7 +122,6 @@ export const Calendar: React.FC = () => {
       // DO NOT reload calendar data automatically
       // Only refresh the key for minimal updates
       timeoutId = setTimeout(() => {
-        console.log("Calendar - Minimal refresh only");
         setRefreshKey((prev) => prev + 1); // 最小限の再描画のみ
       }, 100);
     };
@@ -146,7 +143,6 @@ export const Calendar: React.FC = () => {
 
     // 既に移行済みの場合はスキップ
     if (localStorage.getItem(migrationKey) === "true") {
-      console.log("Symptoms data already migrated, skipping...");
       return;
     }
 
@@ -180,27 +176,21 @@ export const Calendar: React.FC = () => {
               }
             }
           } catch (error) {
-            console.error("Error parsing local storage data for key:", key, error);
           }
         }
       }
 
       if (symptomsData.length > 0) {
-        console.log(`Migrating ${symptomsData.length} symptoms records from localStorage to API...`);
         const response = await dailySymptomsAPI.bulkSaveSymptoms(symptomsData);
 
         if (response.success) {
-          console.log("Migration successful:", response.data);
           localStorage.setItem(migrationKey, "true");
         } else {
-          console.error("Migration failed:", response);
         }
       } else {
-        console.log("No symptoms data found in localStorage to migrate");
         localStorage.setItem(migrationKey, "true");
       }
     } catch (error) {
-      console.error("Error during symptoms data migration:", error);
     }
   };
 
@@ -222,7 +212,6 @@ export const Calendar: React.FC = () => {
       keys.forEach((key) => {
         localStorage.removeItem(key);
       });
-      console.log(`Cleaned up ${keys.length} old July data entries`);
     }
 
     localStorage.setItem("july-data-cleanup-completed", "true");
@@ -247,8 +236,6 @@ export const Calendar: React.FC = () => {
         if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
           // 30日以内、または表示中の月のデータのみ保持
           filteredData[dateKey] = rawData[dateKey];
-        } else {
-          // console.log(`Filtering out old data for ${dateKey}`);
         }
       });
 
@@ -288,7 +275,6 @@ export const Calendar: React.FC = () => {
           setSymptomsData({});
         }
       } catch (error) {
-        console.error("Failed to load symptoms data:", error);
         setSymptomsData({});
       }
 
@@ -307,14 +293,12 @@ export const Calendar: React.FC = () => {
             setPartnerCalendarData({});
           }
         } catch (error) {
-          console.error("Failed to load partner calendar data:", error);
           setPartnerCalendarData({});
         }
       } else {
         setPartnerCalendarData({});
       }
     } catch (error) {
-      console.error("Failed to load calendar data:", error);
       setCalendarApiData({});
       setPartnerCalendarData({});
     }
@@ -549,7 +533,6 @@ export const Calendar: React.FC = () => {
           };
         }
       } catch (error) {
-        console.error("Failed to fetch cycle details:", error);
         // エラーの場合はローカルデータを使用
       }
     }
@@ -613,7 +596,6 @@ export const Calendar: React.FC = () => {
 
           if (Object.keys(updateData).length > 0) {
             await menstrualCycleAPI.updateCycle(data.cycleId, updateData);
-            console.log(`API SUCCESS: Updated cycle ${data.cycleId}:`, updateData);
           }
         } else {
           // 既存の周期IDがない場合
@@ -621,26 +603,20 @@ export const Calendar: React.FC = () => {
             await menstrualCycleAPI.startCycle({
               start_date: dateStr,
             });
-            console.log(`API SUCCESS: Started new cycle on ${dateStr}`);
           } else if (data.isPeriodEnd) {
             // 終了日を設定する場合、直接アクティブな周期を取得
-            console.log(`Setting end date for active cycle on ${dateStr}`);
 
             try {
               const response = await menstrualCycleAPI.getCurrentStatus();
-              console.log("Current status response:", response);
 
               if (response.hasActiveCycle && response.activeCycle) {
                 const activeCycle = response.activeCycle as { id: number; start_date: string };
-                console.log(`Found active cycle: ID=${activeCycle.id}, start=${activeCycle.start_date}`);
 
                 await menstrualCycleAPI.updateCycle(activeCycle.id, { end_date: dateStr });
-                console.log(`API SUCCESS: Updated cycle ${activeCycle.id} with end date ${dateStr}`);
               } else {
                 throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
               }
             } catch (error) {
-              console.error("Error getting current status:", error);
               throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
             }
           }
@@ -657,9 +633,7 @@ export const Calendar: React.FC = () => {
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
           });
-          console.log(`API SUCCESS: Saved symptoms data for ${dateStr}`);
         } catch (error) {
-          console.error(`API ERROR: Failed to save symptoms data for ${dateStr}:`, error);
           // 症状データのAPI保存が失敗してもローカルストレージには保存する
         }
       }
@@ -679,17 +653,14 @@ export const Calendar: React.FC = () => {
 
       if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity || hasPeriodInfo) {
         localStorage.setItem(`daily-symptoms-${dateStr}`, JSON.stringify(dailyRecord));
-        console.log(`LOCAL SAVE: Saved data for ${dateStr}:`, dailyRecord);
       } else {
         localStorage.removeItem(`daily-symptoms-${dateStr}`);
-        console.log(`LOCAL REMOVE: Removed data for ${dateStr}`);
       }
 
       alert("記録が保存されました！");
       
       // 生理周期情報が変更された場合のみ、強制的にカレンダー更新
       if (hasPeriodInfo) {
-        console.log("Period info changed - manual calendar reload required");
         
         setTimeout(async () => {
           await loadCalendarData();
@@ -698,18 +669,15 @@ export const Calendar: React.FC = () => {
             const { menstrualStatusManager } = await import("../../services/menstrualStatusManager");
             await menstrualStatusManager.forceReloadStatus();
           } catch (error) {
-            console.error("Failed to reload menstrual status:", error);
           }
           
           setRefreshKey((prev) => prev + 1);
         }, 100);
       } else {
-        console.log("Symptoms only - calendar display preserved");
         // 症状のみの場合は一切更新しない
         // カレンダーAPIデータはそのまま維持され、生理日表示は保持される
       }
     } catch (error: unknown) {
-      console.error("Failed to save record:", error);
       let errorMessage = "記録の保存に失敗しました。";
       if (error && typeof error === 'object' && 'response' in error) {
         const apiError = error as { response?: { data?: { message?: string } } };
@@ -723,7 +691,6 @@ export const Calendar: React.FC = () => {
 
   // ローカルストレージから生理データを削除する関数（完全削除版）
   const clearPeriodDataFromLocalStorage = (cycleId: number) => {
-    console.log(`Clearing period data for cycle ID: ${cycleId}`);
 
     // まず calendarApiData から該当するサイクルの全ての日付を特定
     const cycleDates = [];
@@ -734,7 +701,6 @@ export const Calendar: React.FC = () => {
       }
     }
 
-    console.log(`Found ${cycleDates.length} dates for cycle ${cycleId}:`, cycleDates);
 
     // 該当する日付のローカルストレージを完全削除
     cycleDates.forEach((dateString) => {
@@ -742,7 +708,6 @@ export const Calendar: React.FC = () => {
       const existingData = localStorage.getItem(localStorageKey);
 
       if (existingData) {
-        console.log(`Removing localStorage data for ${dateString}`);
         localStorage.removeItem(localStorageKey);
       }
     });
@@ -763,7 +728,6 @@ export const Calendar: React.FC = () => {
           const data = JSON.parse(existingData);
           // 生理関連のフラグがある場合はクリア
           if (data.hasPeriod || data.isPeriodStart || data.isPeriodEnd) {
-            console.log(`Clearing period flags from ${dateString}`);
 
             const updatedData = {
               ...data,
@@ -786,7 +750,6 @@ export const Calendar: React.FC = () => {
             }
           }
         } catch (e) {
-          console.error(`Error processing localStorage data for ${dateString}:`, e);
         }
       }
     }
@@ -795,14 +758,12 @@ export const Calendar: React.FC = () => {
   // 削除処理（改良版）
   const handleDelete = async (cycleId: number) => {
     try {
-      console.log(`Starting deletion process for cycle ${cycleId}`);
 
       // ローカルストレージを先に削除（API削除前に実行）
       clearPeriodDataFromLocalStorage(cycleId);
 
       // API からサイクルを削除
       await menstrualCycleAPI.deleteCycle(cycleId);
-      console.log(`Successfully deleted cycle ${cycleId} from API`);
 
       // カレンダーデータを再読み込み
       await loadCalendarData(); // 既存の状態を使用
@@ -815,7 +776,6 @@ export const Calendar: React.FC = () => {
 
       alert("生理周期が削除されました");
     } catch (error: unknown) {
-      console.error("Failed to delete cycle:", error);
       alert("削除に失敗しました");
     }
   };

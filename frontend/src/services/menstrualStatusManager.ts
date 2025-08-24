@@ -68,16 +68,13 @@ class MenstrualStatusManager {
 
         this.isLoading = true;
         try {
-          console.log('MenstrualStatusManager - Loading status from API...');
           const response = await menstrualCycleAPI.getCurrentStatus();
           this.status = response.data as MenstrualStatus;
           
           // Notify all subscribers
           this.listeners.forEach(callback => callback(this.status));
           
-          console.log('MenstrualStatusManager - Status loaded and broadcasted:', this.status);
         } catch (error) {
-          console.error('MenstrualStatusManager - Failed to load status:', error);
           // Notify subscribers with null on error
           this.listeners.forEach(callback => callback(null));
         } finally {
@@ -116,7 +113,6 @@ export const menstrualStatusManager = new MenstrualStatusManager();
 
 // Listen for menstrualDataUpdated events globally
 window.addEventListener('menstrualDataUpdated', () => {
-  console.log('MenstrualStatusManager - Received menstrualDataUpdated event, reloading status...');
   menstrualStatusManager.loadStatus().then(() => {
     // Auto-update period status after reloading
     import('../utils/periodStatusHelper').then(({ autoUpdatePeriodStatusForActiveCycle }) => {

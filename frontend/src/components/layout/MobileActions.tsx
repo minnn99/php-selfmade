@@ -8,9 +8,7 @@ export const MobileActions: React.FC = () => {
 
   // Subscribe to menstrual status updates
   useEffect(() => {
-    console.log('MobileActions - Subscribing to menstrual status updates');
     const unsubscribe = menstrualStatusManager.subscribe((status) => {
-      console.log('MobileActions - Received status update:', status);
       setMenstrualStatus(status as Record<string, unknown> | null);
     });
 
@@ -61,7 +59,6 @@ export const MobileActions: React.FC = () => {
           await userDataAPI.saveDailySymptoms(dateString, updatedData);
         }
       } catch (error) {
-        console.error(`Failed to update symptoms for ${dateString}:`, error);
       }
       
       // 次の日へ

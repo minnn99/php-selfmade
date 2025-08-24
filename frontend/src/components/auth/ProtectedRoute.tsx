@@ -32,7 +32,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           setIsAuthenticated(true);
         } catch (error) {
           // Token is invalid or expired
-          console.warn('Token validation failed:', error);
           setIsAuthenticated(false);
           handleUnauthorized();
         }
@@ -41,7 +40,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         handleUnauthorized();
       }
     } catch (error) {
-      console.error('Authentication check failed:', error);
       setIsAuthenticated(false);
       handleUnauthorized();
     } finally {

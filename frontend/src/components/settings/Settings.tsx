@@ -124,7 +124,6 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       localStorage.removeItem(key);
     });
 
-    console.log(`Deleted ${keysToDelete.length} localStorage items:`, keysToDelete);
   };
 
   const handleConfirmSecond = async () => {
@@ -144,7 +143,6 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
       alert("全データが正常に削除されました。アプリがリセットされました。");
     } catch (error: unknown) {
-      console.error("Failed to delete all data:", error);
 
       let errorMessage = "全データ削除に失敗しました。";
       if (error && typeof error === 'object' && 'response' in error) {
@@ -166,23 +164,19 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     setShowSecondConfirmModal(false);
   };
 
-  const handleNotificationSave = (settings: NotificationSettings) => {
-    console.log("Notification settings saved:", settings);
+  const handleNotificationSave = (_settings: NotificationSettings) => {
     // ここで実際の保存処理を実装
   };
 
-  const handlePrivacySave = (settings: PrivacySettings) => {
-    console.log("Privacy settings saved:", settings);
+  const handlePrivacySave = (_settings: PrivacySettings) => {
     // ここで実際の保存処理を実装
   };
 
-  const handleAppearanceSave = (settings: AppearanceSettings) => {
-    console.log("Appearance settings saved:", settings);
+  const handleAppearanceSave = (_settings: AppearanceSettings) => {
     // ここで実際の保存処理を実装
   };
 
-  const handleProfileSave = (profileData: ProfileData) => {
-    console.log("Profile data saved:", profileData);
+  const handleProfileSave = (_profileData: ProfileData) => {
     // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
   };
 
@@ -212,7 +206,6 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
       // ページをリロードしてログイン画面へ
       window.location.reload();
     } catch (error: unknown) {
-      console.error("Failed to delete account:", error);
 
       let errorMessage = "アカウント削除に失敗しました。";
       if (error && typeof error === 'object' && 'response' in error) {

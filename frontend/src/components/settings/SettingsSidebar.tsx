@@ -68,7 +68,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
       }
     });
     
-    console.log(`Cleared period data from ${keys.length} localStorage entries`);
   };
 
   // 2番目の確認モーダルで「はい」が押された時の処理（実際の削除処理）
@@ -87,7 +86,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
       onClose();
       onDataDeleted(); // データ削除成功時に親に通知
     } catch (error: unknown) {
-      console.error("Failed to delete all cycles:", error);
 
       let errorMessage = "全削除に失敗しました。";
       if (error && typeof error === 'object' && 'response' in error) {
@@ -121,7 +119,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("ユーザー情報");
       },
     },
     {
@@ -139,7 +136,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("通知設定");
       },
     },
     {
@@ -157,7 +153,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("プライバシー");
       },
     },
     {
@@ -175,7 +170,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("セキュリティ");
       },
     },
     {
@@ -193,7 +187,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("データ管理");
       },
     },
     {
@@ -211,7 +204,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("外観");
       },
     },
     {
@@ -229,7 +221,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
         </svg>
       ),
       onClick: () => {
-        console.log("サポート");
       },
     },
     {

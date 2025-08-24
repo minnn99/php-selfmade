@@ -72,6 +72,5 @@ export const redirectToLogin = () => {
  * Handle unauthorized access
  */
 export const handleUnauthorizedAccess = () => {
-  console.warn('Unauthorized access detected, redirecting to login');
   redirectToLogin();
 };

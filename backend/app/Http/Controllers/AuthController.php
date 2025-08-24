@@ -78,7 +78,7 @@ class AuthController extends Controller
 
             $tokenResult = $user->createToken('auth_token');
             $token = $tokenResult->plainTextToken;
-            $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes(config('sanctum.expiration'));
+            $expiresAt = $tokenResult->accessToken->expires_at ?? now()->addMinutes((int)config('sanctum.expiration'));
 
             return response()->json([
                 'success' => true,
@@ -95,7 +95,7 @@ class AuthController extends Controller
                     'token' => $token,
                     'token_type' => 'Bearer',
                     'expires_at' => $expiresAt->toISOString(),
-                    'expires_in' => config('sanctum.expiration') * 60,
+                    'expires_in' => (int)config('sanctum.expiration') * 60,
                 ]
             ], 201);
         });
@@ -129,7 +129,7 @@ class AuthController extends Controller
 
         // remember_meに基づいてトークンの有効期限を決定
         $rememberMe = $request->boolean('remember_me', false);
-        $expirationMinutes = $rememberMe ? 10080 : config('sanctum.expiration'); // 7日間 or デフォルト
+        $expirationMinutes = $rememberMe ? 10080 : (int)config('sanctum.expiration'); // 7日間 or デフォルト
 
         $tokenResult = $user->createToken('auth_token');
         $token = $tokenResult->plainTextToken;

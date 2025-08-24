@@ -74,7 +74,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
         setMedications(responseData.medications || []);
       }
     } catch (error) {
-      console.error("Failed to load medical records:", error);
+      // Failed to load medical records
     }
   };
 
@@ -97,7 +97,6 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
       }
       await userDataAPI.saveMedicalRecords(apiType, data);
     } catch (error) {
-      console.error("Failed to save medical records:", error);
       alert("データの保存に失敗しました。");
     }
   };

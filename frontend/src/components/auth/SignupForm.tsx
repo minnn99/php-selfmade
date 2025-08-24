@@ -228,7 +228,6 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
         [fieldName]: error
       }));
     } catch (err) {
-      console.error('Validation error:', err);
     }
   };
 

@@ -93,7 +93,6 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
     }
 
     // 実際の実装では、お問い合わせデータをサーバーに送信
-    console.log("Contact form submitted:", contactForm);
     alert("お問い合わせを送信しました。回答まで1-2営業日お待ちください。");
     setContactForm({
       name: "",

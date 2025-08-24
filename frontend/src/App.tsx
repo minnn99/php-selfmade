@@ -4,6 +4,7 @@ import { LoginPage } from "./components/auth/LoginPage";
 import { SignupPage } from "./components/auth/SignupPage";
 import { WelcomeScreen } from "./components/auth/WelcomeScreen";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { SessionExpiredModal } from "./components/modals/SessionExpiredModal";
 import { authAPI } from "./services/api";
 import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 
@@ -11,6 +12,8 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "signup" | "main">("login");
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -46,6 +49,27 @@ function App() {
       mounted = false;
     };
   }, []);
+
+  // セッション期限切れ通知のイベントリスナー
+  useEffect(() => {
+    const handleSessionExpired = (event: CustomEvent<{ message: string }>) => {
+      setSessionExpiredMessage(event.detail.message);
+      setShowSessionExpiredModal(true);
+    };
+
+    window.addEventListener('sessionExpired', handleSessionExpired as EventListener);
+
+    return () => {
+      window.removeEventListener('sessionExpired', handleSessionExpired as EventListener);
+    };
+  }, []);
+
+  const handleSessionExpiredModalClose = () => {
+    setShowSessionExpiredModal(false);
+    setIsAuthenticated(false);
+    setCurrentView("login");
+    authAPI.stopTokenChecker();
+  };
 
   // ページ遷移時にスクロール位置をトップに戻す
   useEffect(() => {
@@ -125,15 +149,24 @@ function App() {
   }
 
   return (
-    <ProtectedRoute
-      onUnauthorized={() => {
-        setIsAuthenticated(false);
-        setCurrentView("login");
-        authAPI.stopTokenChecker();
-      }}
-    >
-      <MainLayout onLogout={handleLogout} />
-    </ProtectedRoute>
+    <>
+      <ProtectedRoute
+        onUnauthorized={() => {
+          setIsAuthenticated(false);
+          setCurrentView("login");
+          authAPI.stopTokenChecker();
+        }}
+      >
+        <MainLayout onLogout={handleLogout} />
+      </ProtectedRoute>
+      
+      {/* セッション期限切れモーダル */}
+      <SessionExpiredModal
+        isOpen={showSessionExpiredModal}
+        onClose={handleSessionExpiredModalClose}
+        message={sessionExpiredMessage}
+      />
+    </>
   );
 }
 

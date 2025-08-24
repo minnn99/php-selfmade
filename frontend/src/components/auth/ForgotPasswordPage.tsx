@@ -32,7 +32,6 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onBackTo
       }
       
     } catch (error) {
-      console.error('Forgot password error:', error);
       alert('ネットワークエラーが発生しました。再度お試しください。');
     } finally {
       setIsLoading(false);

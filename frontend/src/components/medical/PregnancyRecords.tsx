@@ -49,7 +49,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
         setPregnancyStartDate(responseData.start_date || "");
       }
     } catch (error) {
-      console.error("Failed to load pregnancy data:", error);
+      // Failed to load pregnancy data
     }
   };
 
@@ -57,7 +57,6 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     try {
       await userDataAPI.savePregnancyRecords(startDate || null, records);
     } catch (error) {
-      console.error("Failed to save pregnancy data:", error);
       alert("データの保存に失敗しました。");
     }
   };

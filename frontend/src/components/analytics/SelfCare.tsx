@@ -46,7 +46,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       try {
         localParsedData = localData ? JSON.parse(localData) : null;
       } catch {
-        console.error(`Failed to parse local data for ${todayString}`);
+        // Failed to parse local data
       }
 
       // 生理中の判定（APIデータまたはローカルデータ）
@@ -56,13 +56,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                        todayTypedData?.isPeriodEnd || localParsedData?.isPeriodEnd;
       
       if (hasPeriod) {
-        console.log("SelfCare - Today status: menstrual (period detected)");
         return "menstrual";
       }
 
       // 排卵期の判定
       if (todayTypedData?.isOvulation || todayTypedData?.isFertile) {
-        console.log("SelfCare - Today status: ovulation");
         return "ovulation";
       }
 
@@ -74,7 +72,6 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                               localParsedData.mood.includes("憂鬱") || localParsedData.mood.includes("落ち込み"));
         
         if (hasSymptoms || hasMoodIssues) {
-          console.log("SelfCare - Today status: pms (symptoms detected)");
           return "pms";
         }
       }
@@ -91,7 +88,6 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
               const futureDate = keys[futureIndex];
               const futureData = (apiData.data as Record<string, { isPredictedPeriod?: boolean; hasPeriod?: boolean }>)[futureDate];
               if (futureData?.isPredictedPeriod || futureData?.hasPeriod) {
-                console.log("SelfCare - Today status: pms (predicted period within 7 days)");
                 return "pms";
               }
             }
@@ -99,10 +95,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
         }
       }
 
-      console.log("SelfCare - Today status: general");
       return "general";
     } catch (error) {
-      console.error("今日の状態を取得できませんでした:", error);
       return "general";
     }
   };

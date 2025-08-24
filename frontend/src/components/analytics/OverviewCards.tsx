@@ -144,7 +144,7 @@ export const OverviewCards: React.FC = () => {
             averageCycleLength = 28; // Default value
           }
         } catch (error) {
-          console.error('Failed to get current status:', error);
+          // Failed to get current status
         }
         
         setPredictionData({
@@ -154,7 +154,7 @@ export const OverviewCards: React.FC = () => {
           averageCycleLength
         });
       } catch (error) {
-        console.error('Error fetching prediction data:', error);
+        // Error fetching prediction data
       } finally {
         setLoading(false);
       }

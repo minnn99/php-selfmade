@@ -98,7 +98,6 @@ export const updateDailyDataWithPeriodStatus = async (dateString: string) => {
     
     await userDataAPI.saveDailySymptoms(dateString, updatedData);
   } catch (error) {
-    console.error('Failed to update period status for date:', dateString, error);
   }
 };
 

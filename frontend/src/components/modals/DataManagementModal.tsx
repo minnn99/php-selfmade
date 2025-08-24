@@ -98,7 +98,6 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
         downloadFile(blob, `pairiod-cycles-${formatDate(new Date())}.csv`);
       }
     } catch (error) {
-      console.error("Export failed:", error);
       alert("エクスポートに失敗しました。");
     } finally {
       setIsExporting(false);
@@ -189,7 +188,6 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           }
           successCount++;
         } catch (error) {
-          console.error("Failed to import cycle:", cycle, error);
           errorCount++;
         }
       }
@@ -210,7 +208,6 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
       alert(`インポートが完了しました。\n成功: ${successCount}件\nエラー: ${errorCount}件`);
       onClose();
     } catch (error) {
-      console.error("Import failed:", error);
       alert("インポートに失敗しました。");
     } finally {
       setIsImporting(false);
@@ -239,7 +236,6 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
       });
       downloadFile(blob, `pairiod-backup-${formatDate(new Date())}.json`);
     } catch (error) {
-      console.error("Backup failed:", error);
       alert("バックアップの作成に失敗しました。");
     } finally {
       setIsExporting(false);

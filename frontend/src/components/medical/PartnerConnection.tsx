@@ -39,7 +39,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
           setActiveTab("invite");
         }
       } catch (error) {
-        console.error("Failed to load data:", error);
+        // Failed to load data
       } finally {
         setLoading(false);
       }
@@ -64,7 +64,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         }
       }
     } catch (error) {
-      console.error("Failed to load partner status:", error);
+      // Failed to load partner status
     }
   };
 
@@ -87,7 +87,6 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         alert(response.message || "招待コードの生成に失敗しました。");
       }
     } catch (error: unknown) {
-      console.error("Failed to generate invite code:", error);
       const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error.response as { data?: { message?: string } })?.data?.message ||
           (error as { message?: string }).message || "招待コードの生成に失敗しました。"
@@ -132,7 +131,6 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         alert(response.message || "パートナー連携に失敗しました。");
       }
     } catch (error: unknown) {
-      console.error("Failed to join partner:", error);
       const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error.response as { data?: { message?: string } })?.data?.message ||
           (error as { message?: string }).message || "パートナー連携に失敗しました。"
@@ -161,7 +159,6 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         alert(response.message || "連携解除に失敗しました。");
       }
     } catch (error: unknown) {
-      console.error("Failed to disconnect partner:", error);
       const errorMessage = error && typeof error === 'object' && 'response' in error
         ? (error.response as { data?: { message?: string } })?.data?.message ||
           (error as { message?: string }).message || "連携解除に失敗しました。"

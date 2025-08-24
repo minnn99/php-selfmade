@@ -44,7 +44,6 @@ export const useAuth = (): UseAuthReturn => {
               authAPI.startTokenChecker();
             }
           } catch (error) {
-            console.error("Failed to refresh user data:", error);
             setIsAuthenticated(false);
             setUser(null);
           }
@@ -54,7 +53,6 @@ export const useAuth = (): UseAuthReturn => {
         setUser(null);
       }
     } catch (error) {
-      console.error("Initial auth check failed:", error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -81,7 +79,6 @@ export const useAuth = (): UseAuthReturn => {
 
       return false;
     } catch (error) {
-      console.error("Login failed:", error);
       return false;
     }
   }, []);
@@ -90,7 +87,6 @@ export const useAuth = (): UseAuthReturn => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.warn("Logout API call failed:", error);
     } finally {
       authAPI.stopTokenChecker();
       setUser(null);

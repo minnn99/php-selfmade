@@ -30,7 +30,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelc
       }
       
     } catch (error: unknown) {
-      console.error('Login error:', error);
       
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number; data?: { errors?: Record<string, string[]> } } };
