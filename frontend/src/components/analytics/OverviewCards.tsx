@@ -143,7 +143,7 @@ export const OverviewCards: React.FC = () => {
             // Calculate average cycle length from recent cycles
             averageCycleLength = 28; // Default value
           }
-        } catch (error) {
+        } catch {
           // Failed to get current status
         }
         
@@ -153,7 +153,7 @@ export const OverviewCards: React.FC = () => {
           currentCycleDay,
           averageCycleLength
         });
-      } catch (error) {
+      } catch {
         // Error fetching prediction data
       } finally {
         setLoading(false);

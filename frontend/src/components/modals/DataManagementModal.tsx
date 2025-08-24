@@ -97,7 +97,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         downloadFile(blob, `pairiod-cycles-${formatDate(new Date())}.csv`);
       }
-    } catch (error) {
+    } catch {
       alert("エクスポートに失敗しました。");
     } finally {
       setIsExporting(false);
@@ -187,7 +187,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
             await menstrualCycleAPI.endCycle(cycle.end_date as string);
           }
           successCount++;
-        } catch (error) {
+        } catch {
           errorCount++;
         }
       }
@@ -207,7 +207,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
       alert(`インポートが完了しました。\n成功: ${successCount}件\nエラー: ${errorCount}件`);
       onClose();
-    } catch (error) {
+    } catch {
       alert("インポートに失敗しました。");
     } finally {
       setIsImporting(false);
@@ -235,7 +235,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
         type: "application/json",
       });
       downloadFile(blob, `pairiod-backup-${formatDate(new Date())}.json`);
-    } catch (error) {
+    } catch {
       alert("バックアップの作成に失敗しました。");
     } finally {
       setIsExporting(false);

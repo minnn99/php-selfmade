@@ -96,7 +96,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       }
 
       return "general";
-    } catch (error) {
+    } catch {
       return "general";
     }
   };

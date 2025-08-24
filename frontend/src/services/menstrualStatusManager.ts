@@ -74,7 +74,7 @@ class MenstrualStatusManager {
           // Notify all subscribers
           this.listeners.forEach(callback => callback(this.status));
           
-        } catch (error) {
+        } catch {
           // Notify subscribers with null on error
           this.listeners.forEach(callback => callback(null));
         } finally {

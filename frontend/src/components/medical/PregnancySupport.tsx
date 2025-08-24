@@ -68,7 +68,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
           cycleDay: 14,
         });
       }
-    } catch (error) {
+    } catch {
       // Failed to load ovulation data
     }
   };

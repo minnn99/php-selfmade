@@ -98,7 +98,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           ...userData,
         }));
       }
-    } catch (error) {
+    } catch {
+      // Silent error handling - failed to load profile data
     }
   };
 
@@ -133,7 +134,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
       
       alert("プロフィールが保存されました");
       
-    } catch (error) {
+    } catch {
       alert("プロフィールの保存に失敗しました。");
     } finally {
       setLoading(false);

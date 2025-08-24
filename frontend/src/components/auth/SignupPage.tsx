@@ -89,9 +89,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           });
 
           if (settingsResponse.ok) {
+            // Settings saved successfully - non-blocking confirmation
           } else {
+            // Settings save failed - non-blocking error
           }
-        } catch (settingsError) {
+        } catch {
+          // Settings save error - non-blocking
         }
 
         alert(`${signupData.nickname || signupData.name}さん、新規登録が完了しました！ログイン画面に戻ります。`);
@@ -107,7 +110,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
         alert(errorMessage);
       }
       
-    } catch (error) {
+    } catch {
       alert('ネットワークエラーが発生しました。再度お試しください。');
     } finally {
       setIsLoading(false);

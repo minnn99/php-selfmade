@@ -58,7 +58,8 @@ export const MobileActions: React.FC = () => {
           };
           await userDataAPI.saveDailySymptoms(dateString, updatedData);
         }
-      } catch (error) {
+      } catch {
+        // Silent error handling - failed to update calendar for period
       }
       
       // 次の日へ

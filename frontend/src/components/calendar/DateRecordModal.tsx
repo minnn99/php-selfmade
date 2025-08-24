@@ -92,6 +92,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
     if (hasPeriodInfo) {
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
     } else {
+      // No period info updated - no global event needed
     }
 
     onClose();

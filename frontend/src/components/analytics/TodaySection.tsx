@@ -33,7 +33,7 @@ export const TodaySection: React.FC = () => {
           const parsedData = JSON.parse(todayData);
           setDailyData(parsedData);
           setHasAnyData(true);
-        } catch (error) {
+        } catch {
           // Error parsing daily data
         }
       }

@@ -43,7 +43,7 @@ export const useAuth = (): UseAuthReturn => {
               setIsAuthenticated(true);
               authAPI.startTokenChecker();
             }
-          } catch (error) {
+          } catch {
             setIsAuthenticated(false);
             setUser(null);
           }
@@ -52,7 +52,7 @@ export const useAuth = (): UseAuthReturn => {
         setIsAuthenticated(false);
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -78,7 +78,7 @@ export const useAuth = (): UseAuthReturn => {
       }
 
       return false;
-    } catch (error) {
+    } catch {
       return false;
     }
   }, []);
@@ -86,7 +86,8 @@ export const useAuth = (): UseAuthReturn => {
   const logout = useCallback(async (): Promise<void> => {
     try {
       await authAPI.logout();
-    } catch (error) {
+    } catch {
+      // Silent error handling - logout API call failed
     } finally {
       authAPI.stopTokenChecker();
       setUser(null);

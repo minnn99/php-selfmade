@@ -95,6 +95,7 @@ export const Statistics: React.FC = () => {
         allSymptomsData = response.data as Record<string, DailySymptomsData>;
       }
     } catch {
+      // Silent error handling - failed to get symptoms data
     }
 
     // 各周期に症状データを統合
@@ -125,7 +126,8 @@ export const Statistics: React.FC = () => {
                   allSymptoms.push(...parsed.symptoms);
                 }
               }
-            } catch (error) {
+            } catch {
+              // Silent error handling - failed to parse local storage data
             }
           }
         }
@@ -346,6 +348,7 @@ export const Statistics: React.FC = () => {
           }
         }
       } catch {
+        // Silent error handling - failed to get symptoms range
       }
 
       // ローカルストレージからも収集
@@ -370,7 +373,7 @@ export const Statistics: React.FC = () => {
                 }
               }
             } catch {
-              // エラーは無視
+              // Silent error handling - failed to parse local storage data
             }
           }
         }
@@ -457,8 +460,10 @@ export const Statistics: React.FC = () => {
             });
           }
         } else {
+          // No stored flow data found
         }
-      } catch (error) {
+      } catch {
+        // Silent error handling - failed to get symptoms range for flow data
       }
     }
 
@@ -479,7 +484,8 @@ export const Statistics: React.FC = () => {
                 allFlowIntensities.push(parsed.flowIntensity);
               }
             }
-          } catch (error) {
+          } catch {
+            // Silent error handling - failed to parse local storage flow data
           }
         }
       }

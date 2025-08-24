@@ -48,7 +48,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
         setPregnancyRecords(responseData.records_data || []);
         setPregnancyStartDate(responseData.start_date || "");
       }
-    } catch (error) {
+    } catch {
       // Failed to load pregnancy data
     }
   };
@@ -56,7 +56,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
   const savePregnancyData = async (records: PregnancyRecord[], startDate: string = pregnancyStartDate) => {
     try {
       await userDataAPI.savePregnancyRecords(startDate || null, records);
-    } catch (error) {
+    } catch {
       alert("データの保存に失敗しました。");
     }
   };

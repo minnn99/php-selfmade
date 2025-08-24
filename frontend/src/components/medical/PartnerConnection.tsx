@@ -38,7 +38,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         if (isFemale && activeTab === "connect") {
           setActiveTab("invite");
         }
-      } catch (error) {
+      } catch {
         // Failed to load data
       } finally {
         setLoading(false);
@@ -63,7 +63,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
           });
         }
       }
-    } catch (error) {
+    } catch {
       // Failed to load partner status
     }
   };

@@ -74,7 +74,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
             setSettings(responseData.notificationSettings as unknown as NotificationSettings);
           }
         }
-      } catch (error) {
+      } catch {
+        // Silent error handling - failed to load notification settings
       }
     };
 
@@ -106,7 +107,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       });
       onSave(settings);
       onClose();
-    } catch (error) {
+    } catch {
       alert('設定の保存に失敗しました。');
     } finally {
       setLoading(false);

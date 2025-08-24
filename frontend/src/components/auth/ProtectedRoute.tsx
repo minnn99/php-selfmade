@@ -30,7 +30,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         try {
           await authAPI.getUser();
           setIsAuthenticated(true);
-        } catch (error) {
+        } catch {
           // Token is invalid or expired
           setIsAuthenticated(false);
           handleUnauthorized();
@@ -39,7 +39,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         setIsAuthenticated(false);
         handleUnauthorized();
       }
-    } catch (error) {
+    } catch {
       setIsAuthenticated(false);
       handleUnauthorized();
     } finally {

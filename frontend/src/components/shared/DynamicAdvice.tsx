@@ -105,7 +105,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           return;
         }
       }
-    } catch (error) {
+    } catch {
       // Failed to get calendar data for advice
     }
 

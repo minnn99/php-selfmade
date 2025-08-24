@@ -91,7 +91,8 @@ export const Calendar: React.FC = () => {
         // Auto-update period status after loading
         const { autoUpdatePeriodStatusForActiveCycle } = await import("../../utils/periodStatusHelper");
         autoUpdatePeriodStatusForActiveCycle();
-      } catch (error) {
+      } catch {
+        // Silent error handling - menstrual status manager initialization failed
       }
 
       // 初回読み込み時にローカルストレージデータを移行
@@ -175,7 +176,8 @@ export const Calendar: React.FC = () => {
                 });
               }
             }
-          } catch (error) {
+          } catch {
+            // Silent error handling - failed to parse local storage data for migration
           }
         }
       }
@@ -186,11 +188,13 @@ export const Calendar: React.FC = () => {
         if (response.success) {
           localStorage.setItem(migrationKey, "true");
         } else {
+          // Migration not successful - data will remain in localStorage
         }
       } else {
         localStorage.setItem(migrationKey, "true");
       }
-    } catch (error) {
+    } catch {
+      // Silent error handling - migration failed
     }
   };
 
@@ -274,7 +278,7 @@ export const Calendar: React.FC = () => {
         } else {
           setSymptomsData({});
         }
-      } catch (error) {
+      } catch {
         setSymptomsData({});
       }
 
@@ -292,13 +296,13 @@ export const Calendar: React.FC = () => {
           } else {
             setPartnerCalendarData({});
           }
-        } catch (error) {
+        } catch {
           setPartnerCalendarData({});
         }
       } else {
         setPartnerCalendarData({});
       }
-    } catch (error) {
+    } catch {
       setCalendarApiData({});
       setPartnerCalendarData({});
     }
@@ -532,8 +536,8 @@ export const Calendar: React.FC = () => {
             partnerData: partnerDailyData, // パートナーデータを追加
           };
         }
-      } catch (error) {
-        // エラーの場合はローカルデータを使用
+      } catch {
+        // Error case - use local data
       }
     }
 
@@ -616,7 +620,7 @@ export const Calendar: React.FC = () => {
               } else {
                 throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
               }
-            } catch (error) {
+            } catch {
               throw new Error("終了する生理周期が見つかりません。先に生理開始日を設定してください。");
             }
           }
@@ -633,7 +637,7 @@ export const Calendar: React.FC = () => {
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
           });
-        } catch (error) {
+        } catch {
           // 症状データのAPI保存が失敗してもローカルストレージには保存する
         }
       }
@@ -668,7 +672,8 @@ export const Calendar: React.FC = () => {
           try {
             const { menstrualStatusManager } = await import("../../services/menstrualStatusManager");
             await menstrualStatusManager.forceReloadStatus();
-          } catch (error) {
+          } catch {
+            // Silent error handling - menstrual status manager reload failed
           }
           
           setRefreshKey((prev) => prev + 1);
@@ -749,7 +754,8 @@ export const Calendar: React.FC = () => {
               localStorage.removeItem(localStorageKey);
             }
           }
-        } catch (e) {
+        } catch {
+          // Silent error handling - failed to parse local storage cleanup data
         }
       }
     }
@@ -775,7 +781,7 @@ export const Calendar: React.FC = () => {
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
 
       alert("生理周期が削除されました");
-    } catch (error: unknown) {
+    } catch {
       alert("削除に失敗しました");
     }
   };

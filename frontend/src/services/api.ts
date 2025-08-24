@@ -200,7 +200,8 @@ export const authAPI = {
   logout: async () => {
     try {
       await apiRequest("/logout", { method: "POST" });
-    } catch (error) {
+    } catch {
+      // Silent error handling - logout API call failed
     } finally {
       performLogout(); // Always clear local auth data and redirect
     }

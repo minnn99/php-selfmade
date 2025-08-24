@@ -9,62 +9,6 @@ import { ProfileSettingsModal } from "./ProfileSettingsModal";
 import { SupportModal } from "../modals/SupportModal";
 import { SecuritySettingsModal } from "./SecuritySettingsModal";
 
-// 型のインポート
-interface NotificationSettings {
-  menstrualReminder: {
-    enabled: boolean;
-    daysBeforeStart: number;
-    time: string;
-  };
-  ovulationReminder: {
-    enabled: boolean;
-    daysBeforeOvulation: number;
-    time: string;
-  };
-  partnerNotifications: {
-    enabled: boolean;
-    menstrualStart: boolean;
-    ovulationPeriod: boolean;
-    moodChanges: boolean;
-  };
-  generalSettings: {
-    pushNotifications: boolean;
-    soundEnabled: boolean;
-  };
-}
-
-interface PrivacySettings {
-  dataSharing: {
-    analyticsEnabled: boolean;
-    partnerDataSharing: boolean;
-    statisticsSharing: boolean;
-    predictionDataSharing: boolean;
-  };
-}
-
-interface AppearanceSettings {
-  theme: {
-    mode: "light" | "dark" | "auto";
-  };
-  language: {
-    locale: string;
-  };
-}
-
-interface ProfileData {
-  nickname: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  birthDate: string;
-  gender: string;
-  height: string;
-  weight: string;
-  bloodType: string;
-  allergies: string;
-  medications: string;
-  medicalHistory: string;
-}
 
 interface SettingsProps {
   onDataDeleted: () => void;
@@ -164,19 +108,19 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     setShowSecondConfirmModal(false);
   };
 
-  const handleNotificationSave = (_settings: NotificationSettings) => {
+  const handleNotificationSave = () => {
     // ここで実際の保存処理を実装
   };
 
-  const handlePrivacySave = (_settings: PrivacySettings) => {
+  const handlePrivacySave = () => {
     // ここで実際の保存処理を実装
   };
 
-  const handleAppearanceSave = (_settings: AppearanceSettings) => {
+  const handleAppearanceSave = () => {
     // ここで実際の保存処理を実装
   };
 
-  const handleProfileSave = (_profileData: ProfileData) => {
+  const handleProfileSave = () => {
     // プロフィールデータは既にProfileSettingsModal内でlocalStorageに保存済み
   };
 

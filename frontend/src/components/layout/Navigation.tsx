@@ -73,7 +73,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
           };
           await userDataAPI.saveDailySymptoms(dateString, updatedData);
         }
-      } catch (error) {
+      } catch {
+        // Silent error handling - failed to update calendar for period
       }
 
       // 次の日へ
