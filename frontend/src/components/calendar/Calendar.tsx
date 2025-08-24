@@ -260,7 +260,9 @@ export const Calendar: React.FC = () => {
             const symptomData = symptomsDataResponse[dateKey] as {
               symptoms?: string[];
               mood?: string;
+              healthNotes?: string;
               health_notes?: string;
+              flowIntensity?: number;
               flow_intensity?: number;
             };
             // 日付キーをYYYY-MM-DD形式に変換（時刻部分を削除）
@@ -269,8 +271,8 @@ export const Calendar: React.FC = () => {
             symptomsMap[formattedDate] = {
               symptoms: symptomData.symptoms || [],
               mood: symptomData.mood || "",
-              healthNotes: symptomData.health_notes || "",
-              flowIntensity: symptomData.flow_intensity,
+              healthNotes: symptomData.healthNotes || symptomData.health_notes || "",
+              flowIntensity: symptomData.flowIntensity || symptomData.flow_intensity || undefined,
             };
           });
           
@@ -530,7 +532,7 @@ export const Calendar: React.FC = () => {
             symptoms: localSymptoms, // ローカルデータを使用
             mood: localMood, // ローカルデータを使用
             healthNotes: localHealthNotes, // ローカルデータを使用
-            flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : (cycleData as { flow_intensity?: number }).flow_intensity,
+            flowIntensity: localFlowIntensity || (cycleData as { flow_intensity?: number }).flow_intensity,
             cycleId: (cycleData as { id?: number }).id,
             existingCycleData: cycleData as Record<string, unknown>,
             partnerData: partnerDailyData, // パートナーデータを追加
@@ -548,7 +550,7 @@ export const Calendar: React.FC = () => {
       symptoms: localSymptoms, // ローカルデータを使用
       mood: localMood, // ローカルデータを使用
       healthNotes: localHealthNotes, // ローカルデータを使用
-      flowIntensity: localFlowIntensity !== undefined ? localFlowIntensity : dayData?.flowIntensity,
+      flowIntensity: localFlowIntensity || dayData?.flowIntensity,
       cycleId: dayData?.cycleId,
       partnerData: partnerDailyData, // パートナーデータを追加
     };

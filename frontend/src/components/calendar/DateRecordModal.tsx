@@ -40,7 +40,10 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
 
   useEffect(() => {
     if (existingData) {
-      setFormData(existingData);
+      setFormData({
+        ...existingData,
+        flowIntensity: existingData.flowIntensity || undefined
+      });
     } else {
       setFormData({
         isPeriodStart: false,
