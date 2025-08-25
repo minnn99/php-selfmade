@@ -296,18 +296,7 @@ export const Statistics: React.FC = () => {
       else return 'luteal';                           // 黄体期
     };
 
-    // 1. 周期データから症状を収集（周期開始日の症状として生理期に分類）
-    completedCycles.forEach((cycle) => {
-      if (cycle.symptoms && Array.isArray(cycle.symptoms)) {
-        cycle.symptoms.forEach(symptom => {
-          allSymptoms.push(symptom);
-          // 周期データの症状は生理開始日の症状として扱う
-          symptomsWithPhase.push({ symptom, phase: 'menstrual', date: cycle.start_date });
-        });
-      }
-    });
-
-    // 2. 日別症状データから直接収集（API + localStorage）
+    // 日別症状データのみを使用（DB優先アプローチ）
     if (completedCycles.length > 0) {
       const allDates = completedCycles.map((cycle) => ({
         start: cycle.start_date,
@@ -318,6 +307,8 @@ export const Statistics: React.FC = () => {
       const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
 
       // APIから症状データを取得
+      const processedDates = new Set<string>();
+      
       try {
         const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
         if (response.success && response.data) {
@@ -326,10 +317,12 @@ export const Statistics: React.FC = () => {
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: DailySymptomsData) => {
               if (dayData.symptoms && Array.isArray(dayData.symptoms) && dayData.date) {
-                const phase = getCyclePhase(String(dayData.date), completedCycles);
+                const dateStr = String(dayData.date);
+                processedDates.add(dateStr);
+                const phase = getCyclePhase(dateStr, completedCycles);
                 dayData.symptoms.forEach(symptom => {
                   allSymptoms.push(symptom);
-                  symptomsWithPhase.push({ symptom, phase, date: String(dayData.date) });
+                  symptomsWithPhase.push({ symptom, phase, date: dateStr });
                 });
               }
             });
@@ -338,10 +331,12 @@ export const Statistics: React.FC = () => {
           else if (typeof response.data === "object" && response.data !== null) {
             Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
-                const phase = getCyclePhase(date, completedCycles);
+                const dateStr = date.split(' ')[0]; // "2025-08-05 00:00:00" -> "2025-08-05"
+                processedDates.add(dateStr);
+                const phase = getCyclePhase(dateStr, completedCycles);
                 (dayData as DailySymptomsData).symptoms!.forEach(symptom => {
                   allSymptoms.push(symptom);
-                  symptomsWithPhase.push({ symptom, phase, date });
+                  symptomsWithPhase.push({ symptom, phase, date: dateStr });
                 });
               }
             });
@@ -351,33 +346,6 @@ export const Statistics: React.FC = () => {
         // Silent error handling - failed to get symptoms range
       }
 
-      // ローカルストレージからも収集
-      completedCycles.forEach((cycle) => {
-        if (cycle.start_date) {
-          const startDate = new Date(cycle.start_date);
-          const endDate = cycle.end_date ? new Date(cycle.end_date) : new Date();
-
-          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split("T")[0];
-
-            try {
-              const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
-              if (localData) {
-                const parsed = JSON.parse(localData);
-                if (parsed.symptoms && Array.isArray(parsed.symptoms)) {
-                  const phase = getCyclePhase(dateStr, completedCycles);
-                  parsed.symptoms.forEach((symptom: string) => {
-                    allSymptoms.push(symptom);
-                    symptomsWithPhase.push({ symptom, phase, date: dateStr });
-                  });
-                }
-              }
-            } catch {
-              // Silent error handling - failed to parse local storage data
-            }
-          }
-        }
-      });
     }
 
 
@@ -467,29 +435,6 @@ export const Statistics: React.FC = () => {
       }
     }
 
-    // ローカルストレージからもフォールバック
-    completedCycles.forEach((cycle) => {
-      if (cycle.start_date) {
-        const startDate = new Date(cycle.start_date);
-        const endDate = cycle.end_date ? new Date(cycle.end_date) : new Date();
-
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split("T")[0];
-
-          try {
-            const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
-            if (localData) {
-              const parsed = JSON.parse(localData);
-              if (parsed.flowIntensity && parsed.flowIntensity > 0) {
-                allFlowIntensities.push(parsed.flowIntensity);
-              }
-            }
-          } catch {
-            // Silent error handling - failed to parse local storage flow data
-          }
-        }
-      }
-    });
 
     // 有効な値のみをフィルタ（重複除去はしない - 各日のデータは独立）
     const flowIntensities = allFlowIntensities.filter((intensity) => intensity && intensity > 0);
