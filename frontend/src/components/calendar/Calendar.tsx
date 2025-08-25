@@ -629,19 +629,28 @@ export const Calendar: React.FC = () => {
         }
       }
 
-      // 2. 症状データをAPIに保存
-      if (hasSymptoms || hasMood || hasHealthNotes || hasFlowIntensity) {
-        try {
-          await dailySymptomsAPI.saveSymptoms({
-            date: dateStr,
+      // 2. 症状データをAPIに保存（空のデータも保存してクリアを反映）
+      try {
+        await dailySymptomsAPI.saveSymptoms({
+          date: dateStr,
+          symptoms: data.symptoms,
+          mood: data.mood,
+          healthNotes: data.healthNotes,
+          flowIntensity: data.flowIntensity,
+        });
+        
+        // 保存成功後、即座にsymptomsDataを更新
+        setSymptomsData(prev => ({
+          ...prev,
+          [dateStr]: {
             symptoms: data.symptoms,
             mood: data.mood,
             healthNotes: data.healthNotes,
             flowIntensity: data.flowIntensity,
-          });
-        } catch {
-          // 症状データのAPI保存が失敗してもローカルストレージには保存する
-        }
+          }
+        }));
+      } catch {
+        // 症状データのAPI保存が失敗してもローカルストレージには保存する
       }
 
       // 3. ローカルストレージにも保存（バックアップとして）

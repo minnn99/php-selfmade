@@ -297,14 +297,32 @@ export const Statistics: React.FC = () => {
     };
 
     // 日別症状データのみを使用（DB優先アプローチ）
-    if (completedCycles.length > 0) {
-      const allDates = completedCycles.map((cycle) => ({
-        start: cycle.start_date,
-        end: cycle.end_date || new Date().toISOString().split("T")[0],
-      }));
+    // 全ての周期を含め、現在までのデータを取得
+    const allCycles = cycles; // 完了した周期だけでなく全ての周期を対象
+    
+    if (allCycles.length > 0) {
+      // 時間範囲に基づいて期間を設定
+      const now = new Date();
+      const cutoffDate = new Date();
 
-      const earliestDate = allDates.reduce((min, cycle) => (cycle.start < min ? cycle.start : min), allDates[0].start);
-      const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
+      switch (timeRange) {
+        case "3months":
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+        case "6months":
+          cutoffDate.setMonth(now.getMonth() - 6);
+          break;
+        case "1year":
+          cutoffDate.setFullYear(now.getFullYear() - 1);
+          break;
+        case "all":
+        default:
+          cutoffDate.setFullYear(1900);
+          break;
+      }
+
+      const earliestDate = cutoffDate.toISOString().split("T")[0];
+      const latestDate = now.toISOString().split("T")[0];
 
       // APIから症状データを取得
       const processedDates = new Set<string>();
@@ -319,7 +337,7 @@ export const Statistics: React.FC = () => {
               if (dayData.symptoms && Array.isArray(dayData.symptoms) && dayData.date) {
                 const dateStr = String(dayData.date);
                 processedDates.add(dateStr);
-                const phase = getCyclePhase(dateStr, completedCycles);
+                const phase = getCyclePhase(dateStr, allCycles);
                 dayData.symptoms.forEach(symptom => {
                   allSymptoms.push(symptom);
                   symptomsWithPhase.push({ symptom, phase, date: dateStr });
@@ -332,8 +350,15 @@ export const Statistics: React.FC = () => {
             Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
                 const dateStr = date.split(' ')[0]; // "2025-08-05 00:00:00" -> "2025-08-05"
+                
+                // 重複した日付をスキップ
+                if (processedDates.has(dateStr)) {
+                  return;
+                }
                 processedDates.add(dateStr);
-                const phase = getCyclePhase(dateStr, completedCycles);
+                
+                const phase = getCyclePhase(dateStr, allCycles);
+                
                 (dayData as DailySymptomsData).symptoms!.forEach(symptom => {
                   allSymptoms.push(symptom);
                   symptomsWithPhase.push({ symptom, phase, date: dateStr });
@@ -365,7 +390,6 @@ export const Statistics: React.FC = () => {
       return acc;
     }, {});
 
-
     const totalSymptomCount = allSymptoms.length;
     const mostCommonSymptoms = Object.entries(symptomCounts)
       .map(([symptom, count]) => ({
@@ -392,38 +416,64 @@ export const Statistics: React.FC = () => {
     // 流量統計の計算 - 日別症状データから流量データを収集
 
     // 周期データからの流量データ
-    const cycleFlowIntensities = completedCycles.filter((cycle) => cycle.flow_intensity).map((cycle) => cycle.flow_intensity);
+    const cycleFlowIntensities = allCycles.filter((cycle) => cycle.flow_intensity).map((cycle) => cycle.flow_intensity);
 
     // 日別症状データから流量データを収集
     const allFlowIntensities = [...cycleFlowIntensities];
 
     // 範囲でAPIから症状データを取得
-    if (completedCycles.length > 0) {
-      const allDates = completedCycles.map((cycle) => ({
-        start: cycle.start_date,
-        end: cycle.end_date || new Date().toISOString().split("T")[0],
-      }));
-
-      const earliestDate = allDates.reduce((min, cycle) => (cycle.start < min ? cycle.start : min), allDates[0].start);
-      const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
+    if (allCycles.length > 0) {
 
       try {
-        const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
+        // 時間範囲に基づいて期間を設定
+        const now = new Date();
+        const cutoffDate = new Date();
+
+        switch (timeRange) {
+          case "3months":
+            cutoffDate.setMonth(now.getMonth() - 3);
+            break;
+          case "6months":
+            cutoffDate.setMonth(now.getMonth() - 6);
+            break;
+          case "1year":
+            cutoffDate.setFullYear(now.getFullYear() - 1);
+            break;
+          case "all":
+          default:
+            cutoffDate.setFullYear(1900);
+            break;
+        }
+
+        const flowEarliestDate = cutoffDate.toISOString().split("T")[0];
+        const flowLatestDate = now.toISOString().split("T")[0];
+        
+        const response = await dailySymptomsAPI.getSymptomsRange(flowEarliestDate, flowLatestDate);
         if (response.success && response.data) {
+
+          const flowProcessedDates = new Set<string>();
 
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: DailySymptomsData) => {
-              if (dayData.flowIntensity && dayData.flowIntensity > 0) {
-                allFlowIntensities.push(dayData.flowIntensity);
+              if (dayData.flowIntensity && dayData.flowIntensity > 0 && dayData.date) {
+                const dateStr = String(dayData.date);
+                if (!flowProcessedDates.has(dateStr)) {
+                  flowProcessedDates.add(dateStr);
+                  allFlowIntensities.push(dayData.flowIntensity);
+                }
               }
             });
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
-            Object.entries(response.data).forEach(([, dayData]) => {
+            Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).flowIntensity && (dayData as DailySymptomsData).flowIntensity! > 0) {
-                allFlowIntensities.push((dayData as DailySymptomsData).flowIntensity!);
+                const dateStr = date.split(' ')[0];
+                if (!flowProcessedDates.has(dateStr)) {
+                  flowProcessedDates.add(dateStr);
+                  allFlowIntensities.push((dayData as DailySymptomsData).flowIntensity!);
+                }
               }
             });
           }

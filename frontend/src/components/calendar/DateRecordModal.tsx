@@ -263,15 +263,6 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">症状</h3>
-              {(formData.symptoms.length > 0 || formData.mood || formData.healthNotes.trim() || formData.flowIntensity) && (
-                <button
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, symptoms: [], mood: "", healthNotes: "", flowIntensity: undefined }))}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  全てクリア
-                </button>
-              )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
               {symptomOptions.map((symptom) => (
@@ -349,6 +340,22 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
             </div>
 
             <div className="flex w-full sm:w-auto space-x-3">
+              {(formData.symptoms.length > 0 || formData.mood || formData.healthNotes.trim()) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData((prev) => ({ 
+                      ...prev, 
+                      symptoms: [], 
+                      mood: "", 
+                      healthNotes: "" 
+                    }));
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                >
+                  全てクリア
+                </button>
+              )}
               <button
                 onClick={onClose}
                 className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
