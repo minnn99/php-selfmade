@@ -191,11 +191,11 @@ export const Statistics: React.FC = () => {
     };
 
     // 日付から周期段階を判定する関数（より柔軟に）
-    const getCyclePhase = (date: string, cycleArray: any[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
+    const getCyclePhase = (date: string, cycleArray: CycleData[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
       const targetDate = new Date(date);
       
       // まず最も近い周期を探す
-      let closestCycle: any = null;
+      let closestCycle: CycleData | null = null;
       let minDistance = Infinity;
       
       cycleArray.forEach(cycle => {
@@ -212,13 +212,14 @@ export const Statistics: React.FC = () => {
       // 最も近い周期が見つからない場合はfollicular（生理後）をデフォルトとする
       if (!closestCycle) return 'follicular';
       
-      const cycleStart = new Date(closestCycle.start_date);
+      const cycle = closestCycle as CycleData;
+      const cycleStart = new Date(cycle.start_date);
       const dayOfCycle = Math.floor((targetDate.getTime() - cycleStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
       
       // 実際の生理終了日がある場合はそれを使用、なければデフォルト5日
       let menstrualEndDay = 5;
-      if (closestCycle.end_date && closestCycle.start_date) {
-        const actualMenstrualLength = Math.floor((new Date(closestCycle.end_date).getTime() - new Date(closestCycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      if (cycle.end_date && cycle.start_date) {
+        const actualMenstrualLength = Math.floor((new Date(cycle.end_date).getTime() - new Date(cycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
         if (actualMenstrualLength > 0 && actualMenstrualLength <= 10) { // 妥当な範囲
           menstrualEndDay = actualMenstrualLength;
         }
