@@ -71,77 +71,6 @@ export const Statistics: React.FC = () => {
   }, []);
 
   // 周期データに日別症状データを統合する関数（バッチAPI使用）
-  const enrichCyclesWithDailySymptoms = async (cycles: CycleData[]) => {
-
-    if (cycles.length === 0) {
-      return cycles;
-    }
-
-    // 全周期の開始日と終了日の範囲を取得
-    const allDates = cycles.map((cycle) => ({
-      start: cycle.start_date,
-      end: cycle.end_date || new Date().toISOString().split("T")[0],
-    }));
-
-    const earliestDate = allDates.reduce((min, cycle) => (cycle.start < min ? cycle.start : min), allDates[0].start);
-    const latestDate = allDates.reduce((max, cycle) => (cycle.end > max ? cycle.end : max), allDates[0].end);
-
-
-    // バッチAPIで期間内の全症状データを一括取得
-    let allSymptomsData: Record<string, DailySymptomsData> = {};
-    try {
-      const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
-      if (response.success && response.data) {
-        allSymptomsData = response.data as Record<string, DailySymptomsData>;
-      }
-    } catch {
-      // Silent error handling - failed to get symptoms data
-    }
-
-    // 各周期に症状データを統合
-    const enrichedCycles = cycles.map((cycle) => {
-      const enrichedCycle = { ...cycle };
-      const allSymptoms = [...(cycle.symptoms || [])];
-
-      if (cycle.start_date) {
-        const startDate = new Date(cycle.start_date);
-        const endDate = cycle.end_date ? new Date(cycle.end_date) : new Date();
-
-        // 周期期間内の各日の症状データを統合
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-          const dateStr = d.toISOString().split("T")[0];
-
-          // APIから取得したデータを使用
-          if (allSymptomsData[dateStr] && allSymptomsData[dateStr].symptoms) {
-            allSymptoms.push(...allSymptomsData[dateStr].symptoms);
-          }
-
-          // APIにデータがない場合はローカルストレージからフォールバック
-          if (!allSymptomsData[dateStr]) {
-            try {
-              const localData = localStorage.getItem(`daily-symptoms-${dateStr}`);
-              if (localData) {
-                const parsed = JSON.parse(localData);
-                if (parsed.symptoms && Array.isArray(parsed.symptoms) && parsed.symptoms.length > 0) {
-                  allSymptoms.push(...parsed.symptoms);
-                }
-              }
-            } catch {
-              // Silent error handling - failed to parse local storage data
-            }
-          }
-        }
-      }
-
-      // 重複を除去して統合
-      const uniqueSymptoms = [...new Set(allSymptoms)];
-      enrichedCycle.symptoms = uniqueSymptoms;
-
-      return enrichedCycle;
-    });
-
-    return enrichedCycles;
-  };
 
   const loadStatistics = async (debounced = false) => {
     // デバウンス処理：連続呼び出しを防ぐ
@@ -168,11 +97,8 @@ export const Statistics: React.FC = () => {
 
       const cycles = Array.isArray(cyclesResponse.data) ? cyclesResponse.data as CycleData[] : [];
 
-      // 日別症状データも取得して統合
-      const enrichedCycles = await enrichCyclesWithDailySymptoms(cycles);
-
-      if (enrichedCycles.length > 0) {
-        await calculateStatistics(enrichedCycles);
+      if (cycles.length > 0) {
+        await calculateStatistics(cycles);
       } else {
         // データがない場合の状態をリセット
         setCycleStats(null);
@@ -264,36 +190,48 @@ export const Statistics: React.FC = () => {
       luteal: [] as Array<{ symptom: string; count: number }>,
     };
 
-    // 日付から周期段階を判定する関数
-    const getCyclePhase = (date: string, cycles: CycleData[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
+    // 日付から周期段階を判定する関数（より柔軟に）
+    const getCyclePhase = (date: string, cycleArray: any[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
       const targetDate = new Date(date);
       
-      // 該当する周期を見つける
-      const cycle = cycles.find(c => {
-        const startDate = new Date(c.start_date);
-        const endDate = c.end_date ? new Date(c.end_date) : new Date(startDate.getTime() + 35 * 24 * 60 * 60 * 1000); // デフォルト35日
-        return targetDate >= startDate && targetDate <= endDate;
+      // まず最も近い周期を探す
+      let closestCycle: any = null;
+      let minDistance = Infinity;
+      
+      cycleArray.forEach(cycle => {
+        if (cycle.start_date) {
+          const startDate = new Date(cycle.start_date);
+          const distance = Math.abs(targetDate.getTime() - startDate.getTime());
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestCycle = cycle;
+          }
+        }
       });
       
-      if (!cycle) return 'follicular'; // デフォルト
+      // 最も近い周期が見つからない場合はfollicular（生理後）をデフォルトとする
+      if (!closestCycle) return 'follicular';
       
-      const cycleStart = new Date(cycle.start_date);
+      const cycleStart = new Date(closestCycle.start_date);
       const dayOfCycle = Math.floor((targetDate.getTime() - cycleStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
       
       // 実際の生理終了日がある場合はそれを使用、なければデフォルト5日
       let menstrualEndDay = 5;
-      if (cycle.end_date && cycle.start_date) {
-        const actualMenstrualLength = Math.floor((new Date(cycle.end_date).getTime() - new Date(cycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
+      if (closestCycle.end_date && closestCycle.start_date) {
+        const actualMenstrualLength = Math.floor((new Date(closestCycle.end_date).getTime() - new Date(closestCycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
         if (actualMenstrualLength > 0 && actualMenstrualLength <= 10) { // 妥当な範囲
           menstrualEndDay = actualMenstrualLength;
         }
       }
       
-      // 周期段階の判定
-      if (dayOfCycle <= menstrualEndDay) return 'menstrual';      // 生理期
-      else if (dayOfCycle <= 13) return 'follicular'; // 卵胞期
-      else if (dayOfCycle <= 16) return 'ovulatory';  // 排卵期
-      else return 'luteal';                           // 黄体期
+      // 周期段階の判定（より柔軟に）
+      if (dayOfCycle >= 1 && dayOfCycle <= menstrualEndDay) return 'menstrual';      // 生理日
+      else if (dayOfCycle > menstrualEndDay && dayOfCycle <= 11) return 'follicular'; // 生理後
+      else if (dayOfCycle > 11 && dayOfCycle <= 18) return 'ovulatory';  // 排卵日周辺 (12-18日目、7日間)
+      else if (dayOfCycle > 18) return 'luteal';                           // 生理前
+      
+      // 生理開始前の日付の場合は生理前とする
+      return 'luteal';
     };
 
     // 日別症状データのみを使用（DB優先アプローチ）
@@ -764,14 +702,14 @@ export const Statistics: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">周期別症状分析</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 生理期 */}
+            {/* 生理日 */}
             <div className="p-3 bg-red-50 rounded-lg">
               <h4 className="text-sm font-medium text-red-800 mb-2 flex items-center">
                 <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                生理期
+                生理日
               </h4>
               <div className="space-y-1">
-                {symptomStats.symptomsByPhase.menstrual.slice(0, 3).map((symptom) => (
+                {symptomStats.symptomsByPhase.menstrual.slice(0, 5).map((symptom) => (
                   <div key={symptom.symptom} className="flex justify-between items-center text-xs">
                     <span className="text-red-700 truncate">{symptom.symptom}</span>
                     <span className="text-red-600 font-medium">{symptom.count}</span>
@@ -781,14 +719,14 @@ export const Statistics: React.FC = () => {
               </div>
             </div>
 
-            {/* 卵胞期 */}
+            {/* 生理後 */}
             <div className="p-3 bg-blue-50 rounded-lg">
               <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                卵胞期
+                生理後
               </h4>
               <div className="space-y-1">
-                {symptomStats.symptomsByPhase.follicular.slice(0, 3).map((symptom) => (
+                {symptomStats.symptomsByPhase.follicular.slice(0, 5).map((symptom) => (
                   <div key={symptom.symptom} className="flex justify-between items-center text-xs">
                     <span className="text-blue-700 truncate">{symptom.symptom}</span>
                     <span className="text-blue-600 font-medium">{symptom.count}</span>
@@ -798,37 +736,37 @@ export const Statistics: React.FC = () => {
               </div>
             </div>
 
-            {/* 排卵期 */}
-            <div className="p-3 bg-green-50 rounded-lg">
-              <h4 className="text-sm font-medium text-green-800 mb-2 flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                排卵期
+            {/* 排卵日周辺 */}
+            <div className="p-3 bg-pink-50 rounded-lg">
+              <h4 className="text-sm font-medium text-pink-800 mb-2 flex items-center">
+                <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                排卵日周辺
               </h4>
               <div className="space-y-1">
-                {symptomStats.symptomsByPhase.ovulatory.slice(0, 3).map((symptom) => (
+                {symptomStats.symptomsByPhase.ovulatory.slice(0, 5).map((symptom) => (
                   <div key={symptom.symptom} className="flex justify-between items-center text-xs">
-                    <span className="text-green-700 truncate">{symptom.symptom}</span>
-                    <span className="text-green-600 font-medium">{symptom.count}</span>
+                    <span className="text-pink-700 truncate">{symptom.symptom}</span>
+                    <span className="text-pink-600 font-medium">{symptom.count}</span>
                   </div>
                 ))}
-                {symptomStats.symptomsByPhase.ovulatory.length === 0 && <span className="text-xs text-green-600">データなし</span>}
+                {symptomStats.symptomsByPhase.ovulatory.length === 0 && <span className="text-xs text-pink-600">データなし</span>}
               </div>
             </div>
 
-            {/* 黄体期 */}
-            <div className="p-3 bg-yellow-50 rounded-lg">
-              <h4 className="text-sm font-medium text-yellow-800 mb-2 flex items-center">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                黄体期
+            {/* 生理前 */}
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <h4 className="text-sm font-medium text-orange-800 mb-2 flex items-center">
+                <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+                生理前
               </h4>
               <div className="space-y-1">
-                {symptomStats.symptomsByPhase.luteal.slice(0, 3).map((symptom) => (
+                {symptomStats.symptomsByPhase.luteal.slice(0, 5).map((symptom) => (
                   <div key={symptom.symptom} className="flex justify-between items-center text-xs">
-                    <span className="text-yellow-700 truncate">{symptom.symptom}</span>
-                    <span className="text-yellow-600 font-medium">{symptom.count}</span>
+                    <span className="text-orange-700 truncate">{symptom.symptom}</span>
+                    <span className="text-orange-600 font-medium">{symptom.count}</span>
                   </div>
                 ))}
-                {symptomStats.symptomsByPhase.luteal.length === 0 && <span className="text-xs text-yellow-600">データなし</span>}
+                {symptomStats.symptomsByPhase.luteal.length === 0 && <span className="text-xs text-orange-600">データなし</span>}
               </div>
             </div>
           </div>
