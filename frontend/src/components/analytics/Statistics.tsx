@@ -36,7 +36,6 @@ interface DailySymptomsData {
   [key: string]: unknown;
 }
 
-
 interface FlowStats {
   averageFlowIntensity: number;
   flowDistribution: Array<{ intensity: number; count: number; percentage: number }>;
@@ -91,11 +90,10 @@ export const Statistics: React.FC = () => {
     setError(null);
     // データ取得中は既存の統計データを保持
     try {
-
       // 基本的な周期データを取得
       const cyclesResponse = await menstrualCycleAPI.getCycles();
 
-      const cycles = Array.isArray(cyclesResponse.data) ? cyclesResponse.data as CycleData[] : [];
+      const cycles = Array.isArray(cyclesResponse.data) ? (cyclesResponse.data as CycleData[]) : [];
 
       if (cycles.length > 0) {
         await calculateStatistics(cycles);
@@ -114,7 +112,6 @@ export const Statistics: React.FC = () => {
   };
 
   const calculateStatistics = async (cycles: CycleData[]) => {
-
     // 完了した周期のみを対象とする
     let completedCycles = cycles.filter((cycle) => cycle.end_date);
 
@@ -138,9 +135,7 @@ export const Statistics: React.FC = () => {
         break;
     }
 
-
     completedCycles = completedCycles.filter((cycle) => new Date(cycle.start_date) >= cutoffDate);
-
 
     if (completedCycles.length === 0) {
       setCycleStats(null);
@@ -182,7 +177,7 @@ export const Statistics: React.FC = () => {
 
     // 症状統計の計算 - 日別症状データも直接収集
     const allSymptoms: string[] = [];
-    const symptomsWithPhase: Array<{ symptom: string; phase: 'menstrual' | 'follicular' | 'ovulatory' | 'luteal'; date: string }> = [];
+    const symptomsWithPhase: Array<{ symptom: string; phase: "menstrual" | "follicular" | "ovulatory" | "luteal"; date: string }> = [];
     const symptomsByPhase = {
       menstrual: [] as Array<{ symptom: string; count: number }>,
       follicular: [] as Array<{ symptom: string; count: number }>,
@@ -191,27 +186,25 @@ export const Statistics: React.FC = () => {
     };
 
     // 日付から周期段階を判定する関数（次回周期開始日前も考慮）
-    const getCyclePhase = (date: string, cycleArray: CycleData[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
+    const getCyclePhase = (date: string, cycleArray: CycleData[]): "menstrual" | "follicular" | "ovulatory" | "luteal" => {
       const targetDate = new Date(date);
-      
+
       // 日付順にソートされた周期を作成
-      const sortedCycles = [...cycleArray].sort((a, b) => 
-        new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
-      );
-      
+      const sortedCycles = [...cycleArray].sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+
       // 適切な周期を見つける
       let appropriateCycle: CycleData | null = null;
-      
+
       for (let i = 0; i < sortedCycles.length; i++) {
         const cycle = sortedCycles[i];
         const cycleStart = new Date(cycle.start_date);
         const nextCycle = sortedCycles[i + 1];
-        
+
         if (nextCycle) {
           // 次の周期がある場合：現在の周期開始日から次の周期開始日の前日まで
           const nextCycleStart = new Date(nextCycle.start_date);
           const cycleEnd = new Date(nextCycleStart.getTime() - 24 * 60 * 60 * 1000); // 前日
-          
+
           if (targetDate >= cycleStart && targetDate <= cycleEnd) {
             appropriateCycle = cycle;
             break;
@@ -219,18 +212,18 @@ export const Statistics: React.FC = () => {
         } else {
           // 最後の周期の場合：開始日から35日後まで
           const cycleEnd = new Date(cycleStart.getTime() + 35 * 24 * 60 * 60 * 1000);
-          
+
           if (targetDate >= cycleStart && targetDate <= cycleEnd) {
             appropriateCycle = cycle;
             break;
           }
         }
       }
-      
+
       // 適切な周期が見つからない場合は最も近い周期を使用
       if (!appropriateCycle) {
         let minDistance = Infinity;
-        sortedCycles.forEach(cycle => {
+        sortedCycles.forEach((cycle) => {
           const startDate = new Date(cycle.start_date);
           const distance = Math.abs(targetDate.getTime() - startDate.getTime());
           if (distance < minDistance) {
@@ -239,13 +232,13 @@ export const Statistics: React.FC = () => {
           }
         });
       }
-      
-      if (!appropriateCycle) return 'follicular';
-      
+
+      if (!appropriateCycle) return "follicular";
+
       const cycle = appropriateCycle as CycleData;
       const cycleStart = new Date(cycle.start_date);
       const dayOfCycle = Math.floor((targetDate.getTime() - cycleStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-      
+
       // 実際の生理終了日がある場合はそれを使用、なければデフォルト5日
       let menstrualEndDay = 5;
       if (cycle.end_date && cycle.start_date) {
@@ -254,19 +247,19 @@ export const Statistics: React.FC = () => {
           menstrualEndDay = actualMenstrualLength;
         }
       }
-      
+
       // 周期段階の判定（マイナス値の場合は生理前として扱う）
-      if (dayOfCycle < 1) return 'luteal'; // 次回生理開始日前は生理前
-      if (dayOfCycle >= 1 && dayOfCycle <= menstrualEndDay) return 'menstrual';
-      else if (dayOfCycle > menstrualEndDay && dayOfCycle <= 11) return 'follicular';
-      else if (dayOfCycle > 11 && dayOfCycle <= 18) return 'ovulatory';
-      else return 'luteal';
+      if (dayOfCycle < 1) return "luteal"; // 次回生理開始日前は生理前
+      if (dayOfCycle >= 1 && dayOfCycle <= menstrualEndDay) return "menstrual";
+      else if (dayOfCycle > menstrualEndDay && dayOfCycle <= 11) return "follicular";
+      else if (dayOfCycle > 11 && dayOfCycle <= 18) return "ovulatory";
+      else return "luteal";
     };
 
     // 日別症状データのみを使用（DB優先アプローチ）
     // 全ての周期を含め、現在までのデータを取得
     const allCycles = cycles; // 完了した周期だけでなく全ての周期を対象
-    
+
     if (allCycles.length > 0) {
       // 時間範囲に基づいて期間を設定
       const now = new Date();
@@ -293,14 +286,12 @@ export const Statistics: React.FC = () => {
       const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       const latestDate = futureDate.toISOString().split("T")[0];
 
-
       // APIから症状データを取得
       const processedDates = new Set<string>();
-      
+
       try {
         const response = await dailySymptomsAPI.getSymptomsRange(earliestDate, latestDate);
         if (response.success && response.data) {
-
           // レスポンスデータが配列の場合の処理
           if (Array.isArray(response.data)) {
             response.data.forEach((dayData: DailySymptomsData) => {
@@ -308,7 +299,7 @@ export const Statistics: React.FC = () => {
                 const dateStr = String(dayData.date);
                 processedDates.add(dateStr);
                 const phase = getCyclePhase(dateStr, allCycles);
-                dayData.symptoms.forEach(symptom => {
+                dayData.symptoms.forEach((symptom) => {
                   allSymptoms.push(symptom);
                   symptomsWithPhase.push({ symptom, phase, date: dateStr });
                 });
@@ -317,21 +308,19 @@ export const Statistics: React.FC = () => {
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
-            console.log("統計用症状データ取得:", Object.keys(response.data));
             Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
-                const dateStr = date.split(' ')[0]; // "2025-08-05 00:00:00" -> "2025-08-05"
-                
+                const dateStr = date.split(" ")[0]; // "2025-08-05 00:00:00" -> "2025-08-05"
+
                 // 重複した日付をスキップ
                 if (processedDates.has(dateStr)) {
                   return;
                 }
                 processedDates.add(dateStr);
-                
+
                 const phase = getCyclePhase(dateStr, allCycles);
-                
-                
-                (dayData as DailySymptomsData).symptoms!.forEach(symptom => {
+
+                (dayData as DailySymptomsData).symptoms!.forEach((symptom) => {
                   allSymptoms.push(symptom);
                   symptomsWithPhase.push({ symptom, phase, date: dateStr });
                 });
@@ -342,9 +331,7 @@ export const Statistics: React.FC = () => {
       } catch {
         // Silent error handling - failed to get symptoms range
       }
-
     }
-
 
     // 症状の周期別分類（日付ベースで正確に分類）
     symptomsWithPhase.forEach(({ symptom, phase }) => {
@@ -355,7 +342,6 @@ export const Statistics: React.FC = () => {
         symptomsByPhase[phase].push({ symptom, count: 1 });
       }
     });
-
 
     const symptomCounts = allSymptoms.reduce((acc: Record<string, number>, symptom) => {
       acc[symptom] = (acc[symptom] || 0) + 1;
@@ -371,7 +357,6 @@ export const Statistics: React.FC = () => {
       }))
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 10);
-
 
     // 各フェーズの症状を頻度順にソート
     (Object.keys(symptomsByPhase) as Array<keyof typeof symptomsByPhase>).forEach((phase) => {
@@ -395,7 +380,6 @@ export const Statistics: React.FC = () => {
 
     // 範囲でAPIから症状データを取得
     if (allCycles.length > 0) {
-
       try {
         // 時間範囲に基づいて期間を設定
         const now = new Date();
@@ -419,10 +403,9 @@ export const Statistics: React.FC = () => {
 
         const flowEarliestDate = cutoffDate.toISOString().split("T")[0];
         const flowLatestDate = now.toISOString().split("T")[0];
-        
+
         const response = await dailySymptomsAPI.getSymptomsRange(flowEarliestDate, flowLatestDate);
         if (response.success && response.data) {
-
           const flowProcessedDates = new Set<string>();
 
           // レスポンスデータが配列の場合の処理
@@ -441,7 +424,7 @@ export const Statistics: React.FC = () => {
           else if (typeof response.data === "object" && response.data !== null) {
             Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).flowIntensity && (dayData as DailySymptomsData).flowIntensity! > 0) {
-                const dateStr = date.split(' ')[0];
+                const dateStr = date.split(" ")[0];
                 if (!flowProcessedDates.has(dateStr)) {
                   flowProcessedDates.add(dateStr);
                   allFlowIntensities.push((dayData as DailySymptomsData).flowIntensity!);
@@ -457,13 +440,12 @@ export const Statistics: React.FC = () => {
       }
     }
 
-
     // 有効な値のみをフィルタ（重複除去はしない - 各日のデータは独立）
     const flowIntensities = allFlowIntensities.filter((intensity) => intensity && intensity > 0);
 
-
     if (flowIntensities.length > 0) {
-      const avgFlow = flowIntensities.filter(intensity => intensity != null).reduce((sum: number, intensity: number) => sum + intensity, 0) / flowIntensities.length;
+      const avgFlow =
+        flowIntensities.filter((intensity) => intensity != null).reduce((sum: number, intensity: number) => sum + intensity, 0) / flowIntensities.length;
 
       const flowDistribution = [1, 2, 3, 4, 5].map((intensity) => {
         const count = flowIntensities.filter((f) => f === intensity).length;

@@ -131,6 +131,7 @@ export const Calendar: React.FC = () => {
         clearTimeout(timeoutId);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 古いローカルストレージデータをクリーンアップする関数
