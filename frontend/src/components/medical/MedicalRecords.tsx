@@ -95,9 +95,14 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
           setMedications(data as Medication[]);
           break;
       }
-      await userDataAPI.saveMedicalRecords(apiType, data);
+      
+      const response = await userDataAPI.saveMedicalRecords(apiType, data);
+      
+      if (!response.success) {
+        throw new Error(`API呼び出し失敗: ${response.message || 'Unknown error'}`);
+      }
     } catch {
-      alert("データの保存に失敗しました。");
+      alert("データの保存に失敗しました。ネットワーク接続を確認してください。");
     }
   };
 
@@ -223,28 +228,32 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     setShowAddForm(false);
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     if (!confirm("この記録を削除しますか？")) return;
 
-    switch (activeTab) {
-      case "visit":
-        saveToStorage(
-          "visit",
-          hospitalVisits.filter((v) => v.id !== id)
-        );
-        break;
-      case "test":
-        saveToStorage(
-          "test",
-          testResults.filter((t) => t.id !== id)
-        );
-        break;
-      case "medication":
-        saveToStorage(
-          "medication",
-          medications.filter((m) => m.id !== id)
-        );
-        break;
+    try {
+      switch (activeTab) {
+        case "visit":
+          await saveToStorage(
+            "visit",
+            hospitalVisits.filter((v) => v.id !== id)
+          );
+          break;
+        case "test":
+          await saveToStorage(
+            "test",
+            testResults.filter((t) => t.id !== id)
+          );
+          break;
+        case "medication":
+          await saveToStorage(
+            "medication",
+            medications.filter((m) => m.id !== id)
+          );
+          break;
+      }
+    } catch {
+      // Silent error handling - deletion failed
     }
   };
 

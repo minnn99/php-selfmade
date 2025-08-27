@@ -186,7 +186,7 @@ class UserDataController extends Controller
         
         $request->validate([
             'type' => 'required|in:hospitalVisits,testResults,medications',
-            'data' => 'required|array'
+            'data' => 'array'
         ]);
         
         UserSetting::updateOrCreate(
