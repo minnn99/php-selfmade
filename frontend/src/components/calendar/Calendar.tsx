@@ -109,21 +109,17 @@ export const Calendar: React.FC = () => {
   useEffect(() => {
     let timeoutId: number;
 
-    const handleDataUpdate = () => {
-      
-      // COMPLETELY DISABLE automatic calendar reloading
-      // This prevents period display from disappearing when entering symptoms
-      // Calendar will only update on manual navigation or page refresh
+    const handleDataUpdate = async () => {
       
       // Clear existing timeout
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
 
-      // DO NOT reload calendar data automatically
-      // Only refresh the key for minimal updates
-      timeoutId = setTimeout(() => {
-        setRefreshKey((prev) => prev + 1); // 最小限の再描画のみ
+      // Reload calendar data to reflect changes
+      timeoutId = setTimeout(async () => {
+        await loadCalendarData(userGender, isConnectedToPartner);
+        setRefreshKey((prev) => prev + 1);
       }, 100);
     };
 

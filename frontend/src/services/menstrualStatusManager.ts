@@ -69,7 +69,8 @@ class MenstrualStatusManager {
         this.isLoading = true;
         try {
           const response = await menstrualCycleAPI.getCurrentStatus();
-          this.status = response.data as MenstrualStatus;
+          // APIレスポンスが直接データを含んでいる場合
+          this.status = (response.data || response) as MenstrualStatus;
           
           // Notify all subscribers
           this.listeners.forEach(callback => callback(this.status));

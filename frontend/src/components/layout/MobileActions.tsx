@@ -12,6 +12,14 @@ export const MobileActions: React.FC = () => {
       setMenstrualStatus(status as Record<string, unknown> | null);
     });
 
+    // 初期状態を読み込み
+    menstrualStatusManager.loadStatus().then(() => {
+      const currentStatus = menstrualStatusManager.getCurrentStatus();
+      if (currentStatus) {
+        setMenstrualStatus(currentStatus as unknown as Record<string, unknown> | null);
+      }
+    });
+
     return unsubscribe;
   }, []);
 
@@ -95,17 +103,13 @@ export const MobileActions: React.FC = () => {
       // 生理開始日から予測終了日まで全ての日を生理中として設定
       await updateCalendarForPeriod(today, endDateString);
       
-      // 4. ステータスとカレンダーデータを確実に再読み込み
-      await menstrualStatusManager.forceReloadStatus();
-      
-      // カスタムイベントを発火してカレンダーとセルフケアを更新
+      // 4. カスタムイベントを発火してカレンダーとセルフケアを更新
       window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
       
-      // 少し遅延してもう一度確実に更新（データ反映の確実性のため）
+      // 5. ステータス更新を待機
       setTimeout(async () => {
         await menstrualStatusManager.forceReloadStatus();
-        window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
-      }, 300);
+      }, 500);
       
       alert('生理が開始されました（5日間の期間が設定されました）');
     } catch (error: unknown) {
@@ -174,7 +178,7 @@ export const MobileActions: React.FC = () => {
       color: !menstrualStatus?.hasActiveCycle 
         ? 'bg-gray-300 cursor-not-allowed' 
         : 'bg-green-500 hover:bg-green-600 active:bg-green-700',
-      disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
+disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
