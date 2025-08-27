@@ -190,29 +190,59 @@ export const Statistics: React.FC = () => {
       luteal: [] as Array<{ symptom: string; count: number }>,
     };
 
-    // 日付から周期段階を判定する関数（より柔軟に）
+    // 日付から周期段階を判定する関数（次回周期開始日前も考慮）
     const getCyclePhase = (date: string, cycleArray: CycleData[]): 'menstrual' | 'follicular' | 'ovulatory' | 'luteal' => {
       const targetDate = new Date(date);
       
-      // まず最も近い周期を探す
-      let closestCycle: CycleData | null = null;
-      let minDistance = Infinity;
+      // 日付順にソートされた周期を作成
+      const sortedCycles = [...cycleArray].sort((a, b) => 
+        new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
       
-      cycleArray.forEach(cycle => {
-        if (cycle.start_date) {
+      // 適切な周期を見つける
+      let appropriateCycle: CycleData | null = null;
+      
+      for (let i = 0; i < sortedCycles.length; i++) {
+        const cycle = sortedCycles[i];
+        const cycleStart = new Date(cycle.start_date);
+        const nextCycle = sortedCycles[i + 1];
+        
+        if (nextCycle) {
+          // 次の周期がある場合：現在の周期開始日から次の周期開始日の前日まで
+          const nextCycleStart = new Date(nextCycle.start_date);
+          const cycleEnd = new Date(nextCycleStart.getTime() - 24 * 60 * 60 * 1000); // 前日
+          
+          if (targetDate >= cycleStart && targetDate <= cycleEnd) {
+            appropriateCycle = cycle;
+            break;
+          }
+        } else {
+          // 最後の周期の場合：開始日から35日後まで
+          const cycleEnd = new Date(cycleStart.getTime() + 35 * 24 * 60 * 60 * 1000);
+          
+          if (targetDate >= cycleStart && targetDate <= cycleEnd) {
+            appropriateCycle = cycle;
+            break;
+          }
+        }
+      }
+      
+      // 適切な周期が見つからない場合は最も近い周期を使用
+      if (!appropriateCycle) {
+        let minDistance = Infinity;
+        sortedCycles.forEach(cycle => {
           const startDate = new Date(cycle.start_date);
           const distance = Math.abs(targetDate.getTime() - startDate.getTime());
           if (distance < minDistance) {
             minDistance = distance;
-            closestCycle = cycle;
+            appropriateCycle = cycle;
           }
-        }
-      });
+        });
+      }
       
-      // 最も近い周期が見つからない場合はfollicular（生理後）をデフォルトとする
-      if (!closestCycle) return 'follicular';
+      if (!appropriateCycle) return 'follicular';
       
-      const cycle = closestCycle as CycleData;
+      const cycle = appropriateCycle as CycleData;
       const cycleStart = new Date(cycle.start_date);
       const dayOfCycle = Math.floor((targetDate.getTime() - cycleStart.getTime()) / (24 * 60 * 60 * 1000)) + 1;
       
@@ -220,19 +250,17 @@ export const Statistics: React.FC = () => {
       let menstrualEndDay = 5;
       if (cycle.end_date && cycle.start_date) {
         const actualMenstrualLength = Math.floor((new Date(cycle.end_date).getTime() - new Date(cycle.start_date).getTime()) / (24 * 60 * 60 * 1000)) + 1;
-        if (actualMenstrualLength > 0 && actualMenstrualLength <= 10) { // 妥当な範囲
+        if (actualMenstrualLength > 0 && actualMenstrualLength <= 10) {
           menstrualEndDay = actualMenstrualLength;
         }
       }
       
-      // 周期段階の判定（より柔軟に）
-      if (dayOfCycle >= 1 && dayOfCycle <= menstrualEndDay) return 'menstrual';      // 生理日
-      else if (dayOfCycle > menstrualEndDay && dayOfCycle <= 11) return 'follicular'; // 生理後
-      else if (dayOfCycle > 11 && dayOfCycle <= 18) return 'ovulatory';  // 排卵日周辺 (12-18日目、7日間)
-      else if (dayOfCycle > 18) return 'luteal';                           // 生理前
-      
-      // 生理開始前の日付の場合は生理前とする
-      return 'luteal';
+      // 周期段階の判定（マイナス値の場合は生理前として扱う）
+      if (dayOfCycle < 1) return 'luteal'; // 次回生理開始日前は生理前
+      if (dayOfCycle >= 1 && dayOfCycle <= menstrualEndDay) return 'menstrual';
+      else if (dayOfCycle > menstrualEndDay && dayOfCycle <= 11) return 'follicular';
+      else if (dayOfCycle > 11 && dayOfCycle <= 18) return 'ovulatory';
+      else return 'luteal';
     };
 
     // 日別症状データのみを使用（DB優先アプローチ）
@@ -261,7 +289,10 @@ export const Statistics: React.FC = () => {
       }
 
       const earliestDate = cutoffDate.toISOString().split("T")[0];
-      const latestDate = now.toISOString().split("T")[0];
+      // 将来の日付も含めるため、現在日付の30日後まで取得
+      const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const latestDate = futureDate.toISOString().split("T")[0];
+
 
       // APIから症状データを取得
       const processedDates = new Set<string>();
@@ -286,6 +317,7 @@ export const Statistics: React.FC = () => {
           }
           // レスポンスデータがオブジェクトの場合の処理
           else if (typeof response.data === "object" && response.data !== null) {
+            console.log("統計用症状データ取得:", Object.keys(response.data));
             Object.entries(response.data).forEach(([date, dayData]) => {
               if (dayData && typeof dayData === "object" && (dayData as DailySymptomsData).symptoms && Array.isArray((dayData as DailySymptomsData).symptoms)) {
                 const dateStr = date.split(' ')[0]; // "2025-08-05 00:00:00" -> "2025-08-05"
@@ -297,6 +329,7 @@ export const Statistics: React.FC = () => {
                 processedDates.add(dateStr);
                 
                 const phase = getCyclePhase(dateStr, allCycles);
+                
                 
                 (dayData as DailySymptomsData).symptoms!.forEach(symptom => {
                   allSymptoms.push(symptom);
