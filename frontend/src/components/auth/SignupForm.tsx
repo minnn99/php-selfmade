@@ -137,7 +137,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
     }
     const phoneRegex = /^(0\d{1,4}-\d{1,4}-\d{4}|0\d{10,11})$/;
     if (!phoneRegex.test(phone.replace(/[^\d-]/g, ''))) {
-      return "正しい電話番号を入力してください（例：090-1234-5678）";
+      return "ハイフンは不要です。数字は半角で入力してください（例：09012345678）";
     }
     return undefined;
   };
@@ -429,7 +429,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-medical focus:ring-primary-500'
                 }`}
-                placeholder="090-1234-5678"
+                placeholder="09012345678"
               />
               {errors.phone && touched.phone && (
                 <p className="mt-1 text-sm text-red-600">{errors.phone}</p>

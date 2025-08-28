@@ -57,7 +57,7 @@ class AuthController extends Controller
             'gender.required' => '性別を選択してください。',
             'gender.in' => '正しい性別を選択してください。',
             'phone.required' => '電話番号は必須です。',
-            'phone.regex' => '正しい電話番号を入力してください。',
+            'phone.regex' => 'ハイフンは不要です。数字は半角で入力してください（例：09012345678）。',
             'email.required' => 'メールアドレスは必須です。',
             'email.email' => '正しいメールアドレス形式で入力してください。',
             'email.max' => 'メールアドレスは255文字以内で入力してください。',
