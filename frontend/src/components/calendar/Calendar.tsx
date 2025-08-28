@@ -107,7 +107,7 @@ export const Calendar: React.FC = () => {
 
   // Listen for menstrual data updates with debounce (DISABLED FOR SYMPTOMS)
   useEffect(() => {
-    let timeoutId: number;
+    let timeoutId: NodeJS.Timeout;
 
     const handleDataUpdate = async () => {
       

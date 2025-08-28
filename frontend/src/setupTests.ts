@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // Global test setup
-(global as any).ResizeObserver = vi.fn().mockImplementation(() => ({
+(global as unknown as { ResizeObserver: unknown }).ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),

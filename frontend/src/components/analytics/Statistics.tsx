@@ -48,7 +48,7 @@ export const Statistics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<"3months" | "6months" | "1year" | "all">("6months");
-  const [loadingTimeoutId, setLoadingTimeoutId] = useState<number | null>(null);
+  const [loadingTimeoutId, setLoadingTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadStatistics();
@@ -82,7 +82,7 @@ export const Statistics: React.FC = () => {
         loadStatistics(false);
       }, 300);
 
-      setLoadingTimeoutId(timeoutId as any);
+      setLoadingTimeoutId(timeoutId);
       return;
     }
 
