@@ -82,7 +82,7 @@ export const Statistics: React.FC = () => {
         loadStatistics(false);
       }, 300);
 
-      setLoadingTimeoutId(timeoutId);
+      setLoadingTimeoutId(timeoutId as any);
       return;
     }
 
