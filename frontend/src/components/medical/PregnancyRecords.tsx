@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { userDataAPI } from "../../services/api";
+import { Pagination, MobilePagination } from "../ui/Pagination";
 
 interface PregnancyRecord {
   id: string;
@@ -35,6 +36,15 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     description: "",
     value: "",
   });
+
+  // ページネーション用のstate
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // 検索条件が変更された時にページを1に戻す
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchWeek, searchDate, searchType]);
 
   useEffect(() => {
     loadPregnancyData();
@@ -98,15 +108,27 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     return { weeks, days };
   };
 
-  const groupRecordsByWeek = () => {
-    const filtered = pregnancyRecords.filter((record) => {
+
+  // ページネーション用に記録をフラット化して分割
+  const getPaginatedRecords = () => {
+    // まず全ての記録をフィルタリング
+    const filteredRecords = pregnancyRecords.filter((record) => {
       const matchesWeek = !searchWeek || calculateWeeksFromDate(record.date).weeks.toString() === searchWeek;
       const matchesDate = !searchDate || record.date.includes(searchDate);
       const matchesType = !searchType || record.type === searchType;
       return matchesWeek && matchesDate && matchesType;
     });
 
-    const grouped = filtered.reduce((acc, record) => {
+    // 日付順にソート（新しい順）
+    const sortedRecords = filteredRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // 個別記録レベルでページネーション（10記録ずつ表示）
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedRecords = sortedRecords.slice(startIndex, endIndex);
+    
+    // ページ分割された記録を週別にグループ化
+    const grouped = paginatedRecords.reduce((acc, record) => {
       const { weeks } = calculateWeeksFromDate(record.date);
       const weekKey = `${weeks}週`;
 
@@ -118,7 +140,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
     }, {} as Record<string, PregnancyRecord[]>);
 
     // 週数順にソート
-    return Object.keys(grouped)
+    const paginatedGroups = Object.keys(grouped)
       .sort((a, b) => {
         const weekA = parseInt(a.replace("週", ""));
         const weekB = parseInt(b.replace("週", ""));
@@ -128,6 +150,12 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
         week: weekKey,
         records: grouped[weekKey].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
       }));
+    
+    return {
+      groups: paginatedGroups,
+      totalItems: sortedRecords.length,
+      totalPages: Math.ceil(sortedRecords.length / itemsPerPage)
+    };
   };
 
   const addPregnancyRecord = async () => {
@@ -146,6 +174,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
 
     setNewRecord({ type: "symptom", title: "", description: "", value: "" });
     setShowAddRecord(false);
+    setCurrentPage(1); // 新しい記録を追加した際は1ページ目に移動
   };
 
   const updateRecord = async (updatedRecord: PregnancyRecord) => {
@@ -304,7 +333,7 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
         {/* Stats */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
           <span>総記録数: {pregnancyRecords.length}件</span>
-          <span>表示中: {groupRecordsByWeek().reduce((sum, group) => sum + group.records.length, 0)}件</span>
+          <span>表示中: {getPaginatedRecords().groups.reduce((sum, group) => sum + group.records.length, 0)}件</span>
         </div>
       </div>
 
@@ -377,12 +406,12 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
               最初の記録を追加
             </button>
           </div>
-        ) : groupRecordsByWeek().length === 0 ? (
+        ) : getPaginatedRecords().groups.length === 0 ? (
           <div className="text-center py-6 sm:py-8">
             <p className="text-gray-500 text-sm px-4">検索条件に一致する記録がありません</p>
           </div>
         ) : (
-          groupRecordsByWeek().map(({ week, records }) => (
+          getPaginatedRecords().groups.map(({ week, records }) => (
             <div key={week} className="border border-gray-200 rounded-lg overflow-hidden">
               {/* Week Header */}
               <div className="bg-primary-50 border-b border-primary-100 px-3 sm:px-4 py-3">
@@ -500,6 +529,30 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
           ))
         )}
       </div>
+
+      {/* Pagination - Desktop */}
+      {pregnancyRecords.length > 0 && getPaginatedRecords().totalPages > 1 && (
+        <div className="hidden sm:block mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={getPaginatedRecords().totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={getPaginatedRecords().totalItems}
+          />
+        </div>
+      )}
+
+      {/* Pagination - Mobile */}
+      {pregnancyRecords.length > 0 && getPaginatedRecords().totalPages > 1 && (
+        <div className="sm:hidden mt-6">
+          <MobilePagination
+            currentPage={currentPage}
+            totalPages={getPaginatedRecords().totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={getPaginatedRecords().totalItems}
+          />
+        </div>
+      )}
 
       {/* Edit Record Modal */}
       {showEditModal && editingRecord && (

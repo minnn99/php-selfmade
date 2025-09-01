@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI } from "../../services/api";
+import { menstrualCycleAPI, userDataAPI } from "../../services/api";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { PregnancyRecords } from "./PregnancyRecords";
 
@@ -51,7 +51,33 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     if (savedMode && JSON.parse(savedMode)) {
       loadOvulationData();
     }
+    
+    // APIから最新のデータを読み込み
+    loadPregnancyRecords();
   }, []);
+
+  const loadPregnancyRecords = async () => {
+    try {
+      const response = await userDataAPI.getPregnancyRecords();
+      if (response.success && response.data) {
+        const responseData = response.data as { records_data?: PregnancyRecord[]; start_date?: string };
+        const records = responseData.records_data || [];
+        setPregnancyRecords(records);
+        // ローカルストレージも更新
+        localStorage.setItem("pregnancyRecords", JSON.stringify(records));
+        
+        // 妊娠開始日も更新
+        if (responseData.start_date) {
+          setPregnancyStartDate(responseData.start_date);
+          localStorage.setItem("pregnancyStartDate", responseData.start_date);
+          setIsPregnant(true);
+          localStorage.setItem("isPregnant", JSON.stringify(true));
+        }
+      }
+    } catch {
+      // Failed to load pregnancy records
+    }
+  };
 
   const loadOvulationData = async () => {
     try {
