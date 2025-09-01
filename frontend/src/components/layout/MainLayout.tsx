@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { OverviewCards } from "../analytics/OverviewCards";
-import { Calendar } from "../calendar/Calendar";
-import { Statistics } from "../analytics/Statistics";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { Settings } from "../settings/Settings";
 import { Navigation } from "./Navigation";
-import { TodaySection } from "../analytics/TodaySection";
 import { SettingsSidebar } from "../settings/SettingsSidebar";
-import { PartnerConnection } from "../medical/PartnerConnection";
-import { PregnancySupport } from "../medical/PregnancySupport";
-import { SelfCare } from "../analytics/SelfCare";
-import { MedicalRecords } from "../medical/MedicalRecords";
 import { NotificationPopup } from "../modals/NotificationPopup";
 import { NotificationBadge } from "../shared/NotificationBadge";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { SessionExpiredModal } from "../modals/SessionExpiredModal";
-import { MobileActions } from "./MobileActions";
 import { authAPI } from "../../services/api";
+
+// Page components
+import { DashboardPage } from "../pages/DashboardPage";
+import { StatisticsPage } from "../pages/StatisticsPage";
+import { SelfCarePage } from "../pages/SelfCarePage";
+import { PartnerConnectionPage } from "../pages/PartnerConnectionPage";
+import { PregnancySupportPage } from "../pages/PregnancySupportPage";
+import { MedicalRecordsPage } from "../pages/MedicalRecordsPage";
 
 interface MainLayoutProps {
   onLogout: () => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<string>("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -33,6 +34,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [userLoading, setUserLoading] = useState(true);
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
+
+  // URLパスから現在のビューを決定
+  const getCurrentView = () => {
+    const path = location.pathname;
+    if (path === "/" || path === "/dashboard") return "dashboard";
+    if (path === "/statistics") return "statistics";
+    if (path === "/self-care") return "self-care";
+    if (path === "/partner-connection") return "partner-connection";
+    if (path === "/pregnancy-support") return "pregnancy-support";
+    if (path === "/medical-records") return "medical-records";
+    if (path === "/settings") return "settings";
+    return "dashboard";
+  };
+
+  const currentView = getCurrentView();
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -308,7 +324,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           <Navigation 
             activeView={currentView}
             onViewChange={(view) => {
-              setCurrentView(view);
+              navigate(`/${view}`);
               setIsMobileMenuOpen(false);
             }}
             mobileMenuOnly={true}
@@ -320,41 +336,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-4 sm:space-y-6 lg:space-y-8 w-full">
-            {currentView === "dashboard" && (
-              <>
-                {/* Overview Cards */}
-                <OverviewCards />
-
-                {/* Mobile Actions - only visible on mobile */}
-                <MobileActions />
-
-                {/* Calendar */}
-                <Calendar />
-
-                {/* Today Section */}
-                <TodaySection />
-              </>
-            )}
-
-            {currentView === "statistics" && (
-              <Statistics />
-            )}
-
-            {currentView === "pregnancy-support" && (
-              <PregnancySupport />
-            )}
-
-            {currentView === "partner-connection" && (
-              <PartnerConnection />
-            )}
-
-            {currentView === "self-care" && (
-              <SelfCare />
-            )}
-
-            {currentView === "medical-records" && (
-              <MedicalRecords />
-            )}
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/statistics" element={<StatisticsPage />} />
+              <Route path="/pregnancy-support" element={<PregnancySupportPage />} />
+              <Route path="/partner-connection" element={<PartnerConnectionPage />} />
+              <Route path="/self-care" element={<SelfCarePage />} />
+              <Route path="/medical-records" element={<MedicalRecordsPage />} />
+            </Routes>
 
             {currentView === "settings" && (
               <Settings 
@@ -368,7 +358,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
           <div className="hidden lg:block lg:col-span-1">
             <Navigation 
               activeView={currentView}
-              onViewChange={setCurrentView}
+              onViewChange={(view) => navigate(`/${view}`)}
             />
           </div>
         </div>

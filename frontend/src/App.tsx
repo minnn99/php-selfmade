@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import { LoginPage } from "./components/auth/LoginPage";
 import { SignupPage } from "./components/auth/SignupPage";
@@ -149,7 +150,7 @@ function App() {
   }
 
   return (
-    <>
+    <BrowserRouter>
       <ProtectedRoute
         onUnauthorized={() => {
           setIsAuthenticated(false);
@@ -166,7 +167,7 @@ function App() {
         onClose={handleSessionExpiredModalClose}
         message={sessionExpiredMessage}
       />
-    </>
+    </BrowserRouter>
   );
 }
 
