@@ -585,7 +585,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
     const currentPage = getCurrentPage();
     
     switch (activeTab) {
-      case "visit":
+      case "visit": {
         const paginatedVisits = paginatedData as HospitalVisit[];
         return (
           <div className="space-y-4">
@@ -699,8 +699,9 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
             )}
           </div>
         );
+      }
 
-      case "test":
+      case "test": {
         const paginatedTests = paginatedData as TestResult[];
         return (
           <div className="space-y-4">
@@ -815,8 +816,9 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
             )}
           </div>
         );
+      }
 
-      case "medication":
+      case "medication": {
         const paginatedMedications = paginatedData as Medication[];
         return (
           <div className="space-y-4">
@@ -940,6 +942,7 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
             )}
           </div>
         );
+      }
 
       default:
         return null;
