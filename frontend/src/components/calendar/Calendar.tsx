@@ -245,7 +245,8 @@ export const Calendar: React.FC = () => {
       // 症状データをAPIから取得（現在月の範囲）
       try {
         const startDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-01`;
-        const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-31`;
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const endDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(lastDayOfMonth).padStart(2, "0")}`;
         const symptomsResponse = await dailySymptomsAPI.getSymptomsRange(startDate, endDate);
         
         if (symptomsResponse.success && symptomsResponse.data) {
