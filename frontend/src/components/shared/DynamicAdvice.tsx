@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
-import { menstrualCycleAPI } from "../../services/api";
+import { menstrualCycleAPI, partnerAPI, authAPI } from "../../services/api";
 
 interface DynamicAdviceProps {
   className?: string;
@@ -27,12 +27,138 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
     });
 
+    // 直接カレンダーデータを取得してアドバイスを生成
+    const initializeAdvice = async () => {
+      try {
+        // ユーザー情報を取得して男性かどうか確認
+        const userData = await authAPI.getUser();
+        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
+        const isMale = userGender === "male" || userGender === "男性";
+
+        const today = new Date();
+        const todayString = today.toISOString().split("T")[0];
+
+        if (isMale) {
+          // 男性ユーザーの場合、パートナー接続状況を確認
+          const partnerResponse = await partnerAPI.getStatus();
+          if (partnerResponse.success && partnerResponse.data) {
+            const partnerData = partnerResponse.data as { is_connected?: boolean };
+            if (partnerData.is_connected) {
+              // パートナーのカレンダーデータを取得
+              const partnerCalendarResponse = await partnerAPI.getPartnerCalendar(today.getFullYear(), today.getMonth() + 1);
+              if (partnerCalendarResponse.success && partnerCalendarResponse.data) {
+                const calendarData = (partnerCalendarResponse.data as { calendar_data?: Record<string, unknown> })?.calendar_data;
+                if (calendarData) {
+                  // 日付で該当するエントリーを検索
+                  for (const key of Object.keys(calendarData)) {
+                    const entry = calendarData[key] as { date?: string };
+                    if (entry?.date === todayString) {
+                      generateAdviceFromCalendarData(entry);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          // 男性でパートナー未接続の場合はデフォルト
+          setDefaultAdvice();
+        } else {
+          // 女性ユーザーの場合、自分のカレンダーデータを取得
+          const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
+          const todayData = (calendarResponse.data as Record<string, unknown>)[todayString];
+
+          if (todayData && typeof todayData === "object") {
+            generateAdviceFromCalendarData(todayData as Record<string, unknown>);
+          } else {
+            setDefaultAdvice();
+          }
+        }
+      } catch {
+        setDefaultAdvice();
+      }
+    };
+
+    // 初期化時に直接アドバイスを取得
+    initializeAdvice();
+
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateAdviceBasedOnStatus = async (status: Record<string, unknown> | null) => {
+  // カレンダーデータから直接アドバイスを生成する関数
+  const generateAdviceFromCalendarData = (todayData: Record<string, unknown>) => {
+    const todayTypedData = todayData as {
+      hasPeriod?: boolean;
+      isPeriodStart?: boolean;
+      isPeriodEnd?: boolean;
+      isOvulation?: boolean;
+      isFertile?: boolean;
+      isPredictedPeriod?: boolean;
+    };
 
+    if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart) {
+      const dayOfPeriod = getDayOfPeriod(todayData);
+      if (dayOfPeriod <= 3) {
+        setCurrentAdvice({
+          title: `生理 ${dayOfPeriod}日目`,
+          message: "生理初期は体を温めて、十分な休息を取りましょう。温かいハーブティーがおすすめです。",
+          bgColor: "from-red-50 to-pink-50",
+          textColor: "text-red-600",
+        });
+      } else {
+        setCurrentAdvice({
+          title: `生理 ${dayOfPeriod}日目`,
+          message: "軽いストレッチや散歩で血流を改善しましょう。鉄分を意識した食事も大切です。",
+          bgColor: "from-red-50 to-pink-50",
+          textColor: "text-red-600",
+        });
+      }
+      return;
+    } else if (todayTypedData.isPeriodEnd) {
+      setCurrentAdvice({
+        title: "生理終了",
+        message: "お疲れさまでした。新しいサイクルの始まりです。栄養バランスの良い食事で体力回復を。",
+        bgColor: "from-green-50 to-emerald-50",
+        textColor: "text-green-600",
+      });
+      return;
+    } else if (todayTypedData.isOvulation) {
+      setCurrentAdvice({
+        title: "排卵期",
+        message: "排卵期です。基礎体温が上昇するため、水分補給を心がけましょう。",
+        bgColor: "from-yellow-50 to-amber-50",
+        textColor: "text-yellow-600",
+      });
+      return;
+    } else if (todayTypedData.isFertile) {
+      setCurrentAdvice({
+        title: "妊娠可能期間",
+        message: "妊娠可能期間です。体調管理に気をつけて、バランスの良い食事を心がけましょう。",
+        bgColor: "from-pink-50 to-rose-50",
+        textColor: "text-pink-600",
+      });
+      return;
+    } else if (todayTypedData.isPredictedPeriod) {
+      setCurrentAdvice({
+        title: "生理予定日",
+        message: "生理予定日です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
+        bgColor: "from-red-50 to-pink-50",
+        textColor: "text-red-600",
+      });
+      return;
+    } else {
+      setCurrentAdvice({
+        title: "エネルギー充実期",
+        message: "体調が良い時期です。新しいことにチャレンジしたり、運動を始めるのに最適な時期です。",
+        bgColor: "from-green-50 to-emerald-50",
+        textColor: "text-green-600",
+      });
+      return;
+    }
+  };
+
+  const updateAdviceBasedOnStatus = async (status: Record<string, unknown> | null) => {
     if (!status) {
       setDefaultAdvice();
       return;
@@ -47,7 +173,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       const todayData = (calendarResponse.data as Record<string, unknown>)[todayString];
 
       // 今日のカレンダーステータスに基づいてアドバイスを決定
-      if (todayData) {
+      if (todayData && typeof todayData === "object") {
+        generateAdviceFromCalendarData(todayData as Record<string, unknown>);
         const todayTypedData = todayData as {
           hasPeriod?: boolean;
           isPeriodStart?: boolean;
@@ -132,8 +259,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     if (cycleDay >= 1 && cycleDay <= 5) {
       // 生理期間（予測）
       setCurrentAdvice({
-        title: "生理期間の予測",
-        message: "生理予定期間です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
+        title: "生理予定日",
+        message: "生理予定日です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
         bgColor: "from-red-50 to-pink-50",
         textColor: "text-red-600",
       });
@@ -183,7 +310,11 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
 
     // アクティブな周期がある場合、開始日から今日までの日数を計算
     const currentStatus = menstrualStatusManager.getCurrentStatus();
-    if ((currentStatus as Record<string, unknown> | null)?.hasActiveCycle && (currentStatus as Record<string, unknown> | null)?.activeCycle && ((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date?: string })?.start_date) {
+    if (
+      (currentStatus as Record<string, unknown> | null)?.hasActiveCycle &&
+      (currentStatus as Record<string, unknown> | null)?.activeCycle &&
+      ((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date?: string })?.start_date
+    ) {
       const startDate = new Date(((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date: string }).start_date);
       const today = new Date();
       const diffTime = today.getTime() - startDate.getTime();
