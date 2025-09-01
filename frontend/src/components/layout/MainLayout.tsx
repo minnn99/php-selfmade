@@ -344,14 +344,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               <Route path="/partner-connection" element={<PartnerConnectionPage />} />
               <Route path="/self-care" element={<SelfCarePage />} />
               <Route path="/medical-records" element={<MedicalRecordsPage />} />
+              <Route path="/settings" element={
+                <Settings 
+                  onDataDeleted={handleDataDeleted} 
+                  onLogout={isMobile ? onLogout : undefined}
+                />
+              } />
             </Routes>
-
-            {currentView === "settings" && (
-              <Settings 
-                onDataDeleted={handleDataDeleted} 
-                onLogout={isMobile ? onLogout : undefined}
-              />
-            )}
           </div>
 
           {/* Desktop Sidebar Navigation */}
