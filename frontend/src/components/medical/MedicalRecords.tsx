@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { userDataAPI } from "../../services/api";
+import { Pagination } from "../ui/Pagination";
 
 interface MedicalRecordsProps {
   className?: string;
@@ -55,6 +56,12 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [medications, setMedications] = useState<Medication[]>([]);
 
+  // Pagination states
+  const [visitCurrentPage, setVisitCurrentPage] = useState(1);
+  const [testCurrentPage, setTestCurrentPage] = useState(1);
+  const [medicationCurrentPage, setMedicationCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Form states
   const [visitForm, setVisitForm] = useState<Partial<HospitalVisit>>({});
   const [testForm, setTestForm] = useState<Partial<TestResult>>({});
@@ -75,6 +82,55 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
       }
     } catch {
       // Failed to load medical records
+    }
+  };
+
+  // Pagination helper functions
+  const getPaginatedData = <T,>(data: T[], currentPage: number): { paginatedData: T[]; totalPages: number } => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedData = data.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    return { paginatedData, totalPages };
+  };
+
+  const getCurrentPageData = () => {
+    switch (activeTab) {
+      case "visit":
+        return getPaginatedData(hospitalVisits, visitCurrentPage);
+      case "test":
+        return getPaginatedData(testResults, testCurrentPage);
+      case "medication":
+        return getPaginatedData(medications, medicationCurrentPage);
+      default:
+        return { paginatedData: [], totalPages: 0 };
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    switch (activeTab) {
+      case "visit":
+        setVisitCurrentPage(page);
+        break;
+      case "test":
+        setTestCurrentPage(page);
+        break;
+      case "medication":
+        setMedicationCurrentPage(page);
+        break;
+    }
+  };
+
+  const getCurrentPage = () => {
+    switch (activeTab) {
+      case "visit":
+        return visitCurrentPage;
+      case "test":
+        return testCurrentPage;
+      case "medication":
+        return medicationCurrentPage;
+      default:
+        return 1;
     }
   };
 
@@ -525,8 +581,12 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
   );
 
   const renderRecordsList = () => {
+    const { paginatedData, totalPages } = getCurrentPageData();
+    const currentPage = getCurrentPage();
+    
     switch (activeTab) {
       case "visit":
+        const paginatedVisits = paginatedData as HospitalVisit[];
         return (
           <div className="space-y-4">
             {hospitalVisits.length === 0 ? (
@@ -534,10 +594,12 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                 <p className="text-sm sm:text-base">まだ受診記録がありません</p>
               </div>
             ) : (
-              hospitalVisits
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .map((visit) => (
-                  <div key={visit.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
+              <>
+                <div className="space-y-4">
+                  {paginatedVisits
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map((visit) => (
+                      <div key={visit.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
@@ -622,13 +684,24 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))
+                      </div>
+                    ))}
+                </div>
+                {totalPages > 1 && (
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    totalItems={hospitalVisits.length}
+                  />
+                )}
+              </>
             )}
           </div>
         );
 
       case "test":
+        const paginatedTests = paginatedData as TestResult[];
         return (
           <div className="space-y-4">
             {testResults.length === 0 ? (
@@ -636,10 +709,12 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                 <p className="text-sm sm:text-base">まだ検査結果がありません</p>
               </div>
             ) : (
-              testResults
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .map((test) => (
-                  <div key={test.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
+              <>
+                <div className="space-y-4">
+                  {paginatedTests
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map((test) => (
+                      <div key={test.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
@@ -725,13 +800,24 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))
+                      </div>
+                    ))}
+                </div>
+                {totalPages > 1 && (
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    totalItems={testResults.length}
+                  />
+                )}
+              </>
             )}
           </div>
         );
 
       case "medication":
+        const paginatedMedications = paginatedData as Medication[];
         return (
           <div className="space-y-4">
             {medications.length === 0 ? (
@@ -739,10 +825,12 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                 <p className="text-sm sm:text-base">まだ処方薬情報がありません</p>
               </div>
             ) : (
-              medications
-                .sort((a, b) => new Date(b.prescribedDate).getTime() - new Date(a.prescribedDate).getTime())
-                .map((medication) => (
-                  <div key={medication.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
+              <>
+                <div className="space-y-4">
+                  {paginatedMedications
+                    .sort((a, b) => new Date(b.prescribedDate).getTime() - new Date(a.prescribedDate).getTime())
+                    .map((medication) => (
+                      <div key={medication.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 relative">
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
@@ -837,8 +925,18 @@ export const MedicalRecords: React.FC<MedicalRecordsProps> = ({ className = "" }
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))
+                      </div>
+                    ))}
+                </div>
+                {totalPages > 1 && (
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    totalItems={medications.length}
+                  />
+                )}
+              </>
             )}
           </div>
         );
