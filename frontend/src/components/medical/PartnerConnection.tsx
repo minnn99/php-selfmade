@@ -126,6 +126,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         }
         setActiveTab("status");
         setInviteCode("");
+        // パートナー状況の更新をセルフケアコンポーネントに通知
+        window.dispatchEvent(new CustomEvent("partnerStatusUpdated"));
         alert("パートナーと連携しました！\n\n共有されるデータ：\n・生理周期データ\n・日別症状記録\n・排卵予測データ\n・流量レベル記録\n・健康メモ・コメント");
       } else {
         alert(response.message || "パートナー連携に失敗しました。");
@@ -154,6 +156,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         setPartnerInfo(null);
         setInviteCode("");
         setGeneratedCode("");
+        // パートナー状況の更新をセルフケアコンポーネントに通知
+        window.dispatchEvent(new CustomEvent("partnerStatusUpdated"));
         alert("パートナーとの連携を解除しました。");
       } else {
         alert(response.message || "連携解除に失敗しました。");
