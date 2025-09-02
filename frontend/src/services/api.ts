@@ -155,6 +155,9 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
 // Auth API
 export const authAPI = {
   login: async (email: string, password: string, rememberMe: boolean = false) => {
+    // Clear any existing auth data before login to prevent conflicts
+    clearAuthData();
+    
     const response = await apiRequest("/login", {
       method: "POST",
       body: JSON.stringify({ email, password, remember_me: rememberMe }),
