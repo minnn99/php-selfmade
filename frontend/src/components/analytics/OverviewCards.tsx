@@ -269,9 +269,20 @@ export const OverviewCards: React.FC = () => {
             }
           </h3>
           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            {(userGender === 'male' || userGender === '男性') && isConnectedToPartner ? (
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
           </div>
         </div>
         <div className="space-y-2 sm:space-y-3">
@@ -285,8 +296,13 @@ export const OverviewCards: React.FC = () => {
               <p className="text-xs sm:text-sm text-gray-500">
                 パートナーのデータを表示中
               </p>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-primary-500 h-2 rounded-full" style={{width: '100%'}}></div>
+              <div className="flex items-center space-x-2 mt-2">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
+                  <div className="w-2 h-2 bg-primary-300 rounded-full animate-pulse" style={{animationDelay: '0.6s'}}></div>
+                </div>
+                <span className="text-xs text-primary-600 font-medium">リアルタイム同期</span>
               </div>
             </>
           ) : predictionData.currentCycleDay ? (

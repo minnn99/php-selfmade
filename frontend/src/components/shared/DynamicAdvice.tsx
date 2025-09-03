@@ -23,8 +23,24 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
 
   // Subscribe to menstrual status updates
   useEffect(() => {
-    const unsubscribe = menstrualStatusManager.subscribe((status) => {
-      updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
+    const unsubscribe = menstrualStatusManager.subscribe(async (status) => {
+      // 男性ユーザーの場合はmenstrualStatusManagerの更新を無視
+      try {
+        const userData = await authAPI.getUser();
+        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
+        const isMale = userGender === "male" || userGender === "男性";
+        
+        if (isMale) {
+          // 男性の場合は初期化時のロジックのみ使用
+          return;
+        }
+        
+        // 女性ユーザーの場合のみ従来のロジックを実行
+        updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
+      } catch {
+        // エラー時は従来のロジックを実行
+        updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
+      }
     });
 
     // 直接カレンダーデータを取得してアドバイスを生成
@@ -47,15 +63,22 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
               // パートナーのカレンダーデータを取得
               const partnerCalendarResponse = await partnerAPI.getPartnerCalendar(today.getFullYear(), today.getMonth() + 1);
               if (partnerCalendarResponse.success && partnerCalendarResponse.data) {
-                const calendarData = (partnerCalendarResponse.data as { calendar_data?: Record<string, unknown> })?.calendar_data;
-                if (calendarData) {
-                  // 日付で該当するエントリーを検索
-                  for (const key of Object.keys(calendarData)) {
-                    const entry = calendarData[key] as { date?: string };
-                    if (entry?.date === todayString) {
-                      generateAdviceFromCalendarData(entry);
-                      return;
-                    }
+                const responseData = partnerCalendarResponse.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> } | Record<string, unknown>;
+                
+                // パートナーAPIのレスポンス形式をチェック
+                if ('calendar_data' in responseData && Array.isArray(responseData.calendar_data)) {
+                  // 配列形式の場合
+                  const todayEntry = responseData.calendar_data.find(entry => entry.date === todayString);
+                  if (todayEntry) {
+                    generateAdviceFromCalendarData(todayEntry);
+                    return;
+                  }
+                } else {
+                  // オブジェクト形式の場合（通常のカレンダーAPIと同じ）
+                  const todayData = (responseData as Record<string, unknown>)[todayString];
+                  if (todayData && typeof todayData === "object") {
+                    generateAdviceFromCalendarData(todayData as Record<string, unknown>);
+                    return;
                   }
                 }
               }
