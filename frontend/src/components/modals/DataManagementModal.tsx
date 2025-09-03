@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { menstrualCycleAPI } from "../../services/api";
+import { menstrualCycleAPI, dailySymptomsAPI } from "../../services/api";
+import { ConfirmationModal } from "./ConfirmationModal";
 
 interface DataManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onDataDeleted?: () => void;
 }
 
 interface ExportData {
@@ -17,7 +19,7 @@ interface ExportData {
   version: string;
 }
 
-export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen, onClose }) => {
+export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen, onClose, onDataDeleted }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [exportFormat, setExportFormat] = useState<"json" | "csv">("json");
@@ -25,6 +27,8 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [includeSettings, setIncludeSettings] = useState(true);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showDeleteFinalModal, setShowDeleteFinalModal] = useState(false);
 
   // データエクスポート機能
   const handleExport = async () => {
@@ -242,6 +246,66 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
     }
   };
 
+  // 全データ削除
+  const handleDeleteAllData = () => {
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setShowDeleteConfirmModal(false);
+    setShowDeleteFinalModal(true);
+  };
+
+  const clearAllLocalStorageData = () => {
+    const keysToDelete: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        if (!key.startsWith("auth_") && !key.startsWith("token") && !key.startsWith("user_") && key !== "has_visited") {
+          keysToDelete.push(key);
+        }
+      }
+    }
+    keysToDelete.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+  };
+
+  const handleDeleteFinal = async () => {
+    setShowDeleteFinalModal(false);
+    try {
+      await menstrualCycleAPI.deleteAllCycles();
+      await dailySymptomsAPI.deleteAllSymptoms();
+      clearAllLocalStorageData();
+      window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
+      
+      if (onDataDeleted) {
+        onDataDeleted();
+      }
+      
+      alert("全データが正常に削除されました。アプリがリセットされました。");
+      onClose();
+    } catch (error: unknown) {
+      let errorMessage = "全データ削除に失敗しました。";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string }, status: number } };
+        const errorData = axiosError.response.data;
+        if (errorData.message) {
+          errorMessage += `\nエラー: ${errorData.message}`;
+        }
+        errorMessage += `\nステータス: ${axiosError.response.status}`;
+      } else if (error instanceof Error) {
+        errorMessage += `\nエラー: ${error.message}`;
+      }
+      alert(errorMessage);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirmModal(false);
+    setShowDeleteFinalModal(false);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -449,6 +513,35 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           </div>
         </div>
 
+        {/* Delete All Data Section */}
+        <div className="p-4 sm:p-6 border-t border-gray-200">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <svg className="flex-shrink-0 w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <div className="ml-3 flex-1">
+                <h3 className="text-sm font-medium text-red-800">危険な操作</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>全ての記録データ（生理周期、症状、流量データなど）を完全に削除してアプリをリセットします。この操作は取り消すことができません。</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={handleDeleteAllData}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg transition-colors"
+                  >
+                    全データを削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Footer */}
         <div className="flex items-center justify-center sm:justify-end p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
           <button
@@ -459,6 +552,23 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           </button>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modals */}
+      {showDeleteConfirmModal && (
+        <ConfirmationModal
+          message="全ての記録データ（生理周期、症状、流量データなど）を削除してアプリをリセットしますか？この操作は取り消すことができません。"
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      )}
+
+      {showDeleteFinalModal && (
+        <ConfirmationModal
+          message="最終確認&#10;&#10;全ての記録データを完全に削除してアプリをリセットします。&#10;&#10;削除されるデータ：&#10;• 生理周期データ&#10;• 日別症状記録&#10;• 流量データ&#10;• その他全ての記録&#10;&#10;この操作は永続的で復元できません。&#10;&#10;本当に実行しますか？"
+          onConfirm={handleDeleteFinal}
+          onCancel={handleDeleteCancel}
+        />
+      )}
     </div>
   );
 };

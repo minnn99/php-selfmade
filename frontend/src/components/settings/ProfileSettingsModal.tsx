@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { authAPI, userDataAPI } from "../../services/api";
+import { ConfirmationModal } from "../modals/ConfirmationModal";
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
@@ -42,6 +43,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     medicalHistory: "",
   });
   const [loading, setLoading] = useState(false);
+  const [showAccountDeleteModal, setShowAccountDeleteModal] = useState(false);
+  const [showAccountDeleteConfirmModal, setShowAccountDeleteConfirmModal] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -173,6 +176,45 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
     return age.toString();
   };
 
+  // アカウント削除機能
+  const handleAccountDeleteClick = () => {
+    setShowAccountDeleteModal(true);
+  };
+
+  const handleAccountDeleteConfirm = () => {
+    setShowAccountDeleteModal(false);
+    setShowAccountDeleteConfirmModal(true);
+  };
+
+  const handleAccountDeleteFinal = async () => {
+    setShowAccountDeleteConfirmModal(false);
+    try {
+      await authAPI.deleteAccount();
+      localStorage.clear();
+      authAPI.stopTokenChecker();
+      alert("アカウントが正常に削除されました。ご利用ありがとうございました。");
+      window.location.reload();
+    } catch (error: unknown) {
+      let errorMessage = "アカウント削除に失敗しました。";
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response: { data: { message?: string }, status: number } };
+        const errorData = axiosError.response.data;
+        if (errorData.message) {
+          errorMessage += `\nエラー: ${errorData.message}`;
+        }
+        errorMessage += `\nステータス: ${axiosError.response.status}`;
+      } else if (error instanceof Error) {
+        errorMessage += `\nエラー: ${error.message}`;
+      }
+      alert(errorMessage);
+    }
+  };
+
+  const handleAccountDeleteCancel = () => {
+    setShowAccountDeleteModal(false);
+    setShowAccountDeleteConfirmModal(false);
+  };
+
   const calculateBMI = () => {
     const heightNum = parseFloat(profileData.height);
     const weightNum = parseFloat(profileData.weight);
@@ -248,6 +290,35 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
             {getGenderDisplay(profileData.gender)}
           </div>
           <p className="text-xs text-gray-500 mt-1">性別は変更できません</p>
+        </div>
+      </div>
+      
+      {/* Account Delete Section */}
+      <div className="mt-8 border-t border-gray-200 pt-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <svg className="flex-shrink-0 w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="ml-3 flex-1">
+              <h3 className="text-sm font-medium text-red-800">アカウント削除</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>アカウントと全てのデータを完全に削除します。この操作は取り消すことができません。</p>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={handleAccountDeleteClick}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg transition-colors"
+                >
+                  アカウントを削除
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -394,6 +465,23 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
           </button>
         </div>
       </div>
+      
+      {/* Account Delete Confirmation Modals */}
+      {showAccountDeleteModal && (
+        <ConfirmationModal
+          message="アカウントを削除しますか？この操作により、アカウントと全てのデータが完全に削除され、復元できません。"
+          onConfirm={handleAccountDeleteConfirm}
+          onCancel={handleAccountDeleteCancel}
+        />
+      )}
+
+      {showAccountDeleteConfirmModal && (
+        <ConfirmationModal
+          message="最終確認&#10;&#10;アカウント削除を実行します。この操作は永続的で、一切復元できません。&#10;&#10;本当にアカウントを削除しますか？"
+          onConfirm={handleAccountDeleteFinal}
+          onCancel={handleAccountDeleteCancel}
+        />
+      )}
     </div>
   );
 };
