@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI, userDataAPI } from "../../services/api";
+import { menstrualCycleAPI, userDataAPI, authAPI, partnerAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { DynamicAdvice } from "../shared/DynamicAdvice";
 
@@ -20,6 +20,7 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
 
   // Subscribe to menstrual status updates
   useEffect(() => {
@@ -28,6 +29,29 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     });
 
     return unsubscribe;
+  }, []);
+
+  // Check if user is male with partner connection
+  useEffect(() => {
+    const checkMalePartnerStatus = async () => {
+      try {
+        const userData = await authAPI.getUser();
+        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
+        const isMale = userGender === "male" || userGender === "男性";
+
+        if (isMale) {
+          const partnerResponse = await partnerAPI.getStatus();
+          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
+          setIsMaleWithPartner(!!isConnected);
+        } else {
+          setIsMaleWithPartner(false);
+        }
+      } catch {
+        setIsMaleWithPartner(false);
+      }
+    };
+
+    checkMalePartnerStatus();
   }, []);
 
   // ローカルタイムゾーンで日付文字列を取得
@@ -288,12 +312,20 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
   ];
 
+  // Filter navigation items for male users with partner connection
+  const filteredNavigationItems = navigationItems.filter(item => {
+    if (isMaleWithPartner && item.id === 'statistics') {
+      return false; // Hide statistics for male users with partner connection
+    }
+    return true;
+  });
+
   // モバイルメニュー専用の場合はメニュー項目のみを返す
   if (mobileMenuOnly) {
     return (
       <div className="p-4 sm:p-6">
         <nav className="space-y-2">
-          {navigationItems.map((item) => (
+          {filteredNavigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
@@ -317,7 +349,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-5">
         <h3 className="text-sm font-medium text-gray-600 mb-4">メニュー</h3>
         <nav className="space-y-1">
-          {navigationItems.map((item) => (
+          {filteredNavigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
@@ -333,24 +365,26 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         </nav>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
-        <div className="space-y-2">
-          {quickActions.map((action) => (
-            <button
-              key={action.id}
-              onClick={action.onClick}
-              disabled={action.disabled}
-              className={`w-full flex items-center justify-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium text-white rounded-lg transition-colors ${action.color}`}
-            >
-              <span className="mr-2">{action.icon}</span>
-              {loading === true ? "処理中..." : action.label}
-              {action.id === "period-end" && (menstrualStatus?.hasActiveCycle as boolean) && <span className="ml-1 text-xs opacity-90">(生理中)</span>}
-            </button>
-          ))}
+      {/* Quick Actions - hide for male users with partner connection */}
+      {!isMaleWithPartner && (
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
+          <div className="space-y-2">
+            {quickActions.map((action) => (
+              <button
+                key={action.id}
+                onClick={action.onClick}
+                disabled={action.disabled}
+                className={`w-full flex items-center justify-center px-3 py-2 text-xs sm:text-sm md:text-base font-medium text-white rounded-lg transition-colors ${action.color}`}
+              >
+                <span className="mr-2">{action.icon}</span>
+                {loading === true ? "処理中..." : action.label}
+                {action.id === "period-end" && (menstrualStatus?.hasActiveCycle as boolean) && <span className="ml-1 text-xs opacity-90">(生理中)</span>}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Dynamic Health Tips */}
       <DynamicAdvice />

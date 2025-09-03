@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { authAPI, partnerAPI } from "../../services/api";
 
 interface DateRecordModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
     healthNotes: "",
     flowIntensity: undefined,
   });
+  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
 
   useEffect(() => {
     if (existingData) {
@@ -55,6 +57,30 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
       });
     }
   }, [existingData, isOpen]);
+
+  useEffect(() => {
+    const checkMalePartnerStatus = async () => {
+      try {
+        const userData = await authAPI.getUser();
+        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
+        const isMale = userGender === "male" || userGender === "男性";
+
+        if (isMale) {
+          const partnerResponse = await partnerAPI.getStatus();
+          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
+          setIsMaleWithPartner(!!isConnected);
+        } else {
+          setIsMaleWithPartner(false);
+        }
+      } catch {
+        setIsMaleWithPartner(false);
+      }
+    };
+
+    if (isOpen) {
+      checkMalePartnerStatus();
+    }
+  }, [isOpen]);
 
   const symptomOptions = ["頭痛", "腰痛", "腹痛", "胸の張り", "むくみ", "疲労感", "イライラ", "気分の落ち込み", "食欲の変化", "眠気", "不眠", "肌荒れ"];
 
@@ -82,16 +108,26 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
   };
 
   const handleSave = () => {
-    // 生理開始と終了の両方が選択されていないかチェック
-    if (formData.isPeriodStart && formData.isPeriodEnd) {
-      alert("生理開始日と終了日の両方を同時に選択することはできません。どちらか一つを選択してください。");
-      return;
+    // 男性パートナー連動時は生理開始・終了操作を無効化
+    const saveData = { ...formData };
+    if (isMaleWithPartner) {
+      saveData.isPeriodStart = false;
+      saveData.isPeriodEnd = false;
+      saveData.flowIntensity = undefined;
+      saveData.symptoms = [];
+      saveData.mood = "";
+    } else {
+      // 生理開始と終了の両方が選択されていないかチェック
+      if (formData.isPeriodStart && formData.isPeriodEnd) {
+        alert("生理開始日と終了日の両方を同時に選択することはできません。どちらか一つを選択してください。");
+        return;
+      }
     }
 
-    onSave(formData);
+    onSave(saveData);
 
-    // 生理周期情報が変更された場合のみイベント発火
-    const hasPeriodInfo = formData.isPeriodStart || formData.isPeriodEnd;
+    // 生理周期情報が変更された場合のみイベント発火（男性パートナー連動時は除外）
+    const hasPeriodInfo = !isMaleWithPartner && (saveData.isPeriodStart || saveData.isPeriodEnd);
     if (hasPeriodInfo) {
       window.dispatchEvent(new CustomEvent("menstrualDataUpdated"));
     } else {
@@ -211,95 +247,101 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
             </div>
           )}
 
-          {/* 生理記録セクション */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">生理記録</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  checked={formData.isPeriodStart}
-                  onChange={(e) => handlePeriodStartChange(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-gray-700">生理開始日にする</span>
-              </label>
-              <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                <input
-                  type="checkbox"
-                  checked={formData.isPeriodEnd}
-                  onChange={(e) => handlePeriodEndChange(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <span className="text-sm font-medium text-gray-700">生理終了日にする</span>
-              </label>
-            </div>
-
-            {/* 経血量 */}
-            {(formData.isPeriodStart || formData.isPeriodEnd || isInPeriod) && (
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">経血量</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {flowIntensityOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, flowIntensity: option.value }))}
-                      className={`p-3 rounded-lg border text-xs font-medium transition-all ${
-                        formData.flowIntensity === option.value
-                          ? `${option.color} text-white border-transparent`
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
+          {/* 生理記録セクション - hide for male with partner */}
+          {!isMaleWithPartner && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">生理記録</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPeriodStart}
+                    onChange={(e) => handlePeriodStartChange(e.target.checked)}
+                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">生理開始日にする</span>
+                </label>
+                <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={formData.isPeriodEnd}
+                    onChange={(e) => handlePeriodEndChange(e.target.checked)}
+                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">生理終了日にする</span>
+                </label>
               </div>
-            )}
-          </div>
 
-          {/* 症状セクション */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">症状</h3>
+              {/* 経血量 */}
+              {(formData.isPeriodStart || formData.isPeriodEnd || isInPeriod) && (
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">経血量</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {flowIntensityOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, flowIntensity: option.value }))}
+                        className={`p-3 rounded-lg border text-xs font-medium transition-all ${
+                          formData.flowIntensity === option.value
+                            ? `${option.color} text-white border-transparent`
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-              {symptomOptions.map((symptom) => (
-                <button
-                  key={symptom}
-                  type="button"
-                  onClick={() => handleSymptomToggle(symptom)}
-                  className={`p-3 sm:p-3 rounded-lg border text-xs sm:text-sm font-medium transition-all min-h-[44px] ${
-                    formData.symptoms.includes(symptom)
-                      ? "bg-primary-50 text-primary-700 border-primary-200"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {symptom}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
-          {/* 気分セクション */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">気分</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-              {moodOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, mood: option.value }))}
-                  className={`p-2 sm:p-3 rounded-lg border text-xs font-medium transition-all min-h-[44px] ${
-                    formData.mood === option.value ? `${option.color} text-white border-transparent` : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+          {/* 症状セクション - hide for male with partner */}
+          {!isMaleWithPartner && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">症状</h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                {symptomOptions.map((symptom) => (
+                  <button
+                    key={symptom}
+                    type="button"
+                    onClick={() => handleSymptomToggle(symptom)}
+                      className={`p-3 sm:p-3 rounded-lg border text-xs sm:text-sm font-medium transition-all min-h-[44px] ${
+                      formData.symptoms.includes(symptom)
+                        ? "bg-primary-50 text-primary-700 border-primary-200"
+                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {symptom}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* 気分セクション - hide for male with partner */}
+          {!isMaleWithPartner && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">気分</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {moodOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, mood: option.value }))}
+                    className={`p-2 sm:p-3 rounded-lg border text-xs font-medium transition-all min-h-[44px] ${
+                      formData.mood === option.value ? `${option.color} text-white border-transparent` : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 健康メモセクション */}
           <div className="space-y-4">

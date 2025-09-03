@@ -106,7 +106,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
     // 確認ダイアログを表示
     const isConfirmed = confirm(
-      `招待コード「${inviteCode}」でパートナーと連携しますか？\n\n連携すると以下の情報が共有されます：\n・生理周期データ（開始・終了日、周期の長さ）\n・日別症状記録（体調、気分、身体症状）\n・排卵予測データ\n・流量レベル記録\n・健康メモ・コメント\n\n信頼できるパートナーとのみ連携してください。`
+      `招待コード「${inviteCode}」でパートナーと連携しますか？\n\n連携すると以下の情報が共有されます：\n・カレンダーデータのみ共有\n\n信頼できるパートナーとのみ連携してください。`
     );
 
     if (!isConfirmed) return;
@@ -128,7 +128,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         setInviteCode("");
         // パートナー状況の更新をセルフケアコンポーネントに通知
         window.dispatchEvent(new CustomEvent("partnerStatusUpdated"));
-        alert("パートナーと連携しました！\n\n共有されるデータ：\n・生理周期データ\n・日別症状記録\n・排卵予測データ\n・流量レベル記録\n・健康メモ・コメント");
+        alert("パートナーと連携しました！\n\n共有されるデータ：\n・カレンダーデータのみ共有");
       } else {
         alert(response.message || "パートナー連携に失敗しました。");
       }
@@ -238,28 +238,12 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                   <div className="text-center sm:text-left">
                     <h3 className="text-base sm:text-lg font-medium text-pink-900">連携中</h3>
                     <p className="text-sm sm:text-base text-pink-700">パートナー: {partnerInfo?.name}</p>
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-2">
                       <p className="text-xs sm:text-sm text-pink-600 font-medium">共有されているデータ:</p>
-                      <div className="text-xs text-pink-600 space-y-0.5">
+                      <div className="text-xs text-pink-600 mt-1">
                         <div className="flex items-center">
                           <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
-                          <span>生理周期データ（開始・終了日、周期の長さ）</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
-                          <span>日別症状記録（体調、気分、身体症状）</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
-                          <span>排卵予測データ</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
-                          <span>流量レベル記録</span>
-                        </div>
-                        <div className="flex items-center">
-                          <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
-                          <span>健康メモ・コメント</span>
+                          <span>カレンダーデータのみ共有</span>
                         </div>
                       </div>
                     </div>
