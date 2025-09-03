@@ -16,6 +16,7 @@ import { SelfCarePage } from "../pages/SelfCarePage";
 import { PartnerConnectionPage } from "../pages/PartnerConnectionPage";
 import { PregnancySupportPage } from "../pages/PregnancySupportPage";
 import { MedicalRecordsPage } from "../pages/MedicalRecordsPage";
+import { DailyRecordsPage } from "../pages/DailyRecordsPage";
 
 interface MainLayoutProps {
   onLogout: () => void;
@@ -44,6 +45,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     if (path === "/partner-connection") return "partner-connection";
     if (path === "/pregnancy-support") return "pregnancy-support";
     if (path === "/medical-records") return "medical-records";
+    if (path === "/daily-records") return "daily-records";
     if (path === "/settings") return "settings";
     return "dashboard";
   };
@@ -344,6 +346,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               <Route path="/partner-connection" element={<PartnerConnectionPage />} />
               <Route path="/self-care" element={<SelfCarePage />} />
               <Route path="/medical-records" element={<MedicalRecordsPage />} />
+              <Route path="/daily-records" element={<DailyRecordsPage />} />
               <Route path="/settings" element={
                 <Settings 
                   onDataDeleted={handleDataDeleted} 
