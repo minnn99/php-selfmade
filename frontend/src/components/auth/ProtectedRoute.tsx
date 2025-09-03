@@ -22,19 +22,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   const checkAuthentication = async () => {
     try {
-      // Check if user is authenticated
+      // Check if user is authenticated (token exists)
       const isAuth = authAPI.isAuthenticated();
       
       if (isAuth) {
-        // Verify with server if token is still valid
-        try {
-          await authAPI.getUser();
-          setIsAuthenticated(true);
-        } catch {
-          // Token is invalid or expired
-          setIsAuthenticated(false);
-          handleUnauthorized();
-        }
+        // Skip server verification on initial load
+        // Token validity will be checked on user interaction or API calls
+        setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
         handleUnauthorized();

@@ -8,6 +8,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { SessionExpiredModal } from "./components/modals/SessionExpiredModal";
 import { authAPI } from "./services/api";
 import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
+import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,6 +16,9 @@ function App() {
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "signup" | "main">("login");
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
+
+  // Enable user interaction token checking
+  useTokenInteractionChecker();
 
   useEffect(() => {
     let mounted = true;

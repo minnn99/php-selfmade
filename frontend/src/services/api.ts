@@ -25,12 +25,8 @@ const getAuthToken = (): string | null => {
   const authData = getAuthData();
   if (!authData) return null;
 
-  // Check if token is expired
-  if (isTokenExpired(authData.expires_at)) {
-    logout(true); // Show notification when session expires
-    return null;
-  }
-
+  // Return token without automatic expiration check
+  // Expiration will be checked on user interaction or API calls
   return authData.token;
 };
 
@@ -85,22 +81,13 @@ const performLogout = () => {
   window.location.href = "/";
 };
 
-// Automatic token expiration checker
+// Automatic token expiration checker - DISABLED
+// Token expiration now checked only on user interaction
 let tokenCheckInterval: number | null = null;
 
 const startTokenExpirationChecker = () => {
-  // Clear existing interval
-  if (tokenCheckInterval) {
-    clearInterval(tokenCheckInterval);
-  }
-
-  // Check token expiration every minute
-  tokenCheckInterval = window.setInterval(() => {
-    const authData = getAuthData();
-    if (authData && isTokenExpired(authData.expires_at)) {
-      logout(true); // Show notification when session expires
-    }
-  }, 60000); // Check every minute
+  // Disabled automatic checking - no longer runs background timer
+  console.log('Automatic token expiration checker disabled');
 };
 
 const stopTokenExpirationChecker = () => {
@@ -150,6 +137,18 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}): Promise<
 
   const result = (await response.json()) as ApiResponse;
   return result;
+};
+
+// Check token expiration on user interaction
+const checkTokenOnInteraction = (): boolean => {
+  const authData = getAuthData();
+  if (!authData) return false;
+
+  if (isTokenExpired(authData.expires_at)) {
+    logout(true); // Show notification when session expires
+    return false;
+  }
+  return true;
 };
 
 // Auth API
@@ -214,10 +213,10 @@ export const authAPI = {
     return apiRequest("/user");
   },
 
-  // Check if user is authenticated
+  // Check if user is authenticated (without expiration check)
   isAuthenticated: (): boolean => {
     const authData = getAuthData();
-    return !!(authData && !isTokenExpired(authData.expires_at));
+    return !!authData;
   },
 
   // Get current user from stored auth data
@@ -276,6 +275,9 @@ export const authAPI = {
       body: JSON.stringify(passwordData),
     });
   },
+
+  // Check token expiration on user interaction
+  checkTokenOnInteraction,
 
   // Export utility functions
   getAuthData,
