@@ -40,26 +40,12 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       const month = today.getMonth() + 1;
       const todayString = today.toISOString().split("T")[0];
 
-      console.log("Fetching partner calendar data for:", year, month);
-      console.log("Today string:", todayString);
       // パートナーのカレンダーデータを取得
       const partnerData = await partnerAPI.getPartnerCalendar(year, month);
-      console.log("Partner calendar data:", partnerData);
       
       // レスポンス構造を確認し、calendar_dataを取得
       const calendarData = (partnerData.data as { calendar_data?: Record<string, unknown> })?.calendar_data;
-      console.log("Calendar data:", calendarData);
       
-      if (calendarData) {
-        const availableDates = Object.keys(calendarData);
-        console.log("Available dates in partner calendar:", availableDates);
-        console.log("Looking for date:", todayString);
-        
-        // 最初の数個のエントリーを詳しく見る
-        availableDates.slice(0, 5).forEach(key => {
-          console.log(`Calendar entry ${key}:`, calendarData[key]);
-        });
-      }
       
       // 日付で該当するエントリーを検索
       let partnerTodayData = null;
@@ -72,20 +58,17 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           }
         }
       }
-      console.log("Partner today data:", partnerTodayData);
 
       // パートナーの生理中の判定
       const partnerTypedData = partnerTodayData as { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean } | undefined;
       const hasPeriod = partnerTypedData?.hasPeriod || partnerTypedData?.isPeriodStart || partnerTypedData?.isPeriodEnd;
       
       if (hasPeriod) {
-        console.log("Partner status: menstrual");
         return "menstrual";
       }
 
       // パートナーの排卵期の判定
       if (partnerTypedData?.isOvulation || partnerTypedData?.isFertile) {
-        console.log("Partner status: ovulation");
         return "ovulation";
       }
 
@@ -98,7 +81,6 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
         
         const todayIndex = entries.findIndex(entry => entry.date === todayString);
-        console.log("Today index in calendar:", todayIndex, "Total days:", entries.length);
         
         if (todayIndex !== -1) {
           // 今後7日以内に生理予定日があるかチェック
@@ -106,9 +88,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
             const futureIndex = todayIndex + i;
             if (futureIndex < entries.length) {
               const futureEntry = entries[futureIndex];
-              console.log(`Checking ${futureEntry.date} (${i} days ahead):`, futureEntry);
               if (futureEntry.isPredictedPeriod || futureEntry.hasPeriod) {
-                console.log("Partner status: pms (predicted period in", i, "days)");
                 return "pms";
               }
             }
@@ -116,7 +96,6 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
         }
       }
 
-      console.log("Partner status: general (default)");
       return "general";
     } catch (error) {
       console.error("Error fetching partner status:", error);
@@ -202,17 +181,13 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
     try {
       // ユーザー情報を取得
       const userData = await authAPI.getUser();
-      console.log("User data:", userData);
       const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
-      console.log("User gender:", gender);
       setUserGender(gender);
 
       // パートナー状況を取得
       const partnerResponse = await partnerAPI.getStatus();
-      console.log("Partner response:", partnerResponse);
       if (partnerResponse.success && partnerResponse.data) {
         const partnerData = partnerResponse.data as { is_connected?: boolean; partner?: { name: string; gender: string } };
-        console.log("Partner data:", partnerData);
         setIsConnectedToPartner(!!partnerData.is_connected);
         if (partnerData.partner) {
           setPartnerName(partnerData.partner.name);
@@ -226,20 +201,15 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   // 状態を更新する関数
   const updateTodayStatus = async () => {
     const isMale = userGender === "male" || userGender === "男性";
-    console.log("UpdateTodayStatus - User gender:", userGender, "Is male:", isMale, "Is connected:", isConnectedToPartner);
     
     // 男性ユーザーでパートナーと連携している場合はパートナーの状態を取得
     if (isMale && isConnectedToPartner) {
-      console.log("Fetching partner status for male user");
       const status = await getPartnerStatus();
-      console.log("Partner status result:", status);
       setTodayStatus(status);
       setSelectedSymptom(status);
       setIsShowingPartnerStatus(true);
     } else {
-      console.log("Fetching own status");
       const status = await getTodayStatus();
-      console.log("Own status result:", status);
       setTodayStatus(status);
       setSelectedSymptom(status);
       setIsShowingPartnerStatus(false);

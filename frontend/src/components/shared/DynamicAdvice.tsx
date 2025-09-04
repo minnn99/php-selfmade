@@ -94,7 +94,13 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           if (todayData && typeof todayData === "object") {
             generateAdviceFromCalendarData(todayData as Record<string, unknown>);
           } else {
-            setDefaultAdvice();
+            // カレンダーデータがない場合は周期計算ロジックを使用
+            const currentStatus = menstrualStatusManager.getCurrentStatus();
+            if (currentStatus) {
+              await updateAdviceBasedOnStatus(currentStatus as unknown as Record<string, unknown>);
+            } else {
+              setDefaultAdvice();
+            }
           }
         }
       } catch {
@@ -187,79 +193,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       return;
     }
 
-    // 今日のカレンダーデータを取得
+
     const today = new Date();
-    const todayString = today.toISOString().split("T")[0];
-
-    try {
-      const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
-      const todayData = (calendarResponse.data as Record<string, unknown>)[todayString];
-
-      // 今日のカレンダーステータスに基づいてアドバイスを決定
-      if (todayData && typeof todayData === "object") {
-        generateAdviceFromCalendarData(todayData as Record<string, unknown>);
-        const todayTypedData = todayData as {
-          hasPeriod?: boolean;
-          isPeriodStart?: boolean;
-          isPeriodEnd?: boolean;
-          isOvulation?: boolean;
-          isFertile?: boolean;
-          isPredictedPeriod?: boolean;
-        };
-
-        if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart || todayTypedData.isPeriodEnd) {
-          // 実際の生理日
-          const dayNumber = getDayOfPeriod(todayData as Record<string, unknown>);
-          setCurrentAdvice({
-            title: "生理中のケア",
-            message: `生理${dayNumber}日目です。温かい飲み物を飲んで体を温め、無理をせずゆっくり過ごしましょう。鉄分を含む食品で栄養補給も大切です。`,
-            bgColor: "from-red-50 to-pink-50",
-            textColor: "text-red-600",
-          });
-          return;
-        } else if (todayTypedData.isOvulation) {
-          // 排卵日
-          setCurrentAdvice({
-            title: "排卵期",
-            message: "排卵期です。体温が上がりやすいので、水分補給を忘れずに。妊娠を希望する場合は重要な時期です。",
-            bgColor: "from-pink-50 to-rose-50",
-            textColor: "text-pink-600",
-          });
-          return;
-        } else if (todayTypedData.isFertile) {
-          // 妊娠可能期間
-          setCurrentAdvice({
-            title: "妊娠可能期間",
-            message: "妊娠可能期間です。体調管理に気をつけて、バランスの良い食事を心がけましょう。",
-            bgColor: "from-pink-50 to-rose-50",
-            textColor: "text-pink-600",
-          });
-          return;
-        } else if (todayTypedData.isPredictedPeriod) {
-          // 予測生理日
-          setCurrentAdvice({
-            title: "生理予定日",
-            message: "生理予定日です。体を温めて、軽いストレッチで血流を改善しましょう。十分な休息も忘れずに。",
-            bgColor: "from-red-50 to-pink-50",
-            textColor: "text-red-600",
-          });
-          return;
-        } else {
-          // 今日のデータがあるが特別なステータスがない場合
-          setCurrentAdvice({
-            title: "エネルギー充実期",
-            message: "体調が良い時期です。新しいことにチャレンジしたり、運動を始めるのに最適な時期です。",
-            bgColor: "from-green-50 to-emerald-50",
-            textColor: "text-green-600",
-          });
-          return;
-        }
-      }
-    } catch {
-      // Failed to get calendar data for advice
-    }
-
-    // カレンダーデータが取得できない場合は従来のロジックを使用
     const cycleDay = getCycleDay(status, today);
 
     // 実際に生理中（アクティブな周期があり、かつその周期が現在進行中）の場合

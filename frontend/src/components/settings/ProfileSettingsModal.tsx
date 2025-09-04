@@ -109,20 +109,12 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({ isOp
   const handleSave = async () => {
     setLoading(true);
     try {
-      // 1. ローカル認証データを更新（API実装まで一時的な対応）
-      const authData = authAPI.getAuthData();
-      if (authData) {
-        const updatedAuthData = {
-          ...authData,
-          user: {
-            ...authData.user,
-            name: profileData.fullName,
-            email: profileData.email,
-            phone: profileData.phone,
-          }
-        };
-        localStorage.setItem('auth_data', JSON.stringify(updatedAuthData));
-      }
+      // 1. APIサーバー側のユーザー情報を更新
+      await authAPI.updateUser({
+        name: profileData.fullName,
+        email: profileData.email,
+        phone: profileData.phone,
+      });
 
       // 2. 詳細プロフィール情報を設定として保存
       await userDataAPI.saveSettings({

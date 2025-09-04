@@ -273,6 +273,69 @@ class AuthController extends Controller
     }
 
     /**
+     * ユーザー情報更新
+     */
+    public function updateUser(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'name' => [
+                'sometimes',
+                'string',
+                'min:1',
+                'max:50',
+                'regex:/^[ぁ-んァ-ヶ一-龯a-zA-Z\s]+$/u'
+            ],
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'phone' => [
+                'sometimes',
+                'string',
+                'max:20',
+                'regex:/^(0\d{1,4}-\d{1,4}-\d{4}|0\d{10,11})$/'
+            ],
+        ], [
+            'name.min' => 'お名前は1文字以上で入力してください。',
+            'name.max' => 'お名前は50文字以内で入力してください。',
+            'name.regex' => 'お名前は日本語・英語のみ使用できます。',
+            'email.email' => '正しいメールアドレス形式で入力してください。',
+            'email.max' => 'メールアドレスは255文字以内で入力してください。',
+            'email.unique' => 'このメールアドレスは既に登録されています。',
+            'phone.regex' => 'ハイフンは不要です。数字は半角で入力してください（例：09012345678）。',
+        ]);
+
+        return DB::transaction(function () use ($request, $user) {
+            // 更新されるフィールドのみを更新
+            if ($request->has('name')) {
+                $user->name = $request->name;
+            }
+            if ($request->has('email')) {
+                $user->email = $request->email;
+            }
+            if ($request->has('phone')) {
+                $user->phone = $request->phone;
+            }
+            
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'ユーザー情報が更新されました。',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'gender' => $user->gender,
+                        'phone' => $user->phone,
+                        'updated_at' => $user->updated_at,
+                    ]
+                ]
+            ]);
+        });
+    }
+
+    /**
      * アカウント削除
      */
     public function deleteAccount(Request $request): JsonResponse
