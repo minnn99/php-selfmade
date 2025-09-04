@@ -17,6 +17,15 @@ interface InteractiveBackgroundProps {
   className?: string;
 }
 
+// 生理周期アプリに合うカラーパレット（ウェーブ用）
+const waveColors: string[] = [
+  'rgba(255, 182, 193, 0.5)', // ライトピンク
+  'rgba(255, 192, 203, 0.45)', // ピンク
+  'rgba(230, 230, 250, 0.4)', // ラベンダー
+  'rgba(240, 248, 255, 0.5)', // アリスブルー
+  'rgba(255, 228, 225, 0.45)', // ミスティローズ
+];
+
 export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ className = "" }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -24,15 +33,6 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
   const mouseRef = useRef({ x: 0, y: 0 });
   const timeRef = useRef(0);
   const [isVisible, setIsVisible] = useState(false);
-
-  // 生理周期アプリに合うカラーパレット（ウェーブ用）
-  const waveColors: string[] = [
-    'rgba(255, 182, 193, 0.5)', // ライトピンク
-    'rgba(255, 192, 203, 0.45)', // ピンク
-    'rgba(230, 230, 250, 0.4)', // ラベンダー
-    'rgba(240, 248, 255, 0.5)', // アリスブルー
-    'rgba(255, 228, 225, 0.45)', // ミスティローズ
-  ];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -102,23 +102,23 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
         
         // 動的カラー変更（マウス近くでより鮮やか）
         const baseColor = wave.color;
-        const enhancedColor = baseColor.replace(/[\d\.]+\)$/g, `${0.3 + mouseEffect * 0.5})`);
+        const enhancedColor = baseColor.replace(/[\d.]+\)$/g, `${0.3 + mouseEffect * 0.5})`);
         
         // グラデーション効果（マウス位置中心）
         const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
-        gradient.addColorStop(0, baseColor.replace(/[\d\.]+\)$/g, '0.3)'));
+        gradient.addColorStop(0, baseColor.replace(/[\d.]+\)$/g, '0.3)'));
         
         // マウス位置での色を強調
         const mouseXRatio = mouseRef.current.x / canvas.width;
         if (mouseXRatio > 0 && mouseXRatio < 1) {
-          gradient.addColorStop(Math.max(0, mouseXRatio - 0.1), baseColor.replace(/[\d\.]+\)$/g, '0.4)'));
+          gradient.addColorStop(Math.max(0, mouseXRatio - 0.1), baseColor.replace(/[\d.]+\)$/g, '0.4)'));
           gradient.addColorStop(mouseXRatio, enhancedColor);
-          gradient.addColorStop(Math.min(1, mouseXRatio + 0.1), baseColor.replace(/[\d\.]+\)$/g, '0.4)'));
+          gradient.addColorStop(Math.min(1, mouseXRatio + 0.1), baseColor.replace(/[\d.]+\)$/g, '0.4)'));
         } else {
           gradient.addColorStop(0.5, enhancedColor);
         }
         
-        gradient.addColorStop(1, baseColor.replace(/[\d\.]+\)$/g, '0.3)'));
+        gradient.addColorStop(1, baseColor.replace(/[\d.]+\)$/g, '0.3)'));
         ctx.strokeStyle = gradient;
 
         ctx.beginPath();
