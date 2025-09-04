@@ -569,7 +569,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
+                className={`p-3 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
                   selectedCategory === category.id
                     ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
