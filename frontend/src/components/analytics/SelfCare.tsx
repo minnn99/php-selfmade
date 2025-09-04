@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, partnerAPI, authAPI } from "../../services/api";
+import { FadeInUp } from "../animations";
 
 interface SelfCareProps {
   className?: string;
@@ -42,11 +43,10 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       // パートナーのカレンダーデータを取得
       const partnerData = await partnerAPI.getPartnerCalendar(year, month);
-      
+
       // レスポンス構造を確認し、calendar_dataを取得
       const calendarData = (partnerData.data as { calendar_data?: Record<string, unknown> })?.calendar_data;
-      
-      
+
       // 日付で該当するエントリーを検索
       let partnerTodayData = null;
       if (calendarData) {
@@ -60,9 +60,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       }
 
       // パートナーの生理中の判定
-      const partnerTypedData = partnerTodayData as { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean } | undefined;
+      const partnerTypedData = partnerTodayData as
+        | { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean }
+        | undefined;
       const hasPeriod = partnerTypedData?.hasPeriod || partnerTypedData?.isPeriodStart || partnerTypedData?.isPeriodEnd;
-      
+
       if (hasPeriod) {
         return "menstrual";
       }
@@ -76,12 +78,12 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       if (calendarData) {
         // カレンダーデータを日付順に並べる
         const entries = Object.keys(calendarData)
-          .map(key => calendarData[key] as { date?: string; isPredictedPeriod?: boolean; hasPeriod?: boolean })
-          .filter(entry => entry?.date)
+          .map((key) => calendarData[key] as { date?: string; isPredictedPeriod?: boolean; hasPeriod?: boolean })
+          .filter((entry) => entry?.date)
           .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-        
-        const todayIndex = entries.findIndex(entry => entry.date === todayString);
-        
+
+        const todayIndex = entries.findIndex((entry) => entry.date === todayString);
+
         if (todayIndex !== -1) {
           // 今後7日以内に生理予定日があるかチェック
           for (let i = 1; i <= 7; i++) {
@@ -114,7 +116,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       // APIデータとローカルストレージデータの両方を取得
       const apiData = await menstrualCycleAPI.getCalendarData(year, month);
       const todayApiData = (apiData.data as Record<string, unknown>)?.[todayString];
-      
+
       // ローカルストレージから今日の症状データを取得
       const localData = localStorage.getItem(`daily-symptoms-${todayString}`);
       let localParsedData = null;
@@ -125,11 +127,17 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       }
 
       // 生理中の判定（APIデータまたはローカルデータ）
-      const todayTypedData = todayApiData as { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean } | undefined;
-      const hasPeriod = todayTypedData?.hasPeriod || localParsedData?.hasPeriod || 
-                       todayTypedData?.isPeriodStart || localParsedData?.isPeriodStart ||
-                       todayTypedData?.isPeriodEnd || localParsedData?.isPeriodEnd;
-      
+      const todayTypedData = todayApiData as
+        | { hasPeriod?: boolean; isPeriodStart?: boolean; isPeriodEnd?: boolean; isOvulation?: boolean; isFertile?: boolean }
+        | undefined;
+      const hasPeriod =
+        todayTypedData?.hasPeriod ||
+        localParsedData?.hasPeriod ||
+        todayTypedData?.isPeriodStart ||
+        localParsedData?.isPeriodStart ||
+        todayTypedData?.isPeriodEnd ||
+        localParsedData?.isPeriodEnd;
+
       if (hasPeriod) {
         return "menstrual";
       }
@@ -142,10 +150,14 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       // ローカルデータから症状を確認してPMSかどうか判定
       if (localParsedData) {
         const hasSymptoms = localParsedData.symptoms && Array.isArray(localParsedData.symptoms) && localParsedData.symptoms.length > 0;
-        const hasMoodIssues = localParsedData.mood && typeof localParsedData.mood === 'string' && 
-                             (localParsedData.mood.includes("イライラ") || localParsedData.mood.includes("不安") || 
-                              localParsedData.mood.includes("憂鬱") || localParsedData.mood.includes("落ち込み"));
-        
+        const hasMoodIssues =
+          localParsedData.mood &&
+          typeof localParsedData.mood === "string" &&
+          (localParsedData.mood.includes("イライラ") ||
+            localParsedData.mood.includes("不安") ||
+            localParsedData.mood.includes("憂鬱") ||
+            localParsedData.mood.includes("落ち込み"));
+
         if (hasSymptoms || hasMoodIssues) {
           return "pms";
         }
@@ -201,7 +213,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   // 状態を更新する関数
   const updateTodayStatus = async () => {
     const isMale = userGender === "male" || userGender === "男性";
-    
+
     // 男性ユーザーでパートナーと連携している場合はパートナーの状態を取得
     if (isMale && isConnectedToPartner) {
       const status = await getPartnerStatus();
@@ -256,7 +268,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
       window.removeEventListener("storage", handleDataUpdate);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
   const symptoms = [
     { id: "menstrual", label: "生理中", color: "bg-red-100 text-red-800" },
@@ -466,175 +478,194 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   return (
     <div className={`space-y-4 sm:space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-        <div className="flex items-center">
-          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">セルフケア提案</h2>
+      <FadeInUp delay={0}>
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <div className="flex items-center">
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">セルフケア提案</h2>
+          </div>
+          <p className="text-xs sm:text-sm text-neutral-600 mt-2">
+            {isShowingPartnerStatus
+              ? `${partnerName}の体調に合わせたサポート方法とセルフケア提案`
+              : "あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案"}
+          </p>
         </div>
-        <p className="text-xs sm:text-sm text-neutral-600 mt-2">
-          {isShowingPartnerStatus 
-            ? `${partnerName}の体調に合わせたサポート方法とセルフケア提案` 
-            : "あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案"
-          }
-        </p>
-      </div>
+      </FadeInUp>
 
       {/* Symptom Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900">
-            {isShowingPartnerStatus ? `パートナーの状態 (${partnerName})` : "現在の状態"}
-          </h3>
+      <FadeInUp delay={100}>
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900">{isShowingPartnerStatus ? `パートナーの状態 (${partnerName})` : "現在の状態"}</h3>
+            {todayStatus !== "general" && (
+              <div className="flex items-center text-sm text-green-600">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {isShowingPartnerStatus ? "パートナーの状態を自動検出" : "今日の状態を自動検出"}
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {symptoms.map((symptom) => {
+              const isAutoDetected = symptom.id === todayStatus;
+              return (
+                <button
+                  key={symptom.id}
+                  onClick={() => setSelectedSymptom(symptom.id)}
+                  className={`p-3 rounded-lg text-sm font-medium transition-all relative ${
+                    selectedSymptom === symptom.id ? symptom.color + " ring-2 ring-offset-2 ring-primary-500" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {symptom.label}
+                  {isAutoDetected && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>}
+                </button>
+              );
+            })}
+          </div>
           {todayStatus !== "general" && (
-            <div className="flex items-center text-sm text-green-600">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              {isShowingPartnerStatus ? "パートナーの状態を自動検出" : "今日の状態を自動検出"}
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-green-800">自動検出</p>
+                  <p className="text-xs text-green-700 mt-1">
+                    {isShowingPartnerStatus ? (
+                      <>
+                        パートナー（{partnerName}）のカレンダーデータから「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。
+                        <br />
+                        パートナーの体調に合わせたサポート方法をご参考ください。
+                      </>
+                    ) : (
+                      <>
+                        カレンダーデータと症状記録から「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。
+                        <br />
+                        お体の状態に合わせたセルフケアをお試しください。
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {symptoms.map((symptom) => {
-            const isAutoDetected = symptom.id === todayStatus;
-            return (
-              <button
-                key={symptom.id}
-                onClick={() => setSelectedSymptom(symptom.id)}
-                className={`p-3 rounded-lg text-sm font-medium transition-all relative ${
-                  selectedSymptom === symptom.id ? symptom.color + " ring-2 ring-offset-2 ring-primary-500" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {symptom.label}
-                {isAutoDetected && <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>}
-              </button>
-            );
-          })}
-        </div>
-        {todayStatus !== "general" && (
-          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-green-800">自動検出</p>
-                <p className="text-xs text-green-700 mt-1">
-                  {isShowingPartnerStatus ? (
-                    <>パートナー（{partnerName}）のカレンダーデータから「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。<br />
-                    パートナーの体調に合わせたサポート方法をご参考ください。</>
-                  ) : (
-                    <>カレンダーデータと症状記録から「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。<br />
-                    お体の状態に合わせたセルフケアをお試しください。</>
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </FadeInUp>
 
       {/* Category Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">カテゴリー</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
-                selectedCategory === category.id
-                  ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
-              }`}
-            >
-              <div className="text-base sm:text-lg mb-1">{category.icon}</div>
-              <span className="text-center leading-tight">{category.label}</span>
-            </button>
-          ))}
+      <FadeInUp delay={150}>
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">カテゴリー</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`p-3 sm:p-4 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
+                  selectedCategory === category.id
+                    ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                }`}
+              >
+                <div className="text-base sm:text-lg mb-1">{category.icon}</div>
+                <span className="text-center leading-tight">{category.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </FadeInUp>
 
       {/* Self Care Recommendations */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
-          {isShowingPartnerStatus ? "パートナーサポート方法" : "おすすめのセルフケア"}
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          {getFilteredAdvices().map((advice) => (
-            <div key={advice.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start space-x-3">
-                <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900 text-sm sm:text-base leading-tight">{advice.title}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${getDifficultyColor(advice.difficulty)}`}>
-                      {getDifficultyLabel(advice.difficulty)}
-                    </span>
+      <FadeInUp delay={200}>
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
+            {isShowingPartnerStatus ? "パートナーサポート方法" : "おすすめのセルフケア"}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            {getFilteredAdvices().map((advice) => (
+              <div key={advice.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start space-x-3">
+                  <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${getDifficultyColor(advice.difficulty)}`}>
+                        {getDifficultyLabel(advice.difficulty)}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {getFilteredAdvices().length === 0 && (
-          <div className="text-center py-6 sm:py-8 text-gray-500">
-            <div className="text-3xl sm:text-4xl mb-2"></div>
-            <p className="text-sm sm:text-base">この条件に合うセルフケア提案がありません</p>
+            ))}
           </div>
-        )}
-      </div>
+
+          {getFilteredAdvices().length === 0 && (
+            <div className="text-center py-6 sm:py-8 text-gray-500">
+              <div className="text-3xl sm:text-4xl mb-2"></div>
+              <p className="text-sm sm:text-base">この条件に合うセルフケア提案がありません</p>
+            </div>
+          )}
+        </div>
+      </FadeInUp>
 
       {/* Partner Support Recommendations */}
-      <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-4 sm:p-6">
-        <div className="flex items-center mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
-          <span className="ml-2 text-lg sm:text-xl"></span>
-        </div>
-        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
+      <FadeInUp delay={300}>
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-4 sm:p-6">
+          <div className="flex items-center mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
+            <span className="ml-2 text-lg sm:text-xl"></span>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          {partnerAdvices.map((advice) => (
-            <div key={advice.id} className="bg-white/70 backdrop-blur-sm border border-pink-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-medium text-gray-900 mb-1 text-sm sm:text-base leading-tight">{advice.title}</h4>
-                  <p className="text-xs text-pink-700 font-medium mb-2 leading-tight">{advice.situation}</p>
-                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            {partnerAdvices.map((advice) => (
+              <div key={advice.id} className="bg-white/70 backdrop-blur-sm border border-pink-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-medium text-gray-900 mb-1 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                    <p className="text-xs text-pink-700 font-medium mb-2 leading-tight">{advice.situation}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tips Section */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
-        <div className="flex">
-          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="text-xs sm:text-sm min-w-0">
-            <p className="font-medium text-amber-800 mb-1 sm:mb-2">重要な注意事項</p>
-            <ul className="text-amber-700 list-disc list-inside space-y-1 leading-relaxed">
-              <li>症状が重い場合は医師に相談してください</li>
-              <li>アレルギーがある場合は食材に注意してください</li>
-              <li>体調に異変を感じたら無理をせず休息を取ってください</li>
-              <li>個人差があるため、自分に合う方法を見つけてください</li>
-            </ul>
+            ))}
           </div>
         </div>
-      </div>
+      </FadeInUp>
+
+      {/* Tips Section */}
+      <FadeInUp delay={400}>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
+          <div className="flex">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div className="text-xs sm:text-sm min-w-0">
+              <p className="font-medium text-amber-800 mb-1 sm:mb-2">重要な注意事項</p>
+              <ul className="text-amber-700 list-disc list-inside space-y-1 leading-relaxed">
+                <li>症状が重い場合は医師に相談してください</li>
+                <li>アレルギーがある場合は食材に注意してください</li>
+                <li>体調に異変を感じたら無理をせず休息を取ってください</li>
+                <li>個人差があるため、自分に合う方法を見つけてください</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </FadeInUp>
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Calendar } from "../calendar/Calendar";
 import { TodaySection } from "../analytics/TodaySection";
 import { MobileActions } from "../layout/MobileActions";
 import { authAPI, partnerAPI } from "../../services/api";
+import { FadeInUp } from "../animations";
 
 export const DashboardPage: React.FC = () => {
   const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
@@ -33,16 +34,28 @@ export const DashboardPage: React.FC = () => {
   return (
     <>
       {/* Overview Cards */}
-      <OverviewCards />
+      <FadeInUp delay={100}>
+        <OverviewCards />
+      </FadeInUp>
 
       {/* Mobile Actions - only visible on mobile and not for male with partner */}
-      {!isMaleWithPartner && <MobileActions />}
+      {!isMaleWithPartner && (
+        <FadeInUp delay={200}>
+          <MobileActions />
+        </FadeInUp>
+      )}
 
       {/* Calendar */}
-      <Calendar />
+      <FadeInUp delay={300}>
+        <Calendar />
+      </FadeInUp>
 
       {/* Today Section - hide for male with partner */}
-      {!isMaleWithPartner && <TodaySection />}
+      {!isMaleWithPartner && (
+        <FadeInUp delay={100}>
+          <TodaySection />
+        </FadeInUp>
+      )}
     </>
   );
 };
