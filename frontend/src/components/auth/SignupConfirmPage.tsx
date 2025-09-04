@@ -1,4 +1,5 @@
 import React from "react";
+import { FadeInUp, ScaleIn } from "../animations";
 
 interface SignupData {
   name: string;
@@ -35,13 +36,16 @@ export const SignupConfirmPage: React.FC<SignupConfirmPageProps> = ({ signupData
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-medical/5 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900">登録内容の確認</h2>
-          <p className="mt-2 text-sm text-neutral-600">入力された内容をご確認ください</p>
-        </div>
+        <FadeInUp delay={0}>
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900">登録内容の確認</h2>
+            <p className="mt-2 text-sm text-neutral-600">入力された内容をご確認ください</p>
+          </div>
+        </FadeInUp>
 
         {/* Confirmation Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-medical/20 p-6 sm:p-8">
+        <ScaleIn delay={100}>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-medical/20 p-6 sm:p-8">
           <div className="space-y-4 sm:space-y-6">
             {/* Name */}
             <div className="border-b border-neutral-200 pb-3 sm:pb-4">
@@ -118,17 +122,20 @@ export const SignupConfirmPage: React.FC<SignupConfirmPageProps> = ({ signupData
             </button>
           </div>
         </div>
+        </ScaleIn>
 
         {/* Note */}
-        <div className="text-center px-2">
-          <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
-            登録を行うことで、
-            <span className="text-primary-600">利用規約</span>
-            および
-            <span className="text-primary-600">プライバシーポリシー</span>
-            に同意したものとみなします。
-          </p>
-        </div>
+        <FadeInUp delay={200}>
+          <div className="text-center px-2">
+            <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
+              登録を行うことで、
+              <span className="text-primary-600">利用規約</span>
+              および
+              <span className="text-primary-600">プライバシーポリシー</span>
+              に同意したものとみなします。
+            </p>
+          </div>
+        </FadeInUp>
       </div>
     </div>
   );

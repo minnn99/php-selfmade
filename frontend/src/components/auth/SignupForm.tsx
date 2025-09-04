@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PrivacyPolicyModal } from '../modals/PrivacyPolicyModal';
 import { TermsOfServiceModal } from '../modals/TermsOfServiceModal';
 import { CustomSelect } from '../shared/CustomSelect';
+import { FadeInUp, ScaleIn } from '../animations';
 
 interface SignupFormProps {
   onSignup: (data: SignupData) => void;
@@ -289,13 +290,16 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
-          <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">新規アカウントを作成</p>
-        </div>
+        <FadeInUp delay={0}>
+          <div className="text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
+            <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">新規アカウントを作成</p>
+          </div>
+        </FadeInUp>
 
         {/* Signup Card */}
-        <div className="bg-white rounded-xl shadow-lg border border-medical p-6 sm:p-8">
+        <ScaleIn delay={100}>
+          <div className="bg-white rounded-xl shadow-lg border border-medical p-6 sm:p-8">
           <div className="mb-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 text-center">新規登録</h2>
             <p className="text-sm sm:text-base text-neutral-600 text-center mt-2">必要な情報を入力してください</p>
@@ -647,13 +651,16 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
             </p>
           </div>
         </div>
+        </ScaleIn>
 
         {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs sm:text-sm text-neutral-500">
-            © 2025 Pairiod. すべての権利を保有します。
-          </p>
-        </div>
+        <FadeInUp delay={200}>
+          <div className="text-center">
+            <p className="text-xs sm:text-sm text-neutral-500">
+              © 2025 Pairiod. すべての権利を保有します。
+            </p>
+          </div>
+        </FadeInUp>
       </div>
 
       {/* Privacy Policy Modal */}
