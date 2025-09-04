@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { InteractiveBackground } from '../animations';
 
 interface ForgotPasswordFormProps {
   onSubmit: (email: string) => void;
@@ -19,8 +20,9 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 sm:space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
+      <InteractiveBackground />
+      <div className="max-w-md w-full space-y-6 sm:space-y-8 relative z-20">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>

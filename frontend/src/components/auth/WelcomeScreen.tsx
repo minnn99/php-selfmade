@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractiveBackground } from '../animations';
 
 interface WelcomeScreenProps {
   onGetStarted: () => void;
@@ -7,8 +8,9 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onGetStarted, onLogin }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-100 via-primary-200/50 to-primary-300/30 flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full space-y-8 sm:space-y-12">
+    <div className="min-h-screen bg-gradient-to-br from-primary-100 via-primary-200/50 to-primary-300/30 flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
+      <InteractiveBackground />
+      <div className="max-w-4xl w-full space-y-8 sm:space-y-12 relative z-20">
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 mb-3 sm:mb-4">
