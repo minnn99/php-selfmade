@@ -1,34 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { Statistics } from "../analytics/Statistics";
-import { authAPI, partnerAPI } from "../../services/api";
+import { authAPI } from "../../services/api";
 import { FadeInUp, ScaleIn } from "../animations";
 
 export const StatisticsPage: React.FC = () => {
-  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
+  const [isMaleUser, setIsMaleUser] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkMalePartnerStatus = async () => {
+    const checkUserGender = async () => {
       try {
         const userData = await authAPI.getUser();
         const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
         const isMale = userGender === "male" || userGender === "男性";
-
-        if (isMale) {
-          const partnerResponse = await partnerAPI.getStatus();
-          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
-          setIsMaleWithPartner(!!isConnected);
-        } else {
-          setIsMaleWithPartner(false);
-        }
+        setIsMaleUser(isMale);
       } catch {
-        setIsMaleWithPartner(false);
+        setIsMaleUser(false);
       } finally {
         setLoading(false);
       }
     };
 
-    checkMalePartnerStatus();
+    checkUserGender();
   }, []);
 
   if (loading) {
@@ -43,8 +36,8 @@ export const StatisticsPage: React.FC = () => {
     );
   }
 
-  // Show warning for male users with partner connection
-  if (isMaleWithPartner) {
+  // Show warning for male users
+  if (isMaleUser) {
     return (
       <FadeInUp delay={100}>
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
@@ -61,7 +54,7 @@ export const StatisticsPage: React.FC = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">アクセス制限</h3>
             <p className="text-sm text-gray-600 mb-4">
-              パートナー連動中の男性ユーザーは統計機能をご利用いただけません。
+              男性ユーザーは統計機能をご利用いただけません。
             </p>
             <button
               onClick={() => window.history.back()}

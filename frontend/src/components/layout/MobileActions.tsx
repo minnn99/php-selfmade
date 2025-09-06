@@ -1,33 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { menstrualCycleAPI, userDataAPI, authAPI, partnerAPI } from '../../services/api';
+import { menstrualCycleAPI, userDataAPI, authAPI } from '../../services/api';
 import { menstrualStatusManager } from '../../services/menstrualStatusManager';
 
 export const MobileActions: React.FC = () => {
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
+  const [isMaleUser, setIsMaleUser] = useState(false);
 
-  // Check male partner status
+  // Check user gender
   useEffect(() => {
-    const checkMalePartnerStatus = async () => {
+    const checkUserGender = async () => {
       try {
         const userData = await authAPI.getUser();
         const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
         const isMale = userGender === "male" || userGender === "男性";
-
-        if (isMale) {
-          const partnerResponse = await partnerAPI.getStatus();
-          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
-          setIsMaleWithPartner(!!isConnected);
-        } else {
-          setIsMaleWithPartner(false);
-        }
+        setIsMaleUser(isMale);
       } catch {
-        setIsMaleWithPartner(false);
+        setIsMaleUser(false);
       }
     };
 
-    checkMalePartnerStatus();
+    checkUserGender();
   }, []);
 
   // Subscribe to menstrual status updates
@@ -212,8 +205,8 @@ disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
     },
   ];
 
-  // Hide mobile actions for male users with partners
-  if (isMaleWithPartner) {
+  // Hide mobile actions for male users
+  if (isMaleUser) {
     return null;
   }
 

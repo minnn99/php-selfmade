@@ -3,32 +3,25 @@ import { OverviewCards } from "../analytics/OverviewCards";
 import { Calendar } from "../calendar/Calendar";
 import { TodaySection } from "../analytics/TodaySection";
 import { MobileActions } from "../layout/MobileActions";
-import { authAPI, partnerAPI } from "../../services/api";
+import { authAPI } from "../../services/api";
 import { FadeInUp } from "../animations";
 
 export const DashboardPage: React.FC = () => {
-  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
+  const [isMaleUser, setIsMaleUser] = useState(false);
 
   useEffect(() => {
-    const checkMalePartnerStatus = async () => {
+    const checkUserGender = async () => {
       try {
         const userData = await authAPI.getUser();
         const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
         const isMale = userGender === "male" || userGender === "男性";
-
-        if (isMale) {
-          const partnerResponse = await partnerAPI.getStatus();
-          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
-          setIsMaleWithPartner(!!isConnected);
-        } else {
-          setIsMaleWithPartner(false);
-        }
+        setIsMaleUser(isMale);
       } catch {
-        setIsMaleWithPartner(false);
+        setIsMaleUser(false);
       }
     };
 
-    checkMalePartnerStatus();
+    checkUserGender();
   }, []);
 
   return (
@@ -38,8 +31,8 @@ export const DashboardPage: React.FC = () => {
         <OverviewCards />
       </FadeInUp>
 
-      {/* Mobile Actions - only visible on mobile and not for male with partner */}
-      {!isMaleWithPartner && (
+      {/* Mobile Actions - hide for male users */}
+      {!isMaleUser && (
         <FadeInUp delay={200}>
           <MobileActions />
         </FadeInUp>
@@ -50,8 +43,8 @@ export const DashboardPage: React.FC = () => {
         <Calendar />
       </FadeInUp>
 
-      {/* Today Section - hide for male with partner */}
-      {!isMaleWithPartner && (
+      {/* Today Section - hide for male users */}
+      {!isMaleUser && (
         <FadeInUp delay={100}>
           <TodaySection />
         </FadeInUp>

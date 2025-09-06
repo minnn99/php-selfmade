@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { menstrualCycleAPI, userDataAPI, authAPI, partnerAPI } from "../../services/api";
+import { menstrualCycleAPI, userDataAPI, authAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { DynamicAdvice } from "../shared/DynamicAdvice";
 
@@ -20,7 +20,7 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
+  const [isMaleUser, setIsMaleUser] = useState(false);
 
   // Subscribe to menstrual status updates
   useEffect(() => {
@@ -31,27 +31,20 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     return unsubscribe;
   }, []);
 
-  // Check if user is male with partner connection
+  // Check if user is male
   useEffect(() => {
-    const checkMalePartnerStatus = async () => {
+    const checkUserGender = async () => {
       try {
         const userData = await authAPI.getUser();
         const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
         const isMale = userGender === "male" || userGender === "男性";
-
-        if (isMale) {
-          const partnerResponse = await partnerAPI.getStatus();
-          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
-          setIsMaleWithPartner(!!isConnected);
-        } else {
-          setIsMaleWithPartner(false);
-        }
+        setIsMaleUser(isMale);
       } catch {
-        setIsMaleWithPartner(false);
+        setIsMaleUser(false);
       }
     };
 
-    checkMalePartnerStatus();
+    checkUserGender();
   }, []);
 
   // ローカルタイムゾーンで日付文字列を取得
@@ -312,10 +305,10 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
   ];
 
-  // Filter navigation items for male users with partner connection
+  // Filter navigation items for male users
   const filteredNavigationItems = navigationItems.filter(item => {
-    if (isMaleWithPartner && item.id === 'statistics') {
-      return false; // Hide statistics for male users with partner connection
+    if (isMaleUser && item.id === 'statistics') {
+      return false; // Hide statistics for male users
     }
     return true;
   });
@@ -365,8 +358,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         </nav>
       </div>
 
-      {/* Quick Actions - hide for male users with partner connection */}
-      {!isMaleWithPartner && (
+      {/* Quick Actions - hide for male users */}
+      {!isMaleUser && (
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
           <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
           <div className="space-y-2">
