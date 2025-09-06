@@ -74,16 +74,17 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
           let todayData: Record<string, unknown> | undefined;
           
           if (calendarResponse.data) {
-            const responseData = calendarResponse.data as any;
+            const responseData = calendarResponse.data as Record<string, unknown> | { dates?: Array<{ date: string; [key: string]: unknown }> };
             
             // dates配列形式の場合
-            if (responseData.dates && Array.isArray(responseData.dates)) {
-              const todayEntry = responseData.dates.find((entry: any) => entry.date === todayString);
+            if ('dates' in responseData && Array.isArray(responseData.dates)) {
+              const todayEntry = responseData.dates.find((entry: { date: string; [key: string]: unknown }) => entry.date === todayString);
               todayData = todayEntry;
             }
             // オブジェクト形式の場合（従来）
-            else if (typeof responseData === 'object') {
-              todayData = responseData[todayString];
+            else if (typeof responseData === 'object' && !('dates' in responseData)) {
+              const data = (responseData as Record<string, unknown>)[todayString];
+              todayData = data && typeof data === 'object' ? data as Record<string, unknown> : undefined;
             }
           }
 
