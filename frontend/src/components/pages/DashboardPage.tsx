@@ -8,6 +8,7 @@ import { FadeInUp } from "../animations";
 
 export const DashboardPage: React.FC = () => {
   const [isMaleUser, setIsMaleUser] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkUserGender = async () => {
@@ -18,6 +19,8 @@ export const DashboardPage: React.FC = () => {
         setIsMaleUser(isMale);
       } catch {
         setIsMaleUser(false);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -32,7 +35,7 @@ export const DashboardPage: React.FC = () => {
       </FadeInUp>
 
       {/* Mobile Actions - hide for male users */}
-      {!isMaleUser && (
+      {!isLoading && !isMaleUser && (
         <FadeInUp delay={200}>
           <MobileActions />
         </FadeInUp>
@@ -44,7 +47,7 @@ export const DashboardPage: React.FC = () => {
       </FadeInUp>
 
       {/* Today Section - hide for male users */}
-      {!isMaleUser && (
+      {!isLoading && !isMaleUser && (
         <FadeInUp delay={100}>
           <TodaySection />
         </FadeInUp>

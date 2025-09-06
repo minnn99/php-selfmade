@@ -21,6 +21,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaleUser, setIsMaleUser] = useState(false);
+  const [isGenderLoading, setIsGenderLoading] = useState(true);
 
   // Subscribe to menstrual status updates
   useEffect(() => {
@@ -41,6 +42,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         setIsMaleUser(isMale);
       } catch {
         setIsMaleUser(false);
+      } finally {
+        setIsGenderLoading(false);
       }
     };
 
@@ -307,8 +310,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
   // Filter navigation items for male users
   const filteredNavigationItems = navigationItems.filter(item => {
-    if (isMaleUser && item.id === 'statistics') {
-      return false; // Hide statistics for male users
+    if ((isGenderLoading || isMaleUser) && item.id === 'statistics') {
+      return false; // Hide statistics while loading or for male users
     }
     return true;
   });
@@ -358,8 +361,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         </nav>
       </div>
 
-      {/* Quick Actions - hide for male users */}
-      {!isMaleUser && (
+      {/* Quick Actions - hide while loading or for male users */}
+      {!isGenderLoading && !isMaleUser && (
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
           <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
           <div className="space-y-2">

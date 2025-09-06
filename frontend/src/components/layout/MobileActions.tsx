@@ -6,6 +6,7 @@ export const MobileActions: React.FC = () => {
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaleUser, setIsMaleUser] = useState(false);
+  const [isGenderLoading, setIsGenderLoading] = useState(true);
 
   // Check user gender
   useEffect(() => {
@@ -17,6 +18,8 @@ export const MobileActions: React.FC = () => {
         setIsMaleUser(isMale);
       } catch {
         setIsMaleUser(false);
+      } finally {
+        setIsGenderLoading(false);
       }
     };
 
@@ -205,8 +208,8 @@ disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
     },
   ];
 
-  // Hide mobile actions for male users
-  if (isMaleUser) {
+  // Hide mobile actions while loading or for male users
+  if (isGenderLoading || isMaleUser) {
     return null;
   }
 
