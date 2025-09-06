@@ -21,27 +21,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     textColor: "text-primary-600",
   });
 
-  // Subscribe to menstrual status updates
   useEffect(() => {
-    const unsubscribe = menstrualStatusManager.subscribe(async (status) => {
-      // 男性ユーザーの場合はmenstrualStatusManagerの更新を無視
-      try {
-        const userData = await authAPI.getUser();
-        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
-        const isMale = userGender === "male" || userGender === "男性";
-        
-        if (isMale) {
-          // 男性の場合は初期化時のロジックのみ使用
-          return;
-        }
-        
-        // 女性ユーザーの場合のみ従来のロジックを実行
-        updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
-      } catch {
-        // エラー時は従来のロジックを実行
-        updateAdviceBasedOnStatus(status as Record<string, unknown> | null);
-      }
-    });
 
     // 直接カレンダーデータを取得してアドバイスを生成
     const initializeAdvice = async () => {
@@ -89,7 +69,23 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         } else {
           // 女性ユーザーの場合、自分のカレンダーデータを取得
           const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
-          const todayData = (calendarResponse.data as Record<string, unknown>)[todayString];
+          
+          // レスポンス形式を確認して適切に今日のデータを取得
+          let todayData: Record<string, unknown> | undefined;
+          
+          if (calendarResponse.data) {
+            const responseData = calendarResponse.data as any;
+            
+            // dates配列形式の場合
+            if (responseData.dates && Array.isArray(responseData.dates)) {
+              const todayEntry = responseData.dates.find((entry: any) => entry.date === todayString);
+              todayData = todayEntry;
+            }
+            // オブジェクト形式の場合（従来）
+            else if (typeof responseData === 'object') {
+              todayData = responseData[todayString];
+            }
+          }
 
           if (todayData && typeof todayData === "object") {
             generateAdviceFromCalendarData(todayData as Record<string, unknown>);
@@ -111,7 +107,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     // 初期化時に直接アドバイスを取得
     initializeAdvice();
 
-    return unsubscribe;
+    return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -192,7 +188,6 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       setDefaultAdvice();
       return;
     }
-
 
     const today = new Date();
     const cycleDay = getCycleDay(status, today);

@@ -677,14 +677,6 @@ export const Calendar: React.FC = () => {
         
         setTimeout(async () => {
           await loadCalendarData();
-          
-          try {
-            const { menstrualStatusManager } = await import("../../services/menstrualStatusManager");
-            await menstrualStatusManager.forceReloadStatus();
-          } catch {
-            // Silent error handling - menstrual status manager reload failed
-          }
-          
           setRefreshKey((prev) => prev + 1);
         }, 100);
       } else {
