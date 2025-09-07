@@ -58,22 +58,22 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
                   // 配列形式の場合
                   const todayEntry = responseData.calendar_data.find(entry => entry.date === todayString);
                   if (todayEntry) {
-                    generateAdviceFromCalendarData(todayEntry);
+                    generateMaleAdviceFromPartnerData(todayEntry);
                     return;
                   }
                 } else {
                   // オブジェクト形式の場合（通常のカレンダーAPIと同じ）
                   const todayData = (responseData as Record<string, unknown>)[todayString];
                   if (todayData && typeof todayData === "object") {
-                    generateAdviceFromCalendarData(todayData as Record<string, unknown>);
+                    generateMaleAdviceFromPartnerData(todayData as Record<string, unknown>);
                     return;
                   }
                 }
               }
             }
           }
-          // 男性でパートナー未接続の場合はデフォルト
-          setDefaultAdvice();
+          // 男性でパートナー未接続の場合は男性向けアドバイス
+          setMaleDefaultAdvice();
         } else {
           // 女性ユーザーの場合、自分のカレンダーデータを取得
           const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
@@ -118,7 +118,21 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       initializeAdvice();
     });
 
-    return () => {};
+    // データ更新を監視するイベントリスナーを追加
+    const handleDataUpdate = async () => {
+      // キャッシュを完全にリフレッシュ
+      await menstrualStatusManager.loadStatus();
+      // 少し遅延を入れてDBからの最新データを確実に取得
+      setTimeout(() => {
+        initializeAdvice();
+      }, 100);
+    };
+
+    window.addEventListener("menstrualDataUpdated", handleDataUpdate);
+
+    return () => {
+      window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -134,20 +148,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     };
 
     if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart) {
-      // 生理終了済みかどうかチェック
-      const currentStatus = menstrualStatusManager.getCurrentStatus();
-      const hasActiveCycle = currentStatus?.hasActiveCycle;
-      
-      // アクティブな生理周期がない場合は生理終了として扱う
-      if (!hasActiveCycle && todayTypedData.hasPeriod) {
-        setCurrentAdvice({
-          title: "生理終了",
-          message: "お疲れさまでした。新しいサイクルの始まりです。栄養バランスの良い食事で体力回復を。",
-          bgColor: "from-green-50 to-emerald-50",
-          textColor: "text-green-600",
-        });
-        return;
-      }
+      // カレンダーデータを最優先で信頼する
+      // isPeriodStartが設定されている場合は新しい周期の開始として扱う
       
       const dayOfPeriod = getDayOfPeriod(todayData);
       if (dayOfPeriod <= 3) {
@@ -339,6 +341,76 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     }
 
     return 1; // デフォルト値
+  };
+
+  // 男性ユーザー用：パートナーの状態に基づくサポートアドバイス
+  const generateMaleAdviceFromPartnerData = (partnerData: Record<string, unknown>) => {
+    const partnerTypedData = partnerData as {
+      hasPeriod?: boolean;
+      isPeriodStart?: boolean;
+      isPeriodEnd?: boolean;
+      isOvulation?: boolean;
+      isFertile?: boolean;
+    };
+
+    if (partnerTypedData.hasPeriod || partnerTypedData.isPeriodStart) {
+      setCurrentAdvice({
+        title: "パートナーサポート",
+        message: "パートナーが生理中です。温かい飲み物を用意したり、家事をサポートしてあげましょう。",
+        bgColor: "from-blue-50 to-cyan-50",
+        textColor: "text-blue-600",
+      });
+    } else if (partnerTypedData.isPeriodEnd) {
+      setCurrentAdvice({
+        title: "パートナーケア",
+        message: "パートナーの生理が終了しました。お疲れ様と労いの言葉をかけてあげましょう。",
+        bgColor: "from-green-50 to-emerald-50",
+        textColor: "text-green-600",
+      });
+    } else if (partnerTypedData.isOvulation) {
+      setCurrentAdvice({
+        title: "パートナーサポート",
+        message: "パートナーの排卵期です。妊娠を希望する場合は、お互いの体調を整えましょう。",
+        bgColor: "from-yellow-50 to-orange-50",
+        textColor: "text-orange-600",
+      });
+    } else if (partnerTypedData.isFertile) {
+      setCurrentAdvice({
+        title: "パートナーケア",
+        message: "パートナーの妊娠しやすい時期です。お互いの健康管理を心がけましょう。",
+        bgColor: "from-purple-50 to-pink-50",
+        textColor: "text-purple-600",
+      });
+    } else {
+      // その他の場合は男性向けの一般的なアドバイス
+      setMaleDefaultAdvice();
+    }
+  };
+
+  const setMaleDefaultAdvice = () => {
+    const maleAdvices = [
+      {
+        title: "健康管理",
+        message: "規則正しい生活と適度な運動で、健康的な毎日を送りましょう。",
+        bgColor: "from-blue-50 to-cyan-50",
+        textColor: "text-blue-600",
+      },
+      {
+        title: "パートナーシップ",
+        message: "パートナーとのコミュニケーションを大切にし、お互いを支え合いましょう。",
+        bgColor: "from-green-50 to-teal-50",
+        textColor: "text-green-600",
+      },
+      {
+        title: "セルフケア",
+        message: "ストレス管理と十分な睡眠で、心身のバランスを保ちましょう。",
+        bgColor: "from-purple-50 to-indigo-50",
+        textColor: "text-purple-600",
+      },
+    ];
+
+    const randomAdvice = maleAdvices[Math.floor(Math.random() * maleAdvices.length)];
+    setCurrentAdvice(randomAdvice);
   };
 
   const setDefaultAdvice = () => {
