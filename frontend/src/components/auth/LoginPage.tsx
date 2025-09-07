@@ -3,6 +3,7 @@ import { LoginForm } from './LoginForm';
 import { SignupPage } from './SignupPage';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
 import { authAPI } from '../../services/api';
+import { initializeNotifications } from '../../main';
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
@@ -23,6 +24,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onShowWelc
       const response = await authAPI.login(email, password, rememberMe);
 
       if (response.success) {
+        // Initialize FCM after successful login
+        await initializeNotifications();
         onLoginSuccess();
       } else {
         const errorMessage = response.message || 'ログインに失敗しました。';

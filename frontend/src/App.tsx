@@ -10,6 +10,7 @@ import { authAPI } from "./services/api";
 import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
 import { useUserStore } from "./stores/userStore";
+import { initializeNotifications } from "./main";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,6 +46,8 @@ function App() {
         initializeUserData();
         // Initialize today's period status when authenticated
         initializeTodayPeriodStatus();
+        // Initialize FCM notifications for logged-in users
+        initializeNotifications();
       } else if (!hasVisited) {
         setCurrentView("welcome");
       } else {

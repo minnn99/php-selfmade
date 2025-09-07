@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SignupForm } from './SignupForm';
 import { SignupConfirmPage } from './SignupConfirmPage';
+import { initializeNotifications } from '../../main';
 
 interface SignupData {
   name: string;
@@ -37,7 +38,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:8000/api/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           localStorage.setItem('auth_data', JSON.stringify(authData));
 
           // ニックネームを設定データとして保存
-          const settingsResponse = await fetch('http://localhost:8000/api/user-data/settings', {
+          const settingsResponse = await fetch('/api/user-data/settings', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -97,6 +98,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
           // Settings save error - non-blocking
         }
 
+        // Initialize FCM after successful registration
+        await initializeNotifications();
+        
         alert(`${signupData.nickname || signupData.name}さん、新規登録が完了しました！ログイン画面に戻ります。`);
         
         // ログイン画面に戻る

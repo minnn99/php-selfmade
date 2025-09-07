@@ -5,6 +5,7 @@ use App\Http\Controllers\MenstrualCycleController;
 use App\Http\Controllers\UserDataController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\DailySymptomController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user', [AuthController::class, 'updateUser']);
     Route::post('/user/change-password', [AuthController::class, 'changePassword']);
     Route::delete('/user', [AuthController::class, 'deleteAccount']);
+    
+    // FCM and Notification routes
+    Route::post('/user/fcm-token', [UserController::class, 'storeFcmToken']);
+    Route::delete('/user/fcm-token', [UserController::class, 'removeFcmToken']);
+    Route::put('/user/notification-settings', [UserController::class, 'updateNotificationSettings']);
+    Route::get('/user/notification-settings', [UserController::class, 'getNotificationSettings']);
     
     // Menstrual Cycle routes
     Route::get('/menstrual-cycles', [MenstrualCycleController::class, 'index']);
