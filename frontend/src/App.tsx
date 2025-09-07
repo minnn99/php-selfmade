@@ -9,6 +9,7 @@ import { SessionExpiredModal } from "./components/modals/SessionExpiredModal";
 import { authAPI } from "./services/api";
 import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
+import { useUserStore } from "./stores/userStore";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,6 +17,9 @@ function App() {
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "signup" | "main">("login");
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
+
+  // User store
+  const { initializeUserData, clearUserData } = useUserStore();
 
   // Enable user interaction token checking
   useTokenInteractionChecker();
@@ -37,6 +41,8 @@ function App() {
         setCurrentView("main");
         // Start automatic token expiration checking
         authAPI.startTokenChecker();
+        // Initialize user data in global store
+        initializeUserData();
         // Initialize today's period status when authenticated
         initializeTodayPeriodStatus();
       } else if (!hasVisited) {
@@ -74,6 +80,8 @@ function App() {
     setIsAuthenticated(false);
     setCurrentView("login");
     authAPI.stopTokenChecker();
+    // Clear user data from global store
+    clearUserData();
   };
 
   // ページ遷移時にスクロール位置をトップに戻す
@@ -85,6 +93,8 @@ function App() {
     // 新しい認証システムを使用してログアウト
     await authAPI.logout();
     authAPI.stopTokenChecker();
+    // Clear user data from global store
+    clearUserData();
     setIsAuthenticated(false);
     setCurrentView("login");
   };
@@ -129,6 +139,8 @@ function App() {
     setCurrentView("main");
     authAPI.startTokenChecker();
     
+    // Initialize user data in global store
+    initializeUserData();
     // Initialize today's period status after login
     initializeTodayPeriodStatus();
     
@@ -160,6 +172,8 @@ function App() {
           setIsAuthenticated(false);
           setCurrentView("login");
           authAPI.stopTokenChecker();
+          // Clear user data from global store
+          clearUserData();
         }}
       >
         <MainLayout onLogout={handleLogout} />

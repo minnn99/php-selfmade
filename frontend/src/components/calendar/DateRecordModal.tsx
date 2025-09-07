@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { authAPI, partnerAPI } from "../../services/api";
+import { useUserStore } from "../../stores/userStore";
 
 interface DateRecordModalProps {
   isOpen: boolean;
@@ -39,7 +39,8 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
     healthNotes: "",
     flowIntensity: undefined,
   });
-  const [isMaleWithPartner, setIsMaleWithPartner] = useState(false);
+  // Use global user store
+  const { isMaleWithPartner, isUserLoading, isPartnerLoading } = useUserStore();
 
   useEffect(() => {
     if (existingData) {
@@ -59,29 +60,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
     }
   }, [existingData, isOpen]);
 
-  useEffect(() => {
-    const checkMalePartnerStatus = async () => {
-      try {
-        const userData = await authAPI.getUser();
-        const userGender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
-        const isMale = userGender === "male" || userGender === "男性";
-
-        if (isMale) {
-          const partnerResponse = await partnerAPI.getStatus();
-          const isConnected = partnerResponse.success && (partnerResponse.data as { is_connected?: boolean })?.is_connected;
-          setIsMaleWithPartner(!!isConnected);
-        } else {
-          setIsMaleWithPartner(false);
-        }
-      } catch {
-        setIsMaleWithPartner(false);
-      }
-    };
-
-    if (isOpen) {
-      checkMalePartnerStatus();
-    }
-  }, [isOpen]);
+  // No longer need this useEffect - using global store instead
 
   const symptomOptions = ["頭痛", "腰痛", "腹痛", "胸の張り", "むくみ", "疲労感", "イライラ", "気分の落ち込み", "食欲の変化", "眠気", "不眠", "肌荒れ"];
 
@@ -196,6 +175,15 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Loading state while checking user status */}
+          {(isUserLoading || isPartnerLoading) && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          )}
+          
+          {!(isUserLoading || isPartnerLoading) && (
+            <>
           {/* パートナーの記録セクション - 上段に配置 */}
           {existingData?.partnerData && (
             <div className="space-y-4 bg-pink-50 rounded-lg p-4 border border-pink-200">
@@ -249,7 +237,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           )}
 
           {/* 生理記録セクション - hide for male with partner */}
-          {!isMaleWithPartner && (
+          {isMaleWithPartner === false && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">生理記録</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -299,7 +287,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           )}
 
           {/* 症状セクション - hide for male with partner */}
-          {!isMaleWithPartner && (
+          {isMaleWithPartner === false && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900">症状</h3>
@@ -324,7 +312,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           )}
 
           {/* 気分セクション - hide for male with partner */}
-          {!isMaleWithPartner && (
+          {isMaleWithPartner === false && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">気分</h3>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -355,6 +343,8 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-sm sm:text-base"
             />
           </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
