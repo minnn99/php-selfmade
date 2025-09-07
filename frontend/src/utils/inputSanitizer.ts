@@ -11,6 +11,7 @@ export const escapeSqlChars = (input: string): string => {
     .replace(/\0/g, '\\0')
     .replace(/\n/g, '\\n')
     .replace(/\r/g, '\\r')
+    // eslint-disable-next-line no-control-regex
     .replace(/\x1a/g, '\\Z');
 };
 

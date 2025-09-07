@@ -105,6 +105,13 @@ jobs:
           echo "No PHPUnit configuration found, skipping tests"
         fi
 
+    - name: Run Security Tests (SQL Injection)
+      working-directory: ./backend
+      run: |
+        echo "Running SQL Injection security tests..."
+        php artisan test --filter=SqlInjectionTest
+      continue-on-error: false
+
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       with:

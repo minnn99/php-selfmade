@@ -45,6 +45,13 @@ jobs:
       run: npm run lint
       continue-on-error: true
 
+    - name: Run Security Tests (Input Sanitization)
+      working-directory: ./frontend
+      run: |
+        echo "Running input sanitization security tests..."
+        npm test -- inputSanitizer.test.ts
+      continue-on-error: false
+
     - name: Build application
       working-directory: ./frontend
       run: npm run build
