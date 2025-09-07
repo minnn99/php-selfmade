@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreMenstrualCycleRequest;
+use App\Http\Requests\UpdateMenstrualCycleRequest;
 
 class MenstrualCycleController extends Controller
 {
@@ -30,15 +32,8 @@ class MenstrualCycleController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreMenstrualCycleRequest $request): JsonResponse
     {
-        $request->validate([
-            'start_date' => 'required|date',
-            'flow_intensity' => 'nullable|integer|min:1|max:5',
-            'symptoms' => 'nullable|array',
-            'notes' => 'nullable|string|max:1000'
-        ]);
-
         $user = $request->user();
 
         // Check if there's an active cycle
@@ -127,20 +122,12 @@ class MenstrualCycleController extends Controller
         return response()->json($cycle);
     }
 
-    public function update(Request $request, MenstrualCycle $cycle): JsonResponse
+    public function update(UpdateMenstrualCycleRequest $request, MenstrualCycle $cycle): JsonResponse
     {
         // Check if user owns this cycle
         if ($cycle->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
-        $request->validate([
-            'start_date' => 'sometimes|date',
-            'end_date' => 'sometimes|nullable|date|after_or_equal:start_date',
-            'flow_intensity' => 'sometimes|nullable|integer|min:1|max:5',
-            'symptoms' => 'sometimes|nullable|array',
-            'notes' => 'sometimes|nullable|string|max:1000'
-        ]);
 
         $cycle->update($request->only([
             'start_date', 'end_date', 'flow_intensity', 'symptoms', 'notes'
@@ -406,7 +393,7 @@ class MenstrualCycleController extends Controller
 
         // アクティブな周期がある場合とない場合で処理を分ける
         if ($activeCycle) {
-            return $this->calculatePredictionsWithActiveCycle($user, $activeCycle, $completedCycles, $startOfMonth, $endOfMonth);
+            return $this->calculatePredictionsWithActiveCycle($activeCycle, $completedCycles, $startOfMonth, $endOfMonth);
         }
 
         if ($completedCycles->count() < 2) {
@@ -440,7 +427,7 @@ class MenstrualCycleController extends Controller
 
         // 完了した周期の排卵日予測を追加（次の周期開始日の14日前）
         for ($i = 1; $i < $completedCycles->count(); $i++) {
-            $currentCycle = $completedCycles[$i]; // 古い周期
+            // $currentCycle = $completedCycles[$i]; // 古い周期（未使用）
             $nextCycleStart = $completedCycles[$i - 1]->start_date; // 新しい周期の開始日
             
             $ovulationDate = $nextCycleStart->copy()->subDays(14);
@@ -479,7 +466,7 @@ class MenstrualCycleController extends Controller
     /**
      * アクティブな周期がある場合の予測を計算
      */
-    private function calculatePredictionsWithActiveCycle($user, $activeCycle, $completedCycles, $startOfMonth, $endOfMonth)
+    private function calculatePredictionsWithActiveCycle($activeCycle, $completedCycles, $startOfMonth, $endOfMonth)
     {
         $predictions = [];
         
@@ -574,7 +561,7 @@ class MenstrualCycleController extends Controller
         
         // 完了した周期の排卵日予測を追加（次の周期開始日の14日前）
         for ($i = 1; $i < $completedCycles->count(); $i++) {
-            $currentCycle = $completedCycles[$i]; // 古い周期
+            // $currentCycle = $completedCycles[$i]; // 古い周期（未使用）
             $nextCycleStart = $completedCycles[$i - 1]->start_date; // 新しい周期の開始日
             
             $ovulationDate = $nextCycleStart->copy()->subDays(14);
@@ -706,10 +693,11 @@ class MenstrualCycleController extends Controller
     /**
      * 予測データのキャッシュをクリア（将来のキャッシュ機能実装時に使用）
      */
-    private function clearPredictionCache($user)
+    private function clearPredictionCache($user = null)
     {
         // 現在はキャッシュ機能がないため、何もしない
         // 将来的にRedisやファイルキャッシュを使用する場合はここで実装
+        // $userパラメータは将来のキャッシュ実装時に使用
         return true;
     }
 }
