@@ -22,6 +22,14 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   });
 
   useEffect(() => {
+    // menstrualStatusManagerを初期化してからアドバイスを生成
+    const loadStatusFirst = async () => {
+      try {
+        await menstrualStatusManager.loadStatus();
+      } catch {
+        // エラーは無視
+      }
+    };
 
     // 直接カレンダーデータを取得してアドバイスを生成
     const initializeAdvice = async () => {
@@ -105,8 +113,10 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       }
     };
 
-    // 初期化時に直接アドバイスを取得
-    initializeAdvice();
+    // menstrualStatusManagerを先に初期化してからアドバイスを取得
+    loadStatusFirst().then(() => {
+      initializeAdvice();
+    });
 
     return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -124,6 +134,21 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     };
 
     if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart) {
+      // 生理終了済みかどうかチェック
+      const currentStatus = menstrualStatusManager.getCurrentStatus();
+      const hasActiveCycle = currentStatus?.hasActiveCycle;
+      
+      // アクティブな生理周期がない場合は生理終了として扱う
+      if (!hasActiveCycle && todayTypedData.hasPeriod) {
+        setCurrentAdvice({
+          title: "生理終了",
+          message: "お疲れさまでした。新しいサイクルの始まりです。栄養バランスの良い食事で体力回復を。",
+          bgColor: "from-green-50 to-emerald-50",
+          textColor: "text-green-600",
+        });
+        return;
+      }
+      
       const dayOfPeriod = getDayOfPeriod(todayData);
       if (dayOfPeriod <= 3) {
         setCurrentAdvice({
@@ -262,25 +287,32 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       return 1;
     }
 
-    // アクティブな周期がある場合、開始日から今日までの日数を計算
-    const currentStatus = menstrualStatusManager.getCurrentStatus();
-    if (
-      (currentStatus as Record<string, unknown> | null)?.hasActiveCycle &&
-      (currentStatus as Record<string, unknown> | null)?.activeCycle &&
-      ((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date?: string })?.start_date
-    ) {
-      const startDate = new Date(((currentStatus as Record<string, unknown> | null)?.activeCycle as { start_date: string }).start_date);
-      const today = new Date();
-      const diffTime = today.getTime() - startDate.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-      // 生理期間内（一般的に1-7日）の場合のみ返す
-      if (diffDays >= 1 && diffDays <= 7) {
-        return diffDays;
+    // menstrualStatusManagerから正しい日数を取得
+    try {
+      const currentStatus = menstrualStatusManager.getCurrentStatus();
+      
+      if (currentStatus?.hasActiveCycle && currentStatus?.activeCycle?.start_date) {
+        const startDateStr = currentStatus.activeCycle.start_date;
+        const startDate = new Date(startDateStr);
+        const today = new Date();
+        
+        // ローカル日付で計算（時間を無視）
+        const startLocal = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        
+        const diffTime = todayLocal.getTime() - startLocal.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        // 生理期間内（1-7日）の場合のみ返す
+        if (diffDays >= 1 && diffDays <= 7) {
+          return diffDays;
+        }
       }
+    } catch {
+      // エラーは無視
     }
 
-    // デフォルトとして1を返す
+    // データが取得できない場合は1日目として扱う
     return 1;
   };
 
