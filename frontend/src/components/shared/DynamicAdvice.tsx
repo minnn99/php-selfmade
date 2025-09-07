@@ -130,6 +130,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     return () => {
       window.removeEventListener("menstrualDataUpdated", handleDataUpdate);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isMaleWithPartner, isUserLoading, isPartnerLoading]);
 
   // カレンダーデータから直接アドバイスを生成する関数
