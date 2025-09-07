@@ -62,7 +62,7 @@ function App() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [initializeUserData]);
 
   // セッション期限切れ通知のイベントリスナー
   useEffect(() => {
