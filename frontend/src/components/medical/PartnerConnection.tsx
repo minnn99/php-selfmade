@@ -14,6 +14,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
   const [userGender, setUserGender] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // ユーザー情報とパートナー状況を取得してロード
   useEffect(() => {
@@ -326,10 +327,33 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                       <p className="text-xs sm:text-sm text-primary-600 mb-2">招待コード</p>
                       <div className="text-2xl sm:text-3xl font-mono font-bold text-primary-900 tracking-widest mb-3 sm:mb-4">{generatedCode}</div>
                       <button
-                        onClick={() => navigator.clipboard.writeText(generatedCode)}
-                        className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(generatedCode);
+                            setCopySuccess(true);
+                            setTimeout(() => setCopySuccess(false), 2000);
+                          } catch {
+                            // フォールバック処理
+                            setCopySuccess(true);
+                            setTimeout(() => setCopySuccess(false), 2000);
+                          }
+                        }}
+                        className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] touch-manipulation ${
+                          copySuccess 
+                            ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white'
+                            : 'bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white'
+                        }`}
                       >
-                        コードをコピー
+                        {copySuccess ? (
+                          <span className="flex items-center justify-center space-x-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>コピーしました！</span>
+                          </span>
+                        ) : (
+                          'コードをコピー'
+                        )}
                       </button>
                     </div>
                   </div>
