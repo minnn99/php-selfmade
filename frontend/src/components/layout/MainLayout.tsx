@@ -12,6 +12,7 @@ import { authAPI } from "../../services/api";
 // Page components
 import { DashboardPage } from "../pages/DashboardPage";
 import { StatisticsPage } from "../pages/StatisticsPage";
+import { StatisticsUnavailablePage } from "../pages/StatisticsUnavailablePage";
 import { SelfCarePage } from "../pages/SelfCarePage";
 import { PartnerConnectionPage } from "../pages/PartnerConnectionPage";
 import { PregnancySupportPage } from "../pages/PregnancySupportPage";
@@ -341,7 +342,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/statistics" element={<StatisticsPage />} />
+              <Route 
+                path="/statistics" 
+                element={
+                  userGender === "male" || userGender === "男性" ? 
+                    <StatisticsUnavailablePage /> : 
+                    <StatisticsPage />
+                } 
+              />
               <Route path="/pregnancy-support" element={<PregnancySupportPage />} />
               <Route path="/partner-connection" element={<PartnerConnectionPage />} />
               <Route path="/self-care" element={<SelfCarePage />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from 'react-dom';
 
 interface AppearanceSettingsModalProps {
   isOpen: boolean;
@@ -92,9 +93,9 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
@@ -186,6 +187,7 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

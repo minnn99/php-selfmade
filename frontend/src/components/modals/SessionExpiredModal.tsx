@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SessionExpiredModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const SessionExpiredModal: React.FC<SessionExpiredModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all">
         {/* Icon */}
@@ -88,6 +89,7 @@ export const SessionExpiredModal: React.FC<SessionExpiredModalProps> = ({
           今すぐログイン画面へ
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

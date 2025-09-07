@@ -308,13 +308,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
   ];
 
-  // Filter navigation items for male users
-  const filteredNavigationItems = navigationItems.filter(item => {
-    if ((isGenderLoading || isMaleUser) && item.id === 'statistics') {
-      return false; // Hide statistics while loading or for male users
-    }
-    return true;
-  });
+  // Show all navigation items (no filtering needed)
+  const filteredNavigationItems = navigationItems;
 
   // モバイルメニュー専用の場合はメニュー項目のみを返す
   if (mobileMenuOnly) {

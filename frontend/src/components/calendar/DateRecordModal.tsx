@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { authAPI, partnerAPI } from "../../services/api";
 
 interface DateRecordModalProps {
@@ -175,8 +176,8 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-[9999]">
       <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-2xl sm:w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto sm:m-4">
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
@@ -414,6 +415,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
