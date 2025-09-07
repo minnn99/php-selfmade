@@ -128,11 +128,19 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
     );
   }
 
+  const handleShowLogin = () => {
+    // ログイン画面に戻る時にsignupDataをリセット
+    setSignupData(null);
+    setCurrentStep('form');
+    onShowLogin?.();
+  };
+
   return (
     <SignupForm 
+      key={signupData ? 'with-data' : 'fresh'} // Force remount when signupData changes
       onSignup={handleSignupFormSubmit} 
       isLoading={isLoading} 
-      onShowLogin={onShowLogin}
+      onShowLogin={handleShowLogin}
       initialData={signupData || undefined}
     />
   );

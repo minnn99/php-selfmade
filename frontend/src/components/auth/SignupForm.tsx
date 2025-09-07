@@ -397,12 +397,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.gender}
                 onChange={(value) => {
                   setFormData(prev => ({ ...prev, gender: value }));
-                  // Real-time validation if touched
+                  setTouched(prev => ({ ...prev, gender: true }));
+                  
+                  // リアルタイムバリデーション（タッチされた項目のみ）
                   if (touched.gender) {
                     setErrors(prev => ({ ...prev, gender: validateGender(value) }));
                   }
                 }}
-                onBlur={() => handleBlur('gender')}
+                onBlur={() => {
+                  // Gender field doesn't need validation on blur since it's handled in onChange
+                  setTouched(prev => ({ ...prev, gender: true }));
+                }}
                 options={[
                   { value: "female", label: "女性" },
                   { value: "male", label: "男性" }
@@ -644,7 +649,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
             <p className="text-sm text-neutral-600">
               既にアカウントをお持ちの方は{' '}
               <button
-                onClick={onShowLogin}
+                onClick={() => {
+                  // ログイン画面に戻る（リセットは親コンポーネントで処理）
+                  onShowLogin?.();
+                }}
                 className="font-medium text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
               >
                 ログイン
