@@ -55,3 +55,7 @@ Thumbs.db
 *.tmp
 *.swp
 *~
+
+# Firebase credentials
+firebase-service-account.json
+*.json
