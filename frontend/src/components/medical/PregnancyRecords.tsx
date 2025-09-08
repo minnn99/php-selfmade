@@ -13,11 +13,19 @@ interface PregnancyRecord {
 
 interface PregnancyRecordsProps {
   onBack: () => void;
+  historicalData?: {
+    records: PregnancyRecord[];
+    startDate: string;
+    endDate: string;
+    durationWeeks: number;
+    durationDays: number;
+  };
+  isHistoricalView?: boolean;
 }
 
-export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) => {
-  const [pregnancyRecords, setPregnancyRecords] = useState<PregnancyRecord[]>([]);
-  const [pregnancyStartDate, setPregnancyStartDate] = useState("");
+export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack, historicalData, isHistoricalView = false }) => {
+  const [pregnancyRecords, setPregnancyRecords] = useState<PregnancyRecord[]>(historicalData?.records || []);
+  const [pregnancyStartDate, setPregnancyStartDate] = useState(historicalData?.startDate || "");
   const [searchWeek, setSearchWeek] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [searchType, setSearchType] = useState<"" | "symptom" | "test" | "appointment" | "note">("");
@@ -47,8 +55,11 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
   }, [searchWeek, searchDate, searchType]);
 
   useEffect(() => {
-    loadPregnancyData();
-  }, []);
+    // 過去の記録表示モードの場合はAPIからデータを読み込まない
+    if (!isHistoricalView) {
+      loadPregnancyData();
+    }
+  }, [isHistoricalView]);
 
   const loadPregnancyData = async () => {
     try {
@@ -231,14 +242,26 @@ export const PregnancyRecords: React.FC<PregnancyRecordsProps> = ({ onBack }) =>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">妊娠記録</h2>
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">
+              {isHistoricalView ? '過去の妊娠記録' : '妊娠記録'}
+            </h2>
+            {isHistoricalView && historicalData && (
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                期間: {historicalData.startDate} 〜 {historicalData.endDate}
+                （{historicalData.durationWeeks}週 {historicalData.durationDays}日）
+              </p>
+            )}
+          </div>
         </div>
-        <button
-          onClick={() => setShowAddRecord(true)}
-          className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
-        >
-          記録追加
-        </button>
+        {!isHistoricalView && (
+          <button
+            onClick={() => setShowAddRecord(true)}
+            className="w-full sm:w-auto px-4 py-2 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-sm transition-colors min-h-[44px] touch-manipulation"
+          >
+            記録追加
+          </button>
+        )}
       </div>
 
       {/* Search and Filter */}
