@@ -11,6 +11,8 @@ interface DateRecordModalProps {
   existingData?: RecordData;
   isInPeriod?: boolean; // 生理期間中かどうか
   isMiddleOfPeriod?: boolean; // 生理期間の中間日かどうか（開始・終了日以外）
+  isTodayPeriodStart?: boolean; // 今日が生理開始日かどうか
+  isTodayPeriodEnd?: boolean; // 今日が生理終了日かどうか
 }
 
 export interface RecordData {
@@ -31,7 +33,7 @@ export interface RecordData {
   };
 }
 
-export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClose, selectedDate, onSave, onDelete, existingData, isInPeriod = false, isMiddleOfPeriod = false }) => {
+export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClose, selectedDate, onSave, onDelete, existingData, isInPeriod = false, isMiddleOfPeriod = false, isTodayPeriodStart = false, isTodayPeriodEnd = false }) => {
   const [formData, setFormData] = useState<RecordData>({
     isPeriodStart: false,
     isPeriodEnd: false,
@@ -251,23 +253,31 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodEnd ? 'cursor-not-allowed bg-gray-100 border-gray-300' : 'cursor-pointer hover:bg-gray-50'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isPeriodStart}
                       onChange={(e) => handlePeriodStartChange(e.target.checked)}
-                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                      disabled={isTodayPeriodEnd}
+                      className={`w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 ${isTodayPeriodEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
-                    <span className="text-sm font-medium text-gray-700">生理開始日にする</span>
+                    <span className={`text-sm font-medium ${isTodayPeriodEnd ? 'text-gray-400' : 'text-gray-700'}`}>
+                      生理開始日にする
+                      {isTodayPeriodEnd && <span className="block text-xs text-red-500 mt-1">終了日と同じ日に開始はできません</span>}
+                    </span>
                   </label>
-                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodStart ? 'cursor-not-allowed bg-gray-100 border-gray-300' : 'cursor-pointer hover:bg-gray-50'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isPeriodEnd}
                       onChange={(e) => handlePeriodEndChange(e.target.checked)}
-                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                      disabled={isTodayPeriodStart}
+                      className={`w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 ${isTodayPeriodStart ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
-                    <span className="text-sm font-medium text-gray-700">生理終了日にする</span>
+                    <span className={`text-sm font-medium ${isTodayPeriodStart ? 'text-gray-400' : 'text-gray-700'}`}>
+                      生理終了日にする
+                      {isTodayPeriodStart && <span className="block text-xs text-red-500 mt-1">開始日と同じ日に終了はできません</span>}
+                    </span>
                   </label>
                 </div>
               )}

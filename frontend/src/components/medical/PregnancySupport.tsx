@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { menstrualCycleAPI, userDataAPI } from "../../services/api";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { PregnancyRecords } from "./PregnancyRecords";
@@ -207,7 +208,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
           <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
             妊娠を希望する場合、このモードを有効にすると
             <br className="hidden sm:block" />
-            <span className="sm:inline">排卵日予測や妊娠記録などの詳細機能をご利用いただけます</span>
+            <span className="sm:inline">妊娠記録などの詳細機能をご利用いただけます</span>
           </p>
           <p className="text-xs sm:text-sm text-orange-600">※ BETA機能のため、今後仕様が変更される可能性があります</p>
         </div>
@@ -302,17 +303,27 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-sm sm:text-base font-medium text-gray-900">{isPregnant ? "最近の妊娠記録" : "最近の妊活記録"}</h4>
-              <button
-                onClick={() => setShowRecordsPage(true)}
-                className="px-3 py-2 text-sm text-primary-600 hover:text-primary-700 active:text-primary-800 hover:bg-primary-50 rounded-lg transition-colors min-h-[40px] touch-manipulation"
-              >
-                すべて見る
-              </button>
+              {isPregnant && (
+                <button
+                  onClick={() => setShowRecordsPage(true)}
+                  className="px-3 py-2 text-sm text-primary-600 hover:text-primary-700 active:text-primary-800 hover:bg-primary-50 rounded-lg transition-colors min-h-[40px] touch-manipulation"
+                >
+                  すべて見る
+                </button>
+              )}
             </div>
 
             {/* Recent Records List */}
             <div className="space-y-2">
-              {pregnancyRecords.length === 0 ? (
+              {!isPregnant ? (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-3">妊娠記録は妊娠確認後に利用できます</p>
+                  <p className="text-gray-400 text-xs">先に「妊娠確認」ボタンを押してください</p>
+                </div>
+              ) : pregnancyRecords.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-lg">
                   <p className="text-gray-500 text-xs sm:text-sm mb-3">まだ記録がありません</p>
                   <button
@@ -401,7 +412,7 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
       {/* Pregnancy Mode Enable Confirmation Modal */}
       {showPregnancyModeEnableModal && (
         <ConfirmationModal
-          message={`妊娠サポートモードを有効にしますか？このモードでは排卵日予測や妊娠記録などの詳細機能をご利用いただけます。`}
+          message={`妊娠サポートモードを有効にしますか？このモードでは妊娠記録などの詳細機能をご利用いただけます。`}
           onConfirm={handlePregnancyModeEnable}
           onCancel={() => setShowPregnancyModeEnableModal(false)}
           confirmButtonText="有効にする"
@@ -411,65 +422,92 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
       )}
 
       {/* Pregnancy Confirmation Modal */}
-      {showPregnancyConfirmModal && (
-        <ConfirmationModal
-          message={`妊娠を確認しますか？
+      {showPregnancyConfirmModal &&
+        createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-4 sm:p-6">
+              <div className="flex items-center mb-4">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-pink-500 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">妊娠確認</h3>
+              </div>
 
-この操作により妊娠モードに切り替わり、
-妊娠週数の計算と記録が開始されます。`}
-          onConfirm={handlePregnancyConfirm}
-          onCancel={() => setShowPregnancyConfirmModal(false)}
-          confirmButtonText="確認"
-          cancelButtonText="キャンセル"
-          confirmButtonClass="px-4 sm:px-6 py-3 rounded-md bg-pink-600 text-white hover:bg-pink-700 active:bg-pink-800 transition-colors text-sm sm:text-base font-medium min-h-[44px] flex items-center justify-center"
-        />
-      )}
+              <div className="mb-4 sm:mb-6">
+                <p className="text-sm sm:text-base text-gray-700 mb-3">妊娠を確認しますか？</p>
+                <div className="text-sm text-gray-600 bg-pink-50 p-3 rounded-lg">
+                  <p className="mb-2">この操作により以下が実行されます：</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>妊娠モードに切り替わります</li>
+                    <li>妊娠週数の計算が開始されます</li>
+                    <li>妊娠記録が利用可能になります</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                <button
+                  onClick={() => setShowPregnancyConfirmModal(false)}
+                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] touch-manipulation"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handlePregnancyConfirm}
+                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 active:bg-pink-800 rounded-lg transition-colors min-h-[44px] touch-manipulation"
+                >
+                  確認
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Cancel Pregnancy Confirmation Modal */}
-      {showCancelPregnancyModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-          style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
-        >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-4 sm:p-6">
-            <div className="flex items-center mb-4">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900">妊娠状態の取り消し</h3>
-            </div>
+      {showCancelPregnancyModal &&
+        createPortal(
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-4 sm:p-6">
+              <div className="flex items-center mb-4">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 mr-2 sm:mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">妊娠状態の取り消し</h3>
+              </div>
 
-            <div className="mb-4 sm:mb-6">
-              <p className="text-sm sm:text-base text-gray-700 mb-3">妊娠状態を取り消しますか？この操作により以下のデータが削除されます：</p>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1 bg-gray-50 p-3 rounded-lg">
-                <li>妊娠開始日</li>
-                <li>妊娠週数の記録</li>
-                <li>妊娠中として保存された記録（妊活記録は保持されます）</li>
-              </ul>
-              <p className="text-sm text-red-600 mt-3 font-medium">この操作は取り消すことができません。</p>
-            </div>
+              <div className="mb-4 sm:mb-6">
+                <p className="text-sm sm:text-base text-gray-700 mb-3">妊娠状態を取り消しますか？この操作により以下のデータが削除されます：</p>
+                <ul className="text-sm text-gray-600 list-disc list-inside space-y-1 bg-gray-50 p-3 rounded-lg">
+                  <li>妊娠開始日</li>
+                  <li>妊娠週数の記録</li>
+                  <li>妊娠中として保存された記録（妊活記録は保持されます）</li>
+                </ul>
+                <p className="text-sm text-red-600 mt-3 font-medium">この操作は取り消すことができません。</p>
+              </div>
 
-            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-              <button
-                onClick={() => setShowCancelPregnancyModal(false)}
-                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] touch-manipulation"
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={handleCancelPregnancy}
-                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg transition-colors min-h-[44px] touch-manipulation"
-              >
-                取り消し実行
-              </button>
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                <button
+                  onClick={() => setShowCancelPregnancyModal(false)}
+                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] touch-manipulation"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleCancelPregnancy}
+                  className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-lg transition-colors min-h-[44px] touch-manipulation"
+                >
+                  取り消し実行
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

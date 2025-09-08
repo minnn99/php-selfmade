@@ -954,6 +954,8 @@ export const Calendar: React.FC = () => {
             existingData={existingDataForModal}
             isInPeriod={periodStatus.isInPeriod}
             isMiddleOfPeriod={periodStatus.isMiddleOfPeriod}
+            isTodayPeriodStart={periodStatus.isPeriodStart}
+            isTodayPeriodEnd={periodStatus.isPeriodEnd}
           />
         );
       })()}
