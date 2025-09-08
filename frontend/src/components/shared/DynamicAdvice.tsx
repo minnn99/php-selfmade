@@ -214,6 +214,12 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       return;
     }
 
+    // データが全くない場合（最初の起動時など）はデフォルトアドバイスを表示
+    if (!status?.hasActiveCycle && !status?.lastCycle) {
+      setDefaultAdvice();
+      return;
+    }
+
     const today = new Date();
     const cycleDay = getCycleDay(status, today);
 
