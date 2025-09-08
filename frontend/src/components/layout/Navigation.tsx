@@ -138,12 +138,18 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
   const handleEndPeriod = async () => {
     if (loading || !menstrualStatus?.hasActiveCycle || !menstrualStatus?.activeCycle) return;
+    
+    const today = getLocalDateString(new Date());
+    const startDate = (menstrualStatus.activeCycle as { start_date?: string }).start_date;
+    
+    // 同日開始・終了を防ぐ
+    if (startDate === today) {
+      alert('生理開始日と同じ日に終了することはできません。翌日以降に終了してください。');
+      return;
+    }
 
     setLoading(true);
     try {
-      const today = getLocalDateString(new Date());
-      const startDate = (menstrualStatus.activeCycle as { start_date?: string }).start_date;
-
       await menstrualCycleAPI.endCycle(today);
 
       // 生理開始日から今日まで全ての日を生理中として設定
@@ -164,6 +170,68 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
       setLoading(false);
     }
   };
+
+  const handleCancelPeriodStart = async () => {
+    if (loading || !menstrualStatus?.hasActiveCycle || !menstrualStatus?.activeCycle) return;
+    
+    const today = getLocalDateString(new Date());
+    const startDate = (menstrualStatus.activeCycle as { start_date: string }).start_date;
+    
+    // 開始日が今日でない場合はキャンセルできない
+    if (startDate !== today) {
+      alert('生理開始をキャンセルできるのは開始日当日のみです。');
+      return;
+    }
+    
+    const confirmed = confirm('生理開始をキャンセルしますか？');
+    if (!confirmed) return;
+    
+    setLoading(true);
+    try {
+      const cycleId = (menstrualStatus.activeCycle as { id: number }).id;
+      
+      // 周期を削除
+      await menstrualCycleAPI.deleteCycle(cycleId);
+      
+      // 今日の生理データを削除
+      try {
+        const response = await userDataAPI.getDailySymptoms(today);
+        const existingData = response.data || {};
+        
+        if (existingData && Object.keys(existingData).length > 0) {
+          const updatedData = {
+            ...existingData,
+            isPeriodStart: false,
+            isPeriodEnd: false,
+            hasPeriod: false,
+            timestamp: new Date().toISOString()
+          };
+          await userDataAPI.saveDailySymptoms(today, updatedData);
+        }
+      } catch {
+        // Silent error handling
+      }
+      
+      // カスタムイベントを発火してカレンダーとセルフケアを更新
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      
+      // ステータス更新 - より確実に更新するため遅延を追加
+      await menstrualStatusManager.forceReloadStatus();
+      
+      // 追加でイベント発火を遅延実行
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+      }, 200);
+      
+      alert('生理開始がキャンセルされました');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert('エラーが発生しました: ' + errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const navigationItems: NavigationItem[] = [
     {
       id: "dashboard",
@@ -274,6 +342,14 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
   ];
 
+  // Helper function to check if today is the period start date
+  const isTodayPeriodStart = () => {
+    if (!menstrualStatus?.hasActiveCycle || !menstrualStatus?.activeCycle) return false;
+    const today = getLocalDateString(new Date());
+    const startDate = (menstrualStatus.activeCycle as { start_date: string }).start_date;
+    return startDate === today;
+  };
+
   const quickActions: Array<{
     id: string;
     label: string;
@@ -294,11 +370,23 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
         </svg>
       ),
     },
+    ...(menstrualStatus?.hasActiveCycle && isTodayPeriodStart() ? [{
+      id: 'period-cancel',
+      label: 'キャンセル',
+      color: 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700',
+      disabled: loading,
+      onClick: handleCancelPeriodStart,
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      ),
+    }] : []),
     {
       id: "period-end",
       label: "生理終了",
-      color: !menstrualStatus?.hasActiveCycle ? "bg-gray-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 active:bg-green-700",
-      disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading,
+      color: !menstrualStatus?.hasActiveCycle || isTodayPeriodStart() ? "bg-gray-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 active:bg-green-700",
+      disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading || isTodayPeriodStart(),
       onClick: handleEndPeriod,
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

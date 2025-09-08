@@ -16,6 +16,12 @@ interface MenstrualStatus {
     [key: string]: unknown;
   } | null;
   daysSinceLastPeriod: number;
+  debug_all_cycles?: Array<{
+    id: number;
+    start_date: string;
+    end_date?: string;
+    is_active: boolean;
+  }>;
 }
 
 class MenstrualStatusManager {

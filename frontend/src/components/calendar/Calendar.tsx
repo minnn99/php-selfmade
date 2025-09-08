@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { DateRecordModal, type RecordData } from "./DateRecordModal";
 import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
+import { getDatePeriodStatus } from "../../utils/periodStatusHelper";
 
 interface CalendarDay {
   year: number;
@@ -940,17 +941,22 @@ export const Calendar: React.FC = () => {
       </div>
 
       {/* DateRecordModal */}
-      {selectedDateForModal && (
-        <DateRecordModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          selectedDate={selectedDateForModal}
-          onSave={handleModalSave}
-          onDelete={handleDelete}
-          existingData={existingDataForModal}
-          isInPeriod={calendarApiData[getLocalDateString(selectedDateForModal)]?.hasPeriod || false}
-        />
-      )}
+      {selectedDateForModal && (() => {
+        const dateString = getLocalDateString(selectedDateForModal);
+        const periodStatus = getDatePeriodStatus(dateString);
+        return (
+          <DateRecordModal
+            isOpen={isModalOpen}
+            onClose={handleModalClose}
+            selectedDate={selectedDateForModal}
+            onSave={handleModalSave}
+            onDelete={handleDelete}
+            existingData={existingDataForModal}
+            isInPeriod={periodStatus.isInPeriod}
+            isMiddleOfPeriod={periodStatus.isMiddleOfPeriod}
+          />
+        );
+      })()}
     </div>
   );
 };

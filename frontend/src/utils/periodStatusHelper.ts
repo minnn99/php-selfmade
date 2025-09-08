@@ -32,6 +32,64 @@ export const isDateInActivePeriod = (dateString: string): boolean => {
 };
 
 /**
+ * Get detailed period status for a date (start, end, or middle of period)
+ */
+export const getDatePeriodStatus = (dateString: string) => {
+  const status = menstrualStatusManager.getCurrentStatus();
+  
+  if (!status) {
+    return {
+      isInPeriod: false,
+      isPeriodStart: false,
+      isPeriodEnd: false,
+      isMiddleOfPeriod: false
+    };
+  }
+  
+  // Check all cycles (both active and completed)
+  const allCycles = status.debug_all_cycles || [];
+  
+  // Check if date matches any cycle
+  for (const cycle of allCycles) {
+    if (cycle.start_date === dateString) {
+      return {
+        isInPeriod: true,
+        isPeriodStart: true,
+        isPeriodEnd: false,
+        isMiddleOfPeriod: false
+      };
+    }
+    
+    if (cycle.end_date && cycle.end_date === dateString) {
+      return {
+        isInPeriod: true,
+        isPeriodStart: false,
+        isPeriodEnd: true,
+        isMiddleOfPeriod: false
+      };
+    }
+    
+    // Check if date is in the middle of a completed cycle
+    if (cycle.end_date && dateString > cycle.start_date && dateString < cycle.end_date) {
+      return {
+        isInPeriod: true,
+        isPeriodStart: false,
+        isPeriodEnd: false,
+        isMiddleOfPeriod: true
+      };
+    }
+  }
+  
+  // If not found in any cycle, return default values
+  return {
+    isInPeriod: false,
+    isPeriodStart: false,
+    isPeriodEnd: false,
+    isMiddleOfPeriod: false
+  };
+};
+
+/**
  * Get period status for today based on active cycle
  */
 export const getTodayPeriodStatus = () => {

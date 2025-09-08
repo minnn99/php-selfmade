@@ -10,6 +10,7 @@ interface DateRecordModalProps {
   onDelete?: (cycleId: number) => void;
   existingData?: RecordData;
   isInPeriod?: boolean; // 生理期間中かどうか
+  isMiddleOfPeriod?: boolean; // 生理期間の中間日かどうか（開始・終了日以外）
 }
 
 export interface RecordData {
@@ -30,7 +31,7 @@ export interface RecordData {
   };
 }
 
-export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClose, selectedDate, onSave, onDelete, existingData, isInPeriod = false }) => {
+export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClose, selectedDate, onSave, onDelete, existingData, isInPeriod = false, isMiddleOfPeriod = false }) => {
   const [formData, setFormData] = useState<RecordData>({
     isPeriodStart: false,
     isPeriodEnd: false,
@@ -240,26 +241,36 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           {isMaleWithPartner === false && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">生理記録</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPeriodStart}
-                    onChange={(e) => handlePeriodStartChange(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">生理開始日にする</span>
-                </label>
-                <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPeriodEnd}
-                    onChange={(e) => handlePeriodEndChange(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">生理終了日にする</span>
-                </label>
-              </div>
+              {isMiddleOfPeriod ? (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-red-700">生理中</span>
+                  </div>
+                  <p className="text-xs text-red-600 mt-1">この日は既存の生理周期内です</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.isPeriodStart}
+                      onChange={(e) => handlePeriodStartChange(e.target.checked)}
+                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">生理開始日にする</span>
+                  </label>
+                  <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.isPeriodEnd}
+                      onChange={(e) => handlePeriodEndChange(e.target.checked)}
+                      className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">生理終了日にする</span>
+                  </label>
+                </div>
+              )}
 
               {/* 経血量 */}
               {(formData.isPeriodStart || formData.isPeriodEnd || isInPeriod) && (
