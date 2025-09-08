@@ -89,6 +89,32 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }
   };
 
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) {
+      return "たった今";
+    } else if (minutes < 60) {
+      return `${minutes}分前`;
+    } else if (hours < 24) {
+      return `${hours}時間前`;
+    } else if (days < 7) {
+      return `${days}日前`;
+    } else {
+      return date.toLocaleDateString("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric"
+      });
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
@@ -174,7 +200,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
-                          {notification.timestamp}
+                          {formatTimestamp(notification.timestamp)}
                         </p>
                       </div>
                       <div className="flex items-start space-x-1 flex-shrink-0">
@@ -297,7 +323,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-400 mt-2">
-                              {notification.timestamp}
+                              {formatTimestamp(notification.timestamp)}
                             </p>
                           </div>
                           <div className="flex items-start space-x-1 flex-shrink-0">

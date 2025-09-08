@@ -137,7 +137,39 @@ function App() {
     return <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />;
   }
 
-  const handleLoginSuccess = () => {
+  // Add notification to notification center
+  const addLoginNotification = (userName: string) => {
+    // Get existing notifications
+    const storedNotifications = localStorage.getItem("notifications");
+    const notifications = storedNotifications ? JSON.parse(storedNotifications) : [];
+    
+    // Create new login notification
+    const newNotification = {
+      id: `login-${Date.now()}`,
+      type: "system" as const,
+      title: "ログイン成功",
+      message: `${userName}さん、ログインしました`,
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      priority: "low" as const
+    };
+    
+    // Add to notifications array (newest first)
+    notifications.unshift(newNotification);
+    
+    // Keep only last 50 notifications
+    if (notifications.length > 50) {
+      notifications.pop();
+    }
+    
+    // Save to localStorage
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+    
+    // Dispatch event to update notification badge
+    window.dispatchEvent(new CustomEvent('notificationUpdated'));
+  };
+
+  const handleLoginSuccess = async () => {
     setIsAuthenticated(true);
     setCurrentView("main");
     authAPI.startTokenChecker();
@@ -146,6 +178,20 @@ function App() {
     initializeUserData();
     // Initialize today's period status after login
     initializeTodayPeriodStatus();
+    
+    // Get user data and add notification
+    try {
+      const userData = await authAPI.getUser();
+      const userName = (userData.data as { user?: { nickname?: string; name?: string } })?.user?.nickname || 
+                       (userData.data as { user?: { nickname?: string; name?: string } })?.user?.name || 
+                       "ユーザー";
+      
+      // Add login notification to notification center
+      addLoginNotification(userName);
+    } catch {
+      // Add generic notification if user data fetch fails
+      addLoginNotification("ユーザー");
+    }
     
     // Check for redirect URL after login
     const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
