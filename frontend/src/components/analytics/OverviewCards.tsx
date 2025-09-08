@@ -258,76 +258,8 @@ export const OverviewCards: React.FC = () => {
         </div>
       </FadeInUp>
 
-      {/* Current Cycle Card */}
-      <FadeInUp delay={100}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-medium text-gray-600">
-              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナー連携状況" : "現在の周期"}
-            </h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
-              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                  />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-            </div>
-          </div>
-          <div className="space-y-2 sm:space-y-3">
-            {loading ? (
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
-            ) : (userGender === "male" || userGender === "男性") && isConnectedToPartner ? (
-              <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">連携中</p>
-                <p className="text-xs sm:text-sm text-gray-500">パートナーのデータを表示中</p>
-                <div className="flex items-center space-x-2 mt-2">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
-                    <div className="w-2 h-2 bg-primary-300 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
-                  </div>
-                  <span className="text-xs text-primary-600 font-medium">リアルタイム同期</span>
-                </div>
-              </>
-            ) : predictionData.currentCycleDay ? (
-              <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{predictionData.currentCycleDay}日目</p>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  {predictionData.averageCycleLength ? `平均${predictionData.averageCycleLength}日周期` : "周期計算中"}
-                </p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-primary-500 h-2 rounded-full transition-all duration-300"
-                    style={{
-                      width: predictionData.averageCycleLength ? `${(predictionData.currentCycleDay / predictionData.averageCycleLength) * 100}%` : "0%",
-                    }}
-                  ></div>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-                <p className="text-xs sm:text-sm text-gray-500">データなし</p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-primary-500 h-2 rounded-full" style={{ width: "0%" }}></div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </FadeInUp>
-
       {/* Ovulation Card */}
-      <FadeInUp delay={200}>
+      <FadeInUp delay={100}>
         <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-medium text-gray-600">
@@ -363,6 +295,56 @@ export const OverviewCards: React.FC = () => {
                 <div className="flex items-center space-x-1">
                   <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
                   <span className="text-xs text-gray-500">データ登録後表示</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </FadeInUp>
+
+      {/* Partner Connection Status Card */}
+      <FadeInUp delay={200}>
+        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-sm font-medium text-gray-600">パートナー連携状況</h3>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-2 sm:space-y-3">
+            {loading ? (
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+            ) : isConnectedToPartner ? (
+              <>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900">連携中</p>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  {userGender === "male" || userGender === "男性" 
+                    ? "パートナーのデータを表示中" 
+                    : "パートナーとデータを共有中"}
+                </p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
+                    <div className="w-2 h-2 bg-primary-300 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
+                  </div>
+                  <span className="text-xs text-primary-600 font-medium">リアルタイム同期</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-500">未連携</p>
+                <p className="text-xs sm:text-sm text-gray-500">パートナーと連携していません</p>
+                <div className="flex items-center space-x-2 mt-2">
+                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span className="text-xs text-gray-500">連携設定で追加可能</span>
                 </div>
               </>
             )}
