@@ -35,7 +35,7 @@ export const initializeNotifications = async () => {
       const { decryptData, isEncrypted } = await import('./utils/encryption');
       const dataToUse = isEncrypted(authDataStr) ? decryptData(authDataStr) : authDataStr;
       JSON.parse(dataToUse); // Test if data is valid
-    } catch (error) {
+    } catch {
       console.log('Invalid auth data, skipping FCM initialization');
       return;
     }

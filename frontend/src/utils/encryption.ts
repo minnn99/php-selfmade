@@ -27,7 +27,7 @@ const xorEncrypt = (text: string, key: string): string => {
   // Use btoa with proper UTF-8 encoding
   try {
     return btoa(unescape(encodeURIComponent(result)));
-  } catch (error) {
+  } catch {
     // Fallback: convert to hex if btoa fails
     return Array.from(result)
       .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
@@ -44,12 +44,14 @@ const xorDecrypt = (encryptedText: string, key: string): string => {
       // Hex format
       decoded = '';
       for (let i = 0; i < encryptedText.length; i += 2) {
-        decoded += String.fromCharCode(parseInt(encryptedText.substr(i, 2), 16));
+        decoded += String.fromCharCode(parseInt(encryptedText.substring(i, i + 2), 16));
       }
     } else {
       // Base64 format
       const base64Decoded = atob(encryptedText);
-      decoded = decodeURIComponent(escape(base64Decoded));
+      decoded = decodeURIComponent(Array.from(base64Decoded, c => 
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      ).join(''));
     }
     
     let result = '';
