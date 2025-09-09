@@ -45,9 +45,6 @@ export const OverviewCards: React.FC = () => {
           const nextMonthYear = month === 12 ? year + 1 : year;
           const nextMonthResponse = await partnerAPI.getPartnerCalendar(nextMonthYear, nextMonth);
 
-          console.log("=== 男性ユーザー (partnerAPI) ===");
-          console.log("Current month response:", response);
-          console.log("Next month response:", nextMonthResponse);
 
           if (response.success && nextMonthResponse.success) {
             // パートナーAPIからのデータを変換
@@ -62,7 +59,6 @@ export const OverviewCards: React.FC = () => {
             });
 
             combinedData = { ...currentMonthData, ...nextMonthData };
-            console.log("Combined data (male):", combinedData);
           }
         } else {
           // 女性ユーザーまたは連携していない場合は通常の生理周期データを取得
@@ -71,12 +67,8 @@ export const OverviewCards: React.FC = () => {
           const nextMonthYear = month === 12 ? year + 1 : year;
           const nextMonthResponse = await menstrualCycleAPI.getCalendarData(nextMonthYear, nextMonth);
 
-          console.log("=== 女性ユーザー (menstrualCycleAPI) ===");
-          console.log("Current month response:", response);
-          console.log("Next month response:", nextMonthResponse);
 
           combinedData = { ...(response.data as Record<string, unknown>), ...(nextMonthResponse.data as Record<string, unknown>) };
-          console.log("Combined data (female):", combinedData);
         }
 
         // Find next cycle start date and ovulation dates from calendar data
@@ -85,10 +77,8 @@ export const OverviewCards: React.FC = () => {
 
         // Sort dates to find the next occurrences
         const sortedDates = Object.keys(combinedData).sort();
-        console.log("Sorted dates:", sortedDates);
 
         const todayString = today.toISOString().split("T")[0];
-        console.log("Today string:", todayString);
 
         // Simple approach: skip the immediate next period if it's within 7 days
         // This handles the case where we're currently in period and want the NEXT cycle
@@ -100,7 +90,6 @@ export const OverviewCards: React.FC = () => {
             // 明日以降のみ
             // 次の生理周期開始日を探す
             if ((dayData as { isPredictedPeriod?: boolean }).isPredictedPeriod) {
-              console.log(`Found predicted period on ${dateKey}:`, dayData);
               
               // 前日をチェックして、連続する予測生理日の最初の日かどうか確認
               const previousDate = new Date(dateKey);
@@ -114,13 +103,11 @@ export const OverviewCards: React.FC = () => {
                   const dateObj = new Date(dateKey);
                   const daysDiff = Math.floor((dateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-                  console.log(`Period start candidate ${dateKey}, days diff: ${daysDiff}`);
                   
                   // Skip if this period start is too close (within 7 days from today)
                   // This ensures we get the next full cycle, not the immediate next period
                   if (daysDiff > 7) {
                     nextCycleStartDate = dateKey;
-                    console.log(`Selected next period date: ${nextCycleStartDate}`);
                   }
                 }
               }
@@ -128,7 +115,6 @@ export const OverviewCards: React.FC = () => {
 
             if ((dayData as { isOvulation?: boolean }).isOvulation && !nextOvulationDate) {
               nextOvulationDate = dateKey;
-              console.log(`Found ovulation date: ${nextOvulationDate}`, dayData);
             }
 
             // Break if we found both
