@@ -45,6 +45,10 @@ export const OverviewCards: React.FC = () => {
           const nextMonthYear = month === 12 ? year + 1 : year;
           const nextMonthResponse = await partnerAPI.getPartnerCalendar(nextMonthYear, nextMonth);
 
+          console.log("=== 男性ユーザー (partnerAPI) ===");
+          console.log("Current month response:", response);
+          console.log("Next month response:", nextMonthResponse);
+
           if (response.success && nextMonthResponse.success) {
             // パートナーAPIからのデータを変換
             const currentMonthData: { [key: string]: unknown } = {};
@@ -58,6 +62,7 @@ export const OverviewCards: React.FC = () => {
             });
 
             combinedData = { ...currentMonthData, ...nextMonthData };
+            console.log("Combined data (male):", combinedData);
           }
         } else {
           // 女性ユーザーまたは連携していない場合は通常の生理周期データを取得
@@ -66,7 +71,12 @@ export const OverviewCards: React.FC = () => {
           const nextMonthYear = month === 12 ? year + 1 : year;
           const nextMonthResponse = await menstrualCycleAPI.getCalendarData(nextMonthYear, nextMonth);
 
+          console.log("=== 女性ユーザー (menstrualCycleAPI) ===");
+          console.log("Current month response:", response);
+          console.log("Next month response:", nextMonthResponse);
+
           combinedData = { ...(response.data as Record<string, unknown>), ...(nextMonthResponse.data as Record<string, unknown>) };
+          console.log("Combined data (female):", combinedData);
         }
 
         // Find next cycle start date and ovulation dates from calendar data
@@ -75,8 +85,10 @@ export const OverviewCards: React.FC = () => {
 
         // Sort dates to find the next occurrences
         const sortedDates = Object.keys(combinedData).sort();
+        console.log("Sorted dates:", sortedDates);
 
         const todayString = today.toISOString().split("T")[0];
+        console.log("Today string:", todayString);
 
         // Simple approach: skip the immediate next period if it's within 7 days
         // This handles the case where we're currently in period and want the NEXT cycle
@@ -88,6 +100,8 @@ export const OverviewCards: React.FC = () => {
             // 明日以降のみ
             // 次の生理周期開始日を探す
             if ((dayData as { isPredictedPeriod?: boolean }).isPredictedPeriod) {
+              console.log(`Found predicted period on ${dateKey}:`, dayData);
+              
               // 前日をチェックして、連続する予測生理日の最初の日かどうか確認
               const previousDate = new Date(dateKey);
               previousDate.setDate(previousDate.getDate() - 1);
@@ -100,10 +114,13 @@ export const OverviewCards: React.FC = () => {
                   const dateObj = new Date(dateKey);
                   const daysDiff = Math.floor((dateObj.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
+                  console.log(`Period start candidate ${dateKey}, days diff: ${daysDiff}`);
+                  
                   // Skip if this period start is too close (within 7 days from today)
                   // This ensures we get the next full cycle, not the immediate next period
                   if (daysDiff > 7) {
                     nextCycleStartDate = dateKey;
+                    console.log(`Selected next period date: ${nextCycleStartDate}`);
                   }
                 }
               }
@@ -111,6 +128,7 @@ export const OverviewCards: React.FC = () => {
 
             if ((dayData as { isOvulation?: boolean }).isOvulation && !nextOvulationDate) {
               nextOvulationDate = dateKey;
+              console.log(`Found ovulation date: ${nextOvulationDate}`, dayData);
             }
 
             // Break if we found both
@@ -220,8 +238,8 @@ export const OverviewCards: React.FC = () => {
             <h3 className="text-sm font-medium text-gray-600">
               {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの次の生理予定日" : "次の生理周期予定日"}
             </h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -240,7 +258,7 @@ export const OverviewCards: React.FC = () => {
                 <p className="text-xs sm:text-sm text-gray-500">あと{getDaysUntil(predictionData.nextPeriodDate)}日</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-pink-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-red-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${getProgressPercentage(predictionData.nextPeriodDate, predictionData.averageCycleLength)}%` }}
                   ></div>
                 </div>
@@ -250,7 +268,7 @@ export const OverviewCards: React.FC = () => {
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
                 <p className="text-xs sm:text-sm text-gray-500">データなし</p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-pink-500 h-2 rounded-full" style={{ width: "0%" }}></div>
+                  <div className="bg-red-500 h-2 rounded-full" style={{ width: "0%" }}></div>
                 </div>
               </>
             )}
@@ -265,8 +283,8 @@ export const OverviewCards: React.FC = () => {
             <h3 className="text-sm font-medium text-gray-600">
               {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの排卵予定日" : "排卵予定日"}
             </h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -284,7 +302,7 @@ export const OverviewCards: React.FC = () => {
                 <p className="text-xl sm:text-2xl font-semibold text-gray-900">{formatDate(predictionData.nextOvulationDate)}</p>
                 <p className="text-xs sm:text-sm text-gray-500">あと{getDaysUntil(predictionData.nextOvulationDate)}日</p>
                 <div className="flex items-center space-x-1">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
                   <span className="text-xs text-gray-500">排卵予測</span>
                 </div>
               </>

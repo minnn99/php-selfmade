@@ -493,9 +493,11 @@ class PartnerController extends Controller
         // 平均周期長を計算
         $averageCycleLength = round(array_sum($cycleLengths) / count($cycleLengths));
         
-        // 最後の生理終了日から次回予測
+        // 次回生理開始日を開始日基準で計算（女性側と同じロジック）
+        // 医学的に正確：生理期間の長さは周期の長さに影響しない
+        // 周期 = 開始日から次の開始日までの期間
         $lastCycle = $completedCycles->first();
-        $nextPredictedStart = $lastCycle->end_date->copy()->addDays($averageCycleLength - 5);
+        $nextPredictedStart = $lastCycle->start_date->copy()->addDays($averageCycleLength);
 
         // 完了した周期の排卵日予測を追加
         for ($i = 1; $i < $completedCycles->count(); $i++) {
@@ -518,7 +520,7 @@ class PartnerController extends Controller
         // 今月と来月の予測を生成
         for ($i = 0; $i < 3; $i++) {
             $predictedStart = $nextPredictedStart->copy()->addDays($averageCycleLength * $i);
-            $predictedEnd = $predictedStart->copy()->addDays(5);
+            $predictedEnd = $predictedStart->copy()->addDays(4);
             
             $this->addPredictedPeriodForPartner($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
             
@@ -572,7 +574,7 @@ class PartnerController extends Controller
         // 将来の予測を生成
         for ($i = 0; $i < 3; $i++) {
             $predictedStart = $nextPredictedStart->copy()->addDays($averageCycleLength * $i);
-            $predictedEnd = $predictedStart->copy()->addDays(5);
+            $predictedEnd = $predictedStart->copy()->addDays(4);
             
             $extendedEndOfMonth = $endOfMonth;
             if ($i == 0) {
@@ -605,9 +607,8 @@ class PartnerController extends Controller
         
         $lastCycle = $completedCycles->first();
 
-        $nextPredictedStart = $lastCycle->end_date ? 
-            $lastCycle->end_date->copy()->addDays(23) :
-            $lastCycle->start_date->copy()->addDays(28);
+        // 最初の生理周期から28日周期で予測（開始日基準で統一、女性側と同じロジック）
+        $nextPredictedStart = $lastCycle->start_date->copy()->addDays(28);
         
         // 完了した周期の排卵日予測を追加
         for ($i = 1; $i < $completedCycles->count(); $i++) {
@@ -622,7 +623,7 @@ class PartnerController extends Controller
         
         for ($i = 0; $i < 3; $i++) {
             $predictedStart = $nextPredictedStart->copy()->addDays(28 * $i);
-            $predictedEnd = $predictedStart->copy()->addDays(5);
+            $predictedEnd = $predictedStart->copy()->addDays(4);
             
             $this->addPredictedPeriodForPartner($predictions, $predictedStart, $predictedEnd, $startOfMonth, $endOfMonth);
             
