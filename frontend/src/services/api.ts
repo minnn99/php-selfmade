@@ -1,3 +1,5 @@
+import { encryptData, decryptData, isEncrypted } from '../utils/encryption';
+
 // API Base URL
 const API_BASE = "/api";
 
@@ -33,14 +35,20 @@ const getAuthToken = (): string | null => {
 const getAuthData = (): AuthData | null => {
   try {
     const authDataStr = localStorage.getItem("auth_data");
-    return authDataStr ? JSON.parse(authDataStr) : null;
+    if (!authDataStr) return null;
+    
+    // Try to decrypt if data appears to be encrypted
+    const dataToUse = isEncrypted(authDataStr) ? decryptData(authDataStr) : authDataStr;
+    return dataToUse ? JSON.parse(dataToUse) : null;
   } catch {
     return null;
   }
 };
 
 const setAuthData = (data: AuthData) => {
-  localStorage.setItem("auth_data", JSON.stringify(data));
+  const dataStr = JSON.stringify(data);
+  const encryptedData = encryptData(dataStr);
+  localStorage.setItem("auth_data", encryptedData);
 };
 
 const isTokenExpired = (expiresAt: string): boolean => {

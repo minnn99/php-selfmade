@@ -23,10 +23,20 @@ export const initializeNotifications = async () => {
     // Wait a bit for auth data to be saved to localStorage
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Check if user is logged in - auth_data contains the full auth object
+    // Check if user is logged in - auth_data contains the full auth object (暗号化されたデータを考慮)
     const authDataStr = localStorage.getItem('auth_data');
     if (!authDataStr) {
       console.log('User not logged in, skipping FCM initialization');
+      return;
+    }
+    
+    // Verify that auth data can be decrypted and parsed
+    try {
+      const { decryptData, isEncrypted } = await import('./utils/encryption');
+      const dataToUse = isEncrypted(authDataStr) ? decryptData(authDataStr) : authDataStr;
+      JSON.parse(dataToUse); // Test if data is valid
+    } catch (error) {
+      console.log('Invalid auth data, skipping FCM initialization');
       return;
     }
     

@@ -37,14 +37,17 @@ export const initializeFCM = async () => {
       console.log('FCMトークンを取得しました:', token);
       
       // サーバーにトークンを送信
-      // auth_dataから認証トークンを取得
+      // auth_dataから認証トークンを取得 (暗号化されたデータを考慮)
       const authDataStr = localStorage.getItem('auth_data');
       if (!authDataStr) {
         console.error('認証情報が見つかりません');
         return null;
       }
       
-      const authData = JSON.parse(authDataStr);
+      // 暗号化機能をimportして使用
+      const { decryptData, isEncrypted } = await import('../utils/encryption');
+      const dataToUse = isEncrypted(authDataStr) ? decryptData(authDataStr) : authDataStr;
+      const authData = JSON.parse(dataToUse);
       const authToken = authData.token;
       
       const response = await fetch('/api/user/fcm-token', {

@@ -66,7 +66,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onShowLogin }) => {
             expires_at: result.data.expires_at,
             user: result.data.user
           };
-          localStorage.setItem('auth_data', JSON.stringify(authData));
+          // Use API's setAuthData for encryption
+          const { encryptData } = await import('../../utils/encryption');
+          const dataStr = JSON.stringify(authData);
+          const encryptedData = encryptData(dataStr);
+          localStorage.setItem('auth_data', encryptedData);
 
           // ニックネームを設定データとして保存
           const settingsResponse = await fetch('/api/user-data/settings', {
