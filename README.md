@@ -5,7 +5,10 @@
 ## 機能
 
 ### 実装済み機能
+
 - ✅ **ユーザー認証システム** (新規登録、ログイン、ログアウト)
+- ✅ **セキュアな認証** (トークン暗号化、XSS 攻撃対策)
+- ✅ **プッシュ通知システム** (Firebase Cloud Messaging)
 - ✅ **生理周期記録・管理**
 - ✅ **パートナー連携機能** (招待コード経由)
 - ✅ **カレンダービュー** (生理日予測表示)
@@ -14,6 +17,7 @@
 - ✅ **設定管理** (プロフィール、プライバシー、通知設定)
 
 ### 開発中・予定機能
+
 - 🔄 **医療記録管理**
 - 🔄 **妊娠記録・サポート**
 - 📋 **データエクスポート機能**
@@ -22,9 +26,10 @@
 ## 技術スタック
 
 - **フロントエンド**: React + TypeScript + Vite (Node.js 20)
-- **バックエンド**: Laravel 11 (PHP 8.2)
-- **データベース**: MySQL 8.0 (Docker環境)
-- **認証**: Laravel Sanctum (APIトークン認証)
+- **バックエンド**: Laravel 12 (PHP 8.2)
+- **データベース**: MySQL 8.0 (Docker 環境)
+- **認証**: Laravel Sanctum (API トークン認証、XOR 暗号化)
+- **通知**: Firebase Cloud Messaging (FCM)
 - **コンテナ**: Docker + Docker Compose
 
 ## プロジェクト構成
@@ -64,7 +69,7 @@ docker-compose exec backend php artisan migrate
 docker-compose logs -f
 ```
 
-#### 2回目以降の起動
+#### 2 回目以降の起動
 
 ```bash
 # 通常の起動
@@ -127,29 +132,33 @@ php artisan serve
 
 フロントエンドからバックエンドの API を呼び出すため、以下のオリジンが CORS で許可されています：
 
-- `http://localhost:3000` (フロントエンドDockerコンテナ)
-- `http://localhost:5173` (Vite開発サーバー)
-- `http://localhost:8000` (バックエンドAPI)
+- `http://localhost:3000` (フロントエンド Docker コンテナ)
+- `http://localhost:5173` (Vite 開発サーバー)
+- `http://localhost:8000` (バックエンド API)
 
 ### 認証システム
 
-- **認証方式**: Laravel Sanctum APIトークン認証
-- **トークン有効期限**: 8時間 (Remember Me: 7日間)
-- **ストレージ**: ローカルストレージ (フロントエンド)
+- **認証方式**: Laravel Sanctum API トークン認証
+- **セキュリティ**: XOR 暗号化 + Base64 エンコーディング
+- **暗号化キー**: ブラウザフィンガープリント基盤
+- **トークン有効期限**: 8 時間 (Remember Me: 7 日間)
+- **ストレージ**: ローカルストレージ (暗号化済み)
 - **自動ログアウト**: トークン期限切れ時に自動実行
+- **XSS 保護**: 暗号化によりトークン盗用を防止
 
 ## 開発時の注意事項
 
 ### Docker 環境（推奨）
 
 1. **統合環境**: `docker-compose up -d` で全てのサービスが一度に起動
-2. **データ永続化**: MySQLコンテナのデータは永続化されます
+2. **データ永続化**: MySQL コンテナのデータは永続化されます
 3. **ホットリロード**: ファイル変更は自動的にコンテナに反映
 4. **データベース確認**: `docker exec php-selfmade-develop-backend-1 php artisan tinker`
 
 ### データベース管理
 
-#### Docker環境のデータベース操作
+#### Docker 環境のデータベース操作
+
 ```bash
 # ユーザー一覧確認
 docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Models\User::all()"
@@ -163,8 +172,8 @@ docker exec php-selfmade-develop-backend-1 php artisan migrate:fresh
 
 ### 開発環境の使い分け
 
-- **本番開発**: Docker環境を使用（データは永続化）
-- **機能テスト**: Docker環境推奨
+- **本番開発**: Docker 環境を使用（データは永続化）
+- **機能テスト**: Docker 環境推奨
 - **デバッグ**: ローカル環境も併用可能
 
 ## Docker コマンド
@@ -188,17 +197,17 @@ docker-compose exec backend php artisan migrate:fresh
 
 ## システム要件
 
-- **Docker**: 20.10以上
-- **Docker Compose**: 2.0以上
-- **Node.js**: 20以上（ローカル開発時）
-- **PHP**: 8.2以上（ローカル開発時）
-- **Composer**: 2.0以上（ローカル開発時）
+- **Docker**: 20.10 以上
+- **Docker Compose**: 2.0 以上
+- **Node.js**: 20 以上（ローカル開発時）
+- **PHP**: 8.2 以上（ローカル開発時）
+- **Composer**: 2.0 以上（ローカル開発時）
 
 ## トラブルシューティング
 
 ### よくある問題と解決方法
 
-#### 1. 新規アカウント登録ができない（CORSエラー）
+#### 1. 新規アカウント登録ができない（CORS エラー）
 
 ```bash
 # CORS設定の確認
@@ -219,7 +228,7 @@ docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Mod
 docker exec php-selfmade-develop-backend-1 php artisan migrate:status
 ```
 
-#### 3. Laravel 500エラー
+#### 3. Laravel 500 エラー
 
 ```bash
 # ログ確認
@@ -236,6 +245,10 @@ docker exec php-selfmade-develop-backend-1 php artisan config:clear
 ```bash
 # ブラウザのローカルストレージクリア
 # 開発者ツール → Application → Local Storage → localhost:3000 → auth_data削除
+
+# 暗号化されたトークンの確認
+# ブラウザコンソールで: localStorage.getItem('auth_data')
+# 正常な場合: "enc:" で始まる暗号化文字列が表示される
 
 # Sanctum設定確認
 docker exec php-selfmade-develop-backend-1 php artisan tinker --execute="App\Models\User::first()->tokens()->count()"
@@ -266,50 +279,65 @@ docker exec php-selfmade-develop-backend-1 php artisan migrate
 ## 開発状況
 
 ### 完了済み
-- ✅ **Docker環境構築** (フロントエンド、バックエンド、MySQL)
-- ✅ **ユーザー認証API** (新規登録、ログイン、ログアウト)
-- ✅ **CORS設定** (フロントエンド⇔バックエンド通信)
+
+- ✅ **Docker 環境構築** (フロントエンド、バックエンド、MySQL)
+- ✅ **ユーザー認証 API** (新規登録、ログイン、ログアウト)
+- ✅ **CORS 設定** (フロントエンド ⇔ バックエンド通信)
 - ✅ **データベース設計** (ユーザー、生理周期、症状記録等)
 - ✅ **フロントエンド基盤** (React + TypeScript + Vite)
-- ✅ **認証システム** (Sanctum APIトークン認証)
-- ✅ **CI/CDパイプライン** (GitHub Actions)
+- ✅ **認証システム** (Sanctum API トークン認証)
+- ✅ **CI/CD パイプライン** (GitHub Actions)
 
 ### 次のステップ
-- 🔄 **UI/UXの改善** (レスポンシブデザイン対応)
+
+- 🔄 **UI/UX の改善** (レスポンシブデザイン対応)
 - 📋 **テストケース実装** (Unit, Integration Tests)
 - 📋 **パフォーマンス最適化**
-- 📋 **セキュリティ強化** (CSRFトークン、レート制限)
+- ✅ **セキュリティ強化** (トークン暗号化、XSS 攻撃対策)
+- 📋 **追加セキュリティ** (CSRF トークン、レート制限)
 - 📋 **CD（継続的デプロイ）** 本番環境構築後に追加
 - 📋 **本番環境デプロイ準備**
 
 ## CI/CD パイプライン
 
-### 🔄 実装済みCI機能
+### 🔄 実装済み CI 機能
 
-- **フロントエンドCI** (`.github/workflows/frontend.yml`)
-  - Node.js 20での動作確認
-  - TypeScriptタイプチェック
-  - ESLintコードスタイルチェック
-  - Viteビルド確認
+- **フロントエンド CI** (`.github/workflows/frontend.yml`)
+
+  - Node.js 20 での動作確認
+  - TypeScript タイプチェック
+  - ESLint コードスタイルチェック
+  - Vite ビルド確認
   - バンドルサイズ測定
 
-- **バックエンドCI** (`.github/workflows/backend.yml`)
-  - PHP 8.2での動作確認
-  - Composerパッケージインストール
-  - MySQLデータベーステスト
-  - PHPStanコード品質チェック
-  - Laravel Artisanコマンド確認
+- **バックエンド CI** (`.github/workflows/backend.yml`)
 
-- **統合CI** (`.github/workflows/ci.yml`)
-  - Docker Composeビルドテスト
+  - PHP 8.2 での動作確認
+  - Composer パッケージインストール
+  - MySQL データベーステスト
+  - PHPStan コード品質チェック
+  - Laravel Artisan コマンド確認
+
+- **統合 CI** (`.github/workflows/ci.yml`)
+  - Docker Compose ビルドテスト
   - セキュリティ脆弱性スキャン (Trivy)
   - 変更ファイル検出による最適化実行
 
-### 🚀 CI実行タイミング
+### 🚀 CI 実行タイミング
 
 - `main`、`develop`ブランチへのプッシュ
-- Pull Request作成時
+- Pull Request 作成時
 - 該当ディレクトリのファイル変更時のみ実行（最適化）
+
+## セキュリティ
+
+このプロジェクトのセキュリティ機能と対策については [`SECURITY.md`](SECURITY.md) を参照してください。
+
+### 主要なセキュリティ機能
+
+- 🔐 **トークン暗号化**: XOR 暗号化による XSS 攻撃対策
+- 🔔 **セキュアな通知**: FCM による安全な通知システム
+- 🛡️ **認証保護**: Laravel Sanctum による堅牢な認証
 
 ## 貢献方法
 
