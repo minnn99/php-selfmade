@@ -239,7 +239,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({ isOpen, onClose }) =
       
       // 履歴タブに切り替え
       setActiveTab("history");
-    } catch (error) {
+    } catch {
       alert("送信に失敗しました。もう一度お試しください。");
     } finally {
       setIsSubmitting(false);
