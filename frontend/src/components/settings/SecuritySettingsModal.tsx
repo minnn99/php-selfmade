@@ -157,17 +157,17 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
     >
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">セキュリティ設定</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">セキュリティ設定</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -177,15 +177,15 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
           {/* パスワード設定 */}
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">パスワード設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">パスワード変更と強度設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">パスワード設定</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">パスワード変更と強度設定</p>
             </div>
 
-            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="flex items-start sm:items-center justify-between">
                 <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700">パスワード</span>
-                  <p className="text-xs text-gray-500 mt-1">最終変更: {settings.passwordPolicy.lastChanged || "未設定"}</p>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">パスワード</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">最終変更: {settings.passwordPolicy.lastChanged || "未設定"}</p>
                 </div>
                 <button
                   onClick={() => setShowPasswordForm(!showPasswordForm)}
@@ -208,7 +208,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                     aria-hidden="true"
                   />
                   <div>
-                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">現在のパスワード</label>
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 whitespace-nowrap">現在のパスワード</label>
                     <input
                       id="currentPassword"
                       name="currentPassword"
@@ -216,11 +216,11 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                       autoComplete="current-password"
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード</label>
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 whitespace-nowrap">新しいパスワード</label>
                     <input
                       id="newPassword"
                       name="newPassword"
@@ -228,11 +228,11 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                       autoComplete="new-password"
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap">新しいパスワード（確認）</label>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 whitespace-nowrap">新しいパスワード（確認）</label>
                     <input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -240,7 +240,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                       autoComplete="new-password"
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm min-h-[44px] touch-manipulation bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                     />
                   </div>
                   <button
@@ -254,22 +254,22 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               )}
 
               <div className="space-y-2 sm:space-y-3">
-                <label className="block text-sm font-medium text-gray-700">パスワード要件</label>
-                <div className="text-xs sm:text-sm text-gray-600 space-y-2">
-                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.minLength >= 8 ? "text-green-600" : "text-gray-400"}`}>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">パスワード要件</label>
+                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                  <div className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                    <span className={`mr-2 ${settings.passwordPolicy.minLength >= 8 ? "text-green-600 dark:text-green-400" : "text-gray-400 dark:text-gray-500"}`}>
                       {settings.passwordPolicy.minLength >= 8 ? "✓" : "○"}
                     </span>
                     最低{settings.passwordPolicy.minLength}文字
                   </div>
-                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.requireUppercase ? "text-green-600" : "text-gray-400"}`}>
+                  <div className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                    <span className={`mr-2 ${settings.passwordPolicy.requireUppercase ? "text-green-600 dark:text-green-400" : "text-gray-400 dark:text-gray-500"}`}>
                       {settings.passwordPolicy.requireUppercase ? "✓" : "○"}
                     </span>
                     大文字を含む
                   </div>
-                  <div className="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <span className={`mr-2 ${settings.passwordPolicy.requireNumbers ? "text-green-600" : "text-gray-400"}`}>
+                  <div className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                    <span className={`mr-2 ${settings.passwordPolicy.requireNumbers ? "text-green-600 dark:text-green-400" : "text-gray-400 dark:text-gray-500"}`}>
                       {settings.passwordPolicy.requireNumbers ? "✓" : "○"}
                     </span>
                     数字を含む
@@ -283,47 +283,47 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
           {/* ログインセキュリティ */}
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">ログインセキュリティ</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">ログイン関連のセキュリティ設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">ログインセキュリティ</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">ログイン関連のセキュリティ設定</p>
             </div>
 
             <div className="space-y-2 sm:space-y-3">
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700">ログイン通知</span>
-                  <p className="text-xs text-gray-500 mt-1">新しいデバイスからのログイン通知</p>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ログイン通知</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">新しいデバイスからのログイン通知</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.loginNotifications}
                   onChange={(e) => updateSetting("loginSecurity", "loginNotifications", e.target.checked)}
-                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700">デバイス記憶</span>
-                  <p className="text-xs text-gray-500 mt-1">信頼できるデバイスを記憶</p>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">デバイス記憶</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">信頼できるデバイスを記憶</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.deviceRemembering}
                   onChange={(e) => updateSetting("loginSecurity", "deviceRemembering", e.target.checked)}
-                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700">不審なアクティビティ通知</span>
-                  <p className="text-xs text-gray-500 mt-1">異常なアクセスパターンの検知</p>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">不審なアクティビティ通知</span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">異常なアクセスパターンの検知</p>
                 </div>
                 <input
                   type="checkbox"
                   checked={settings.loginSecurity.suspiciousActivityAlerts}
                   onChange={(e) => updateSetting("loginSecurity", "suspiciousActivityAlerts", e.target.checked)}
-                  className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                  className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
             </div>
@@ -331,10 +331,10 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+            className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 active:bg-gray-300 dark:active:bg-gray-400 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
             キャンセル
           </button>

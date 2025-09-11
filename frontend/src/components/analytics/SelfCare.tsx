@@ -271,10 +271,10 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   }, []);
 
   const symptoms = [
-    { id: "menstrual", label: "生理中", color: "bg-red-100 text-red-800" },
-    { id: "pms", label: "PMS", color: "bg-orange-100 text-orange-800" },
-    { id: "ovulation", label: "排卵期", color: "bg-green-100 text-green-800" },
-    { id: "general", label: "日常", color: "bg-blue-100 text-blue-800" },
+    { id: "menstrual", label: "生理中", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+    { id: "pms", label: "PMS", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
+    { id: "ovulation", label: "排卵期", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
+    { id: "general", label: "日常", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
   ];
 
   const categories = [
@@ -452,13 +452,13 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "easy":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "medium":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
       case "hard":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
@@ -479,11 +479,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
     <div className={`space-y-4 sm:space-y-6 ${className}`}>
       {/* Header */}
       <FadeInUp delay={0}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">セルフケア提案</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">セルフケア提案</h2>
           </div>
-          <p className="text-xs sm:text-sm text-neutral-600 mt-2">
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-gray-300 mt-2">
             {isShowingPartnerStatus
               ? `${partnerName}の体調に合わせたサポート方法とセルフケア提案`
               : "あなたの体調に合わせたセルフケア方法とパートナー向けサポート提案"}
@@ -493,11 +493,11 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       {/* Symptom Filter */}
       <FadeInUp delay={100}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900">{isShowingPartnerStatus ? `パートナーの状態 (${partnerName})` : "現在の状態"}</h3>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">{isShowingPartnerStatus ? `パートナーの状態 (${partnerName})` : "現在の状態"}</h3>
             {todayStatus !== "general" && (
-              <div className="flex items-center text-sm text-green-600">
+              <div className="flex items-center text-sm text-green-600 dark:text-green-400">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -517,7 +517,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                   key={symptom.id}
                   onClick={() => setSelectedSymptom(symptom.id)}
                   className={`p-3 rounded-lg text-sm font-medium transition-all relative ${
-                    selectedSymptom === symptom.id ? symptom.color + " ring-2 ring-offset-2 ring-primary-500" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    selectedSymptom === symptom.id ? symptom.color + " ring-2 ring-offset-2 ring-primary-500 dark:ring-offset-gray-800" : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
                   }`}
                 >
                   {symptom.label}
@@ -527,9 +527,9 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
             })}
           </div>
           {todayStatus !== "general" && (
-            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg">
               <div className="flex items-start space-x-2">
-                <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -537,8 +537,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                   />
                 </svg>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-green-800">自動検出</p>
-                  <p className="text-xs text-green-700 mt-1">
+                  <p className="text-xs font-medium text-green-800 dark:text-green-300">自動検出</p>
+                  <p className="text-xs text-green-700 dark:text-green-300 mt-1">
                     {isShowingPartnerStatus ? (
                       <>
                         パートナー（{partnerName}）のカレンダーデータから「{symptoms.find((s) => s.id === todayStatus)?.label}」を検出しました。
@@ -562,8 +562,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       {/* Category Filter */}
       <FadeInUp delay={150}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">カテゴリー</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">カテゴリー</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-3">
             {categories.map((category) => (
               <button
@@ -571,8 +571,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
                 onClick={() => setSelectedCategory(category.id)}
                 className={`p-3 rounded-lg text-xs sm:text-sm font-medium transition-all min-h-[44px] flex flex-col items-center justify-center ${
                   selectedCategory === category.id
-                    ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                    ? "bg-primary-100 text-primary-700 ring-2 ring-offset-2 ring-primary-500 dark:bg-primary-900/30 dark:text-primary-300 dark:ring-offset-gray-800"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:active:bg-gray-500"
                 }`}
               >
                 <div className="text-base sm:text-lg mb-1">{category.icon}</div>
@@ -585,23 +585,23 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       {/* Self Care Recommendations */}
       <FadeInUp delay={200}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">
             {isShowingPartnerStatus ? "パートナーサポート方法" : "おすすめのセルフケア"}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {getFilteredAdvices().map((advice) => (
-              <div key={advice.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={advice.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow dark:bg-gray-700/50">
                 <div className="flex items-start space-x-3">
                   <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                      <h4 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base leading-tight">{advice.title}</h4>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${getDifficultyColor(advice.difficulty)}`}>
                         {getDifficultyLabel(advice.difficulty)}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{advice.description}</p>
                   </div>
                 </div>
               </div>
@@ -609,7 +609,7 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
           </div>
 
           {getFilteredAdvices().length === 0 && (
-            <div className="text-center py-6 sm:py-8 text-gray-500">
+            <div className="text-center py-6 sm:py-8 text-gray-500 dark:text-gray-400">
               <div className="text-3xl sm:text-4xl mb-2"></div>
               <p className="text-sm sm:text-base">この条件に合うセルフケア提案がありません</p>
             </div>
@@ -619,22 +619,22 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       {/* Partner Support Recommendations */}
       <FadeInUp delay={300}>
-        <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl border border-pink-200 p-4 sm:p-6">
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl border border-pink-200 dark:border-pink-700 p-4 sm:p-6">
           <div className="flex items-center mb-3 sm:mb-4">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向けサポート提案</h3>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">パートナー向けサポート提案</h3>
             <span className="ml-2 text-lg sm:text-xl"></span>
           </div>
-          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3 sm:mb-4">パートナーと共有して、より良いサポートを受けましょう</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             {partnerAdvices.map((advice) => (
-              <div key={advice.id} className="bg-white/70 backdrop-blur-sm border border-pink-200 rounded-lg p-4">
+              <div key={advice.id} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-pink-200 dark:border-pink-700 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
                   <div className="text-xl sm:text-2xl flex-shrink-0">{advice.icon}</div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="font-medium text-gray-900 mb-1 text-sm sm:text-base leading-tight">{advice.title}</h4>
-                    <p className="text-xs text-pink-700 font-medium mb-2 leading-tight">{advice.situation}</p>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-1 text-sm sm:text-base leading-tight">{advice.title}</h4>
+                    <p className="text-xs text-pink-700 dark:text-pink-300 font-medium mb-2 leading-tight">{advice.situation}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{advice.description}</p>
                   </div>
                 </div>
               </div>
@@ -645,9 +645,9 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
 
       {/* Tips Section */}
       <FadeInUp delay={400}>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-5">
+        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-4 sm:p-5">
           <div className="flex">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 dark:text-amber-300 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
                 d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -655,8 +655,8 @@ export const SelfCare: React.FC<SelfCareProps> = ({ className = "" }) => {
               />
             </svg>
             <div className="text-xs sm:text-sm min-w-0">
-              <p className="font-medium text-amber-800 mb-1 sm:mb-2">重要な注意事項</p>
-              <ul className="text-amber-700 list-disc list-inside space-y-1 leading-relaxed">
+              <p className="font-medium text-amber-800 dark:text-amber-300 mb-1 sm:mb-2">重要な注意事項</p>
+              <ul className="text-amber-700 dark:text-amber-300 list-disc list-inside space-y-1 leading-relaxed">
                 <li>症状が重い場合は医師に相談してください</li>
                 <li>アレルギーがある場合は食材に注意してください</li>
                 <li>体調に異変を感じたら無理をせず休息を取ってください</li>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { createPortal } from 'react-dom';
-import { userDataAPI } from '../../services/api';
+import { createPortal } from "react-dom";
+import { userDataAPI } from "../../services/api";
 
 interface NotificationSettingsModalProps {
   isOpen: boolean;
@@ -59,7 +59,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
 
   // 通知権限をチェック
   useEffect(() => {
-    if (isOpen && 'Notification' in window) {
+    if (isOpen && "Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
   }, [isOpen]);
@@ -87,14 +87,14 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
 
   // 通知権限を要求
   const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
+    if ("Notification" in window) {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
-      if (permission === 'granted') {
+      if (permission === "granted") {
         // テスト通知を送信
-        new Notification('Pairiod', {
-          body: '通知が有効になりました',
-          icon: '/favicon.ico'
+        new Notification("Pairiod", {
+          body: "通知が有効になりました",
+          icon: "/favicon.ico",
         });
       }
     }
@@ -104,12 +104,12 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
     setLoading(true);
     try {
       await userDataAPI.saveSettings({
-        notificationSettings: settings
+        notificationSettings: settings,
       });
       onSave(settings);
       onClose();
     } catch {
-      alert('設定の保存に失敗しました。');
+      alert("設定の保存に失敗しました。");
     } finally {
       setLoading(false);
     }
@@ -128,13 +128,19 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-2xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-2xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">通知設定</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">通知設定</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          >
+            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -145,8 +151,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-start sm:items-center justify-between">
               <div className="flex-1 mr-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">生理リマインド</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-tight">予測される生理開始日の通知設定</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">生理リマインド</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">予測される生理開始日の通知設定</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
@@ -155,18 +161,18 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   onChange={(e) => updateSetting("menstrualReminder", "enabled", e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-300 after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
               </label>
             </div>
 
             {settings.menstrualReminder.enabled && (
-              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知タイミング:</label>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">通知タイミング:</label>
                   <select
                     value={settings.menstrualReminder.daysBeforeStart}
                     onChange={(e) => updateSetting("menstrualReminder", "daysBeforeStart", parseInt(e.target.value))}
-                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                   >
                     <option value={0}>当日</option>
                     <option value={1}>1日前</option>
@@ -179,12 +185,12 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   </select>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知時刻:</label>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">通知時刻:</label>
                   <input
                     type="time"
                     value={settings.menstrualReminder.time}
                     onChange={(e) => updateSetting("menstrualReminder", "time", e.target.value)}
-                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -195,8 +201,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-start sm:items-center justify-between">
               <div className="flex-1 mr-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">排卵日リマインド</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-tight">予測される排卵日の通知設定</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">排卵日リマインド</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">予測される排卵日の通知設定</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
@@ -205,18 +211,18 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   onChange={(e) => updateSetting("ovulationReminder", "enabled", e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-300 after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
               </label>
             </div>
 
             {settings.ovulationReminder.enabled && (
-              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知タイミング:</label>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">通知タイミング:</label>
                   <select
                     value={settings.ovulationReminder.daysBeforeOvulation}
                     onChange={(e) => updateSetting("ovulationReminder", "daysBeforeOvulation", parseInt(e.target.value))}
-                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                   >
                     <option value={0}>当日</option>
                     <option value={1}>1日前</option>
@@ -229,12 +235,12 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   </select>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <label className="text-xs sm:text-sm font-medium text-gray-700 flex-shrink-0">通知時刻:</label>
+                  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 flex-shrink-0">通知時刻:</label>
                   <input
                     type="time"
                     value={settings.ovulationReminder.time}
                     onChange={(e) => updateSetting("ovulationReminder", "time", e.target.value)}
-                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                    className="w-full sm:w-auto px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -245,8 +251,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-start sm:items-center justify-between">
               <div className="flex-1 mr-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">パートナー向け通知</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-tight">パートナーに重要な情報を共有</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">パートナー向け通知</h3>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">パートナーに重要な情報を共有</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
@@ -255,20 +261,20 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   onChange={(e) => updateSetting("partnerNotifications", "enabled", e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-300 after:border-gray-300 dark:after:border-gray-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 dark:peer-checked:bg-primary-500"></div>
               </label>
             </div>
 
             {settings.partnerNotifications.enabled && (
-              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className="space-y-3 sm:space-y-4">
-                  <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
-                    <span className="text-sm font-medium text-gray-700">生理開始時の通知</span>
+                  <label className="flex items-center justify-between p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">生理開始時の通知</span>
                     <input
                       type="checkbox"
                       checked={settings.partnerNotifications.menstrualStart}
                       onChange={(e) => updateSetting("partnerNotifications", "menstrualStart", e.target.checked)}
-                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                     />
                   </label>
                   <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
@@ -277,7 +283,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                       type="checkbox"
                       checked={settings.partnerNotifications.ovulationPeriod}
                       onChange={(e) => updateSetting("partnerNotifications", "ovulationPeriod", e.target.checked)}
-                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                     />
                   </label>
                   <label className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer min-h-[44px]">
@@ -286,7 +292,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                       type="checkbox"
                       checked={settings.partnerNotifications.moodChanges}
                       onChange={(e) => updateSetting("partnerNotifications", "moodChanges", e.target.checked)}
-                      className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                      className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
                     />
                   </label>
                 </div>
@@ -297,30 +303,29 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
           {/* 一般設定 */}
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">一般設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500 leading-tight">プッシュ通知と音声設定</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">一般設定</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">プッシュ通知と音声設定</p>
             </div>
-            
+
             {/* ブラウザ通知権限 */}
-            <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">ブラウザ通知権限</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  notificationPermission === 'granted' 
-                    ? 'bg-green-100 text-green-700' 
-                    : notificationPermission === 'denied'
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {notificationPermission === 'granted' ? '許可済み' : 
-                   notificationPermission === 'denied' ? '拒否' : '未設定'}
+            <div className="p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ブラウザ通知権限</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    notificationPermission === "granted"
+                      ? "bg-green-100 text-green-700"
+                      : notificationPermission === "denied"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {notificationPermission === "granted" ? "許可済み" : notificationPermission === "denied" ? "拒否" : "未設定"}
                 </span>
               </div>
-              {notificationPermission !== 'granted' && (
+              {notificationPermission !== "granted" && (
                 <div>
-                  <p className="text-xs text-gray-600 mb-2">
-                    ブラウザ通知を受信するには権限が必要です
-                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">ブラウザ通知を受信するには権限が必要です</p>
                   <button
                     onClick={requestNotificationPermission}
                     className="text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-lg transition-colors"
@@ -332,8 +337,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
             </div>
 
             <div className="space-y-2 sm:space-y-3">
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
-                <span className="text-sm font-medium text-gray-700">プッシュ通知</span>
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">プッシュ通知</span>
                 <input
                   type="checkbox"
                   checked={settings.generalSettings.pushNotifications}
@@ -341,8 +346,8 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
                   className="w-5 h-5 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
                 />
               </label>
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer min-h-[44px]">
-                <span className="text-sm font-medium text-gray-700">通知音</span>
+              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">通知音</span>
                 <input
                   type="checkbox"
                   checked={settings.generalSettings.soundEnabled}
@@ -355,16 +360,19 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
-          <button onClick={onClose} className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-gray-300 dark:active:bg-gray-500 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+          >
             キャンセル
           </button>
-          <button 
-            onClick={handleSave} 
+          <button
+            onClick={handleSave}
             disabled={loading}
             className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-primary-400 disabled:cursor-not-allowed rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            {loading ? '保存中...' : '保存'}
+            {loading ? "保存中..." : "保存"}
           </button>
         </div>
       </div>

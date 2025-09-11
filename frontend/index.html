@@ -8,9 +8,124 @@
     <meta name="keywords" content="生理周期,月経管理,女性の健康,周期予測,症状記録" />
     <meta name="author" content="Pairiod" />
     <title>Pairiod - 生理周期管理アプリ</title>
+    <style>
+      /* デフォルト（ライトモード）スタイル */
+      #initial-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom right, #fdf2f8, #ffffff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      
+      .loading-content {
+        text-align: center;
+      }
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 2px solid transparent;
+        border-top: 2px solid #dc2626;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+      }
+      
+      .loading-text {
+        color: #4b5563;
+        font-size: 14px;
+        font-weight: 400;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Reactアプリがロードされたら非表示 */
+      .app-loaded #initial-loading {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
-  <body>
+  <body class="antialiased">
+    <!-- 初期ローディング画面 -->
+    <div id="initial-loading">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">読み込み中...</div>
+      </div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <script>
+      // テーマ設定をローカルストレージから読み取って初期ローディングのテーマを設定
+      (function() {
+        try {
+          // ローカルストレージからテーマ設定を取得
+          const savedTheme = localStorage.getItem('theme');
+          let isDark = false;
+          
+          if (savedTheme) {
+            // ローカルストレージに設定がある場合
+            isDark = savedTheme === 'dark';
+          } else {
+            // ローカルストレージに設定がない場合はシステム設定を使用
+            isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          
+          const loadingElement = document.getElementById('initial-loading');
+          if (loadingElement && isDark) {
+            // ダークモードスタイルを適用
+            loadingElement.style.background = 'linear-gradient(to bottom right, #111827, #1f2937)';
+            const textElement = loadingElement.querySelector('.loading-text');
+            if (textElement) {
+              textElement.style.color = '#d1d5db';
+            }
+          }
+        } catch (e) {
+          // エラーが発生した場合はデフォルトのライトモードを使用
+          console.warn('Failed to apply theme to loading screen:', e);
+        }
+      })();
+      
+      // Reactアプリがマウントされたら初期ローディングを非表示
+      document.addEventListener('DOMContentLoaded', function() {
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              const rootElement = document.getElementById('root');
+              if (rootElement && rootElement.children.length > 0) {
+                document.body.classList.add('app-loaded');
+                // 500ms後にローディング要素を完全に削除
+                setTimeout(function() {
+                  const loadingElement = document.getElementById('initial-loading');
+                  if (loadingElement) {
+                    loadingElement.remove();
+                  }
+                }, 500);
+                observer.disconnect();
+              }
+            }
+          });
+        });
+        
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+          observer.observe(rootElement, { childList: true, subtree: true });
+        }
+      });
+    </script>
   </body>
 </html>

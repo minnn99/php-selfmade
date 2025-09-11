@@ -42,12 +42,12 @@ export const SessionExpiredModal: React.FC<SessionExpiredModalProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-[9999] flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all">
         {/* Icon */}
         <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
@@ -59,21 +59,21 @@ export const SessionExpiredModal: React.FC<SessionExpiredModalProps> = ({
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-semibold text-gray-900 text-center mb-3">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white text-center mb-3">
           セッション期限切れ
         </h2>
 
         {/* Message */}
-        <p className="text-gray-600 text-center mb-6 leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
           {message}
         </p>
 
         {/* Countdown */}
         <div className="text-center mb-6">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {countdown}秒後に自動的にログイン画面に移動します
           </p>
-          <div className="mt-2 bg-gray-200 rounded-full h-2">
+          <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div 
               className="bg-primary-600 h-2 rounded-full transition-all duration-1000 ease-linear"
               style={{ width: `${(countdown / 10) * 100}%` }}

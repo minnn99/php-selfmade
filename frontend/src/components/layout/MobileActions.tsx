@@ -306,12 +306,12 @@ export const MobileActions: React.FC = () => {
   return (
     <div className="lg:hidden space-y-6">
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4">
+        <h3 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">
           クイックアクション
           {/* デバッグ情報 */}
           {menstrualStatus && (
-            <span className="ml-2 text-xs text-gray-400">
+            <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">
               (Active: {menstrualStatus.hasActiveCycle ? 'Yes' : 'No'})
             </span>
           )}

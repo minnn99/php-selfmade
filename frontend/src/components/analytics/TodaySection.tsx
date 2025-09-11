@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DailyRecordModal } from "../calendar/DailyRecordModal";
 
 interface DailyRecordData {
@@ -10,6 +11,7 @@ interface DailyRecordData {
 }
 
 export const TodaySection: React.FC = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dailyData, setDailyData] = useState<DailyRecordData | null>(null);
   const [hasAnyData, setHasAnyData] = useState(false);
@@ -80,17 +82,17 @@ export const TodaySection: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">今日の記録</h2>
-          <p className="text-xs sm:text-sm text-gray-600">{dateString}</p>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-1">今日の記録</h2>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{dateString}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center px-4 py-3 border border-primary-300 rounded-lg text-sm sm:text-base font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 transition-colors min-h-[44px]"
+            className="inline-flex items-center justify-center px-4 py-3 border border-primary-300 dark:border-primary-600 rounded-lg text-sm sm:text-base font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 active:bg-primary-200 dark:active:bg-primary-900/70 transition-colors min-h-[44px]"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -103,8 +105,8 @@ export const TodaySection: React.FC = () => {
             今日の記録を追加
           </button>
           <button
-            onClick={() => window.location.href = '/daily-records'}
-            className="inline-flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg text-sm sm:text-base font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors min-h-[44px]"
+            onClick={() => navigate('/daily-records')}
+            className="inline-flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 active:bg-gray-100 dark:active:bg-gray-500 transition-colors min-h-[44px]"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -121,36 +123,36 @@ export const TodaySection: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">気分</p>
+        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">気分</p>
           <div className="flex justify-center space-x-1">
             {hasAnyData && dailyData ? (
-              <span className="text-sm sm:text-base font-medium text-gray-700">{getMoodText(dailyData.mood)}</span>
+              <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">{getMoodText(dailyData.mood)}</span>
             ) : (
-              <span className="text-xs text-gray-400">未記録</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">未記録</span>
             )}
           </div>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">体調</p>
+        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">体調</p>
           <div className="flex justify-center space-x-1">
             {hasAnyData && dailyData ? (
-              <span className="text-sm sm:text-base font-medium text-gray-700">{getPhysicalText(dailyData.physicalCondition)}</span>
+              <span className="text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300">{getPhysicalText(dailyData.physicalCondition)}</span>
             ) : (
-              <span className="text-xs text-gray-400">未記録</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500">未記録</span>
             )}
           </div>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">水分摂取</p>
-          <p className="text-sm sm:text-base font-medium text-gray-900">
-            {hasAnyData && dailyData ? `${dailyData.waterIntake}L` : <span className="text-xs text-gray-400">未記録</span>}
+        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">水分摂取</p>
+          <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+            {hasAnyData && dailyData ? `${dailyData.waterIntake}L` : <span className="text-xs text-gray-400 dark:text-gray-500">未記録</span>}
           </p>
         </div>
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-500 mb-1">睡眠時間</p>
-          <p className="text-sm sm:text-base font-medium text-gray-900">
-            {hasAnyData && dailyData ? `${dailyData.sleepHours}h` : <span className="text-xs text-gray-400">未記録</span>}
+        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">睡眠時間</p>
+          <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
+            {hasAnyData && dailyData ? `${dailyData.sleepHours}h` : <span className="text-xs text-gray-400 dark:text-gray-500">未記録</span>}
           </p>
         </div>
       </div>

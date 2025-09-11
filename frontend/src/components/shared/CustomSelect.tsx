@@ -90,15 +90,15 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   const baseClasses = `
     relative w-full px-3 py-3 sm:px-4 border rounded-lg 
     focus:outline-none focus:ring-2 focus:border-transparent 
-    transition-all duration-200 text-neutral-900 text-base 
+    transition-all duration-200 text-neutral-900 dark:text-white text-base 
     min-h-[44px] touch-manipulation cursor-pointer
-    bg-white flex items-center justify-between
+    bg-white dark:bg-gray-700 flex items-center justify-between
     appearance-none
   `;
 
   const errorClasses = error 
     ? 'border-red-500 focus:ring-red-500' 
-    : 'border-medical focus:ring-primary-500 hover:border-primary-300';
+    : 'border-medical dark:border-gray-600 focus:ring-primary-500 hover:border-primary-300 dark:hover:border-gray-500';
 
   return (
     <div className="relative" ref={selectRef}>
@@ -131,11 +131,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         aria-haspopup="listbox"
         aria-labelledby={id ? `${id}-label` : undefined}
       >
-        <span className={selectedOption ? 'text-neutral-900' : 'text-neutral-400'}>
+        <span className={selectedOption ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-gray-500'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <svg
-          className={`w-5 h-5 text-neutral-400 transition-transform duration-200 ${
+          className={`w-5 h-5 text-neutral-400 dark:text-gray-500 transition-transform duration-200 ${
             isOpen ? 'transform rotate-180' : ''
           }`}
           fill="none"
@@ -148,12 +148,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {/* Options dropdown */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.map((option) => (
             <div
               key={option.value}
-              className={`px-3 py-3 sm:px-4 cursor-pointer hover:bg-primary-50 transition-colors ${
-                value === option.value ? 'bg-primary-100 text-primary-700 font-medium' : 'text-neutral-900'
+              className={`px-3 py-3 sm:px-4 cursor-pointer hover:bg-primary-50 dark:hover:bg-gray-600 transition-colors ${
+                value === option.value ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium' : 'text-neutral-900 dark:text-white'
               }`}
               onClick={() => handleOptionClick(option.value)}
               role="option"

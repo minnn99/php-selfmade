@@ -219,13 +219,13 @@ export const OverviewCards: React.FC = () => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Next Period Card */}
       <FadeInUp delay={0}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの次の生理予定日" : "次の生理周期予定日"}
             </h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -237,12 +237,12 @@ export const OverviewCards: React.FC = () => {
           </div>
           <div className="space-y-2 sm:space-y-3">
             {loading ? (
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">...</p>
             ) : predictionData.nextPeriodDate ? (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{formatDate(predictionData.nextPeriodDate)}</p>
-                <p className="text-xs sm:text-sm text-gray-500">あと{getDaysUntil(predictionData.nextPeriodDate)}日</p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">{formatDate(predictionData.nextPeriodDate)}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">あと{getDaysUntil(predictionData.nextPeriodDate)}日</p>
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                   <div
                     className="bg-red-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${getProgressPercentage(predictionData.nextPeriodDate, predictionData.averageCycleLength)}%` }}
@@ -251,9 +251,9 @@ export const OverviewCards: React.FC = () => {
               </>
             ) : (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-                <p className="text-xs sm:text-sm text-gray-500">データなし</p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">データなし</p>
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                   <div className="bg-red-500 h-2 rounded-full" style={{ width: "0%" }}></div>
                 </div>
               </>
@@ -264,13 +264,13 @@ export const OverviewCards: React.FC = () => {
 
       {/* Ovulation Card */}
       <FadeInUp delay={100}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-medium text-gray-600">
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの排卵予定日" : "排卵予定日"}
             </h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -282,23 +282,23 @@ export const OverviewCards: React.FC = () => {
           </div>
           <div className="space-y-2 sm:space-y-3">
             {loading ? (
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">...</p>
             ) : predictionData.nextOvulationDate ? (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{formatDate(predictionData.nextOvulationDate)}</p>
-                <p className="text-xs sm:text-sm text-gray-500">あと{getDaysUntil(predictionData.nextOvulationDate)}日</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">{formatDate(predictionData.nextOvulationDate)}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">あと{getDaysUntil(predictionData.nextOvulationDate)}日</p>
                 <div className="flex items-center space-x-1 h-2">
                   <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
-                  <span className="text-xs text-gray-500">排卵予測</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">排卵予測</span>
                 </div>
               </>
             ) : (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">-</p>
-                <p className="text-xs sm:text-sm text-gray-500">データなし</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">-</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">データなし</p>
                 <div className="flex items-center space-x-1 h-2">
-                  <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                  <span className="text-xs text-gray-500">データ登録後表示</span>
+                  <span className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"></span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">データ登録後表示</span>
                 </div>
               </>
             )}
@@ -308,11 +308,11 @@ export const OverviewCards: React.FC = () => {
 
       {/* Partner Connection Status Card */}
       <FadeInUp delay={200}>
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-medium text-gray-600">パートナー連携状況</h3>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">パートナー連携状況</h3>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -324,11 +324,11 @@ export const OverviewCards: React.FC = () => {
           </div>
           <div className="space-y-2 sm:space-y-3">
             {loading ? (
-              <p className="text-xl sm:text-2xl font-semibold text-gray-900">...</p>
+              <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">...</p>
             ) : isConnectedToPartner ? (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">連携中</p>
-                <p className="text-xs sm:text-sm text-gray-500">
+                <p className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">連携中</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   {userGender === "male" || userGender === "男性" 
                     ? "パートナーのデータを表示中" 
                     : "パートナーとデータを共有中"}
@@ -339,16 +339,16 @@ export const OverviewCards: React.FC = () => {
                     <div className="w-2 h-2 bg-primary-400 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }}></div>
                     <div className="w-2 h-2 bg-primary-300 rounded-full animate-pulse" style={{ animationDelay: "0.6s" }}></div>
                   </div>
-                  <span className="text-xs text-primary-600 font-medium">リアルタイム同期</span>
+                  <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">リアルタイム同期</span>
                 </div>
               </>
             ) : (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-500">未連携</p>
-                <p className="text-xs sm:text-sm text-gray-500">パートナーと連携していません</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-500 dark:text-gray-400">未連携</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">パートナーと連携していません</p>
                 <div className="flex items-center space-x-2 h-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                  <span className="text-xs text-gray-500">連携設定で追加可能</span>
+                  <div className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">連携設定で追加可能</span>
                 </div>
               </>
             )}

@@ -11,6 +11,7 @@ import { initializeTodayPeriodStatus } from "./utils/periodStatusHelper";
 import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
 import { useUserStore } from "./stores/userStore";
 import { initializeNotifications } from "./main";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -124,17 +125,23 @@ function App() {
   // ローディング中の表示
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-neutral-600">読み込み中...</p>
+      <ThemeProvider>
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-neutral-600 dark:text-gray-300">読み込み中...</p>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     );
   }
 
   if (currentView === "welcome") {
-    return <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />;
+    return (
+      <ThemeProvider>
+        <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />
+      </ThemeProvider>
+    );
   }
 
   // Add notification to notification center
@@ -202,7 +209,11 @@ function App() {
   };
 
   if (currentView === "signup") {
-    return <SignupPage onShowLogin={() => setCurrentView("login")} />;
+    return (
+      <ThemeProvider>
+        <SignupPage onShowLogin={() => setCurrentView("login")} />
+      </ThemeProvider>
+    );
   }
 
   const handleShowWelcome = () => {
@@ -211,30 +222,36 @@ function App() {
   };
 
   if (!isAuthenticated) {
-    return <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />;
+    return (
+      <ThemeProvider>
+        <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />
+      </ThemeProvider>
+    );
   }
 
   return (
-    <BrowserRouter>
-      <ProtectedRoute
-        onUnauthorized={() => {
-          setIsAuthenticated(false);
-          setCurrentView("login");
-          authAPI.stopTokenChecker();
-          // Clear user data from global store
-          clearUserData();
-        }}
-      >
-        <MainLayout onLogout={handleLogout} />
-      </ProtectedRoute>
-      
-      {/* セッション期限切れモーダル */}
-      <SessionExpiredModal
-        isOpen={showSessionExpiredModal}
-        onClose={handleSessionExpiredModalClose}
-        message={sessionExpiredMessage}
-      />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <ProtectedRoute
+          onUnauthorized={() => {
+            setIsAuthenticated(false);
+            setCurrentView("login");
+            authAPI.stopTokenChecker();
+            // Clear user data from global store
+            clearUserData();
+          }}
+        >
+          <MainLayout onLogout={handleLogout} />
+        </ProtectedRoute>
+        
+        {/* セッション期限切れモーダル */}
+        <SessionExpiredModal
+          isOpen={showSessionExpiredModal}
+          onClose={handleSessionExpiredModalClose}
+          message={sessionExpiredMessage}
+        />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

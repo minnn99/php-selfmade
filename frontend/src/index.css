@@ -8,6 +8,18 @@
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* Dark mode base styles */
+@layer base {
+  body {
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  }
+}
+
+/* Smooth transitions for dark mode */
+* {
+  @apply transition-colors duration-200;
+}
+
 /* Toast Animation */
 @keyframes slide-in-right {
   from {

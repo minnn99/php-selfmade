@@ -8,6 +8,7 @@ import { NotificationBadge } from "../shared/NotificationBadge";
 import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { SessionExpiredModal } from "../modals/SessionExpiredModal";
 import { authAPI } from "../../services/api";
+import { DarkModeToggle } from "../shared/DarkModeToggle";
 
 // Page components
 import { DashboardPage } from "../pages/DashboardPage";
@@ -192,12 +193,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     const isMale = gender === 'male' || gender === '男性';
     
     return {
-      bgColor: isMale ? 'bg-blue-50' : 'bg-primary-50',
-      borderColor: isMale ? 'border-blue-200' : 'border-primary-200',
-      iconBg: isMale ? 'bg-blue-100' : 'bg-primary-100',
-      iconColor: isMale ? 'text-blue-600' : 'text-primary-600',
-      textColor: isMale ? 'text-blue-700' : 'text-primary-700',
-      textSecondary: isMale ? 'text-blue-600' : 'text-primary-600'
+      bgColor: isMale ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-primary-50 dark:bg-primary-900/30',
+      borderColor: isMale ? 'border-blue-200 dark:border-blue-700' : 'border-primary-200 dark:border-primary-700',
+      iconBg: isMale ? 'bg-blue-100 dark:bg-blue-800' : 'bg-primary-100 dark:bg-primary-800',
+      iconColor: isMale ? 'text-blue-600 dark:text-blue-400' : 'text-primary-600 dark:text-primary-400',
+      textColor: isMale ? 'text-blue-700 dark:text-blue-300' : 'text-primary-700 dark:text-primary-300',
+      textSecondary: isMale ? 'text-blue-600 dark:text-blue-400' : 'text-primary-600 dark:text-primary-400'
     };
   };
 
@@ -208,13 +209,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-medical sticky top-0 z-30">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-medical dark:border-gray-700 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Pairiod</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white">Pairiod</h1>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* ユーザー名表示 */}
@@ -233,11 +234,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
                   </div>
                 );
               })()}
+              {/* Dark Mode Toggle */}
+              <DarkModeToggle />
               {/* Notification Button - Always visible */}
               <div className="relative">
                 <button 
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                  className="p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" 
+                  className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" 
                   title="通知"
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +258,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 sm:p-3 text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="lg:hidden p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="メニュー"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -270,7 +273,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               {/* Desktop Logout Button */}
               <button
                 onClick={handleLogoutClick}
-                className="hidden lg:flex p-2 sm:p-3 text-gray-400 hover:text-red-600 transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
+                className="hidden lg:flex p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
                 title="ログアウト"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,17 +291,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
       )}
 
       {/* Mobile Menu Drawer */}
-      <div className={`lg:hidden fixed top-0 right-0 h-full w-72 sm:w-80 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+      <div className={`lg:hidden fixed top-0 right-0 h-full w-72 sm:w-80 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
         isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
-        <div className="p-4 sm:p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">メニュー</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">メニュー</h2>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

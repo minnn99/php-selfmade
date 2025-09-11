@@ -26,6 +26,31 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
     password: false,
   });
 
+  // フォームとエラーをリセットする関数
+  const resetForm = React.useCallback(() => {
+    setEmail("");
+    setPassword("");
+    setShowPassword(false);
+    setRememberMe(false);
+    setErrors({});
+    setTouched({ email: false, password: false });
+  }, []);
+
+  // サーバーエラーがクリアされた時にローカルエラーもクリア
+  React.useEffect(() => {
+    if (!serverError) {
+      // サーバーエラーがなくなったらローカルエラーもクリアするか選択できる
+      // ここではサーバーエラーのみを考慮してローカルエラーはそのまま残す
+    }
+  }, [serverError]);
+
+  // コンポーネントのアンマウント時にリセット
+  React.useEffect(() => {
+    return () => {
+      resetForm();
+    };
+  }, [resetForm]);
+
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) {
       return "メールアドレスは必須です";
@@ -116,35 +141,35 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
       <InteractiveBackground />
       <div className="max-w-md w-full space-y-6 sm:space-y-8 relative z-20">
         {/* Header */}
         <FadeInUp delay={0}>
           <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
-            <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">ペアで寄り添う、生理のリズム</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-2">Pairiod</h1>
+            <p className="text-base sm:text-lg text-neutral-600 dark:text-gray-300 mb-6 sm:mb-8">ペアで寄り添う、生理のリズム</p>
           </div>
         </FadeInUp>
 
         {/* Login Card */}
         <ScaleIn delay={100}>
-          <div className="bg-white rounded-xl shadow-lg border border-medical p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-medical dark:border-gray-700 p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 text-center">ログイン</h2>
-            <p className="text-sm sm:text-base text-neutral-600 text-center mt-2">アカウントにサインインしてください</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 dark:text-white text-center">ログイン</h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300 text-center mt-2">アカウントにサインインしてください</p>
           </div>
 
           {serverError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{serverError}</p>
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-300">{serverError}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 メールアドレス
               </label>
               <div className="relative">
@@ -157,13 +182,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   value={email}
                   onChange={handleEmailChange}
                   onBlur={handleEmailBlur}
-                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
-                    errors.email && touched.email ? "border-red-500 focus:ring-red-500" : "border-medical focus:ring-primary-500"
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base bg-white dark:bg-gray-700 ${
+                    errors.email && touched.email ? "border-red-500 focus:ring-red-500" : "border-medical dark:border-gray-600 focus:ring-primary-500"
                   }`}
                   placeholder="example@email.com"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                  <svg className="h-5 w-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 text-neutral-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -173,12 +198,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   </svg>
                 </div>
               </div>
-              {errors.email && touched.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              {errors.email && touched.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 パスワード
               </label>
               <div className="relative">
@@ -191,8 +216,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   value={password}
                   onChange={handlePasswordChange}
                   onBlur={handlePasswordBlur}
-                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base ${
-                    errors.password && touched.password ? "border-red-500 focus:ring-red-500" : "border-medical focus:ring-primary-500"
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base bg-white dark:bg-gray-700 ${
+                    errors.password && touched.password ? "border-red-500 focus:ring-red-500" : "border-medical dark:border-gray-600 focus:ring-primary-500"
                   }`}
                   placeholder="パスワードを入力"
                 />
@@ -203,7 +228,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                 >
                   {showPassword ? (
                     <svg
-                      className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700"
+                      className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -217,7 +242,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                     </svg>
                   ) : (
                     <svg
-                      className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700"
+                      className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -233,7 +258,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   )}
                 </button>
               </div>
-              {errors.password && touched.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              {errors.password && touched.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
             </div>
 
             {/* Remember Me & Forgot Password */}
@@ -245,9 +270,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-medical rounded touch-manipulation"
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-medical dark:border-gray-600 rounded touch-manipulation bg-white dark:bg-gray-700"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-700 dark:text-gray-300">
                   ログイン状態を保持
                 </label>
               </div>
@@ -255,7 +280,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
                 <button
                   type="button"
                   onClick={onShowForgotPassword}
-                  className="font-medium text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
+                  className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 active:text-primary-700 dark:active:text-primary-500 transition-colors touch-manipulation"
                 >
                   パスワードを忘れた方
                 </button>
@@ -288,11 +313,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-neutral-600 dark:text-gray-400">
               アカウントをお持ちでない方は{" "}
               <button
                 onClick={onShowSignup}
-                className="font-medium text-primary-600 hover:text-primary-500 active:text-primary-700 transition-colors touch-manipulation"
+                className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 active:text-primary-700 dark:active:text-primary-500 transition-colors touch-manipulation"
               >
                 新規登録
               </button>
@@ -304,7 +329,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, isLoading = false
         {/* Footer */}
         <FadeInUp delay={200}>
           <div className="text-center">
-            <p className="text-xs sm:text-sm text-neutral-500">© 2025 Pairiod. すべての権利を保有します。</p>
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-gray-400">© 2025 Pairiod. すべての権利を保有します。</p>
           </div>
         </FadeInUp>
       </div>

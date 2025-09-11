@@ -74,12 +74,55 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
 
+  // フォームとエラーをリセットする関数
+  const resetForm = React.useCallback(() => {
+    if (!initialData) { // initialDataがない場合のみリセット
+      setFormData({
+        name: '',
+        furigana: '',
+        nickname: '',
+        gender: '',
+        phone: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+      });
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setAgreedToTerms(false);
+      setPasswordValidation({
+        length: false,
+        uppercase: false,
+        number: false,
+        isValid: false
+      });
+      setTouched({
+        name: false,
+        furigana: false,
+        nickname: false,
+        gender: false,
+        phone: false,
+        email: false,
+        password: false,
+        confirmPassword: false
+      });
+      setErrors({});
+    }
+  }, [initialData]);
+
   // initialDataがある場合（修正ボタンから戻ってきた場合）にパスワードバリデーション状態を復元
   useEffect(() => {
     if (initialData?.password) {
       setPasswordValidation(validatePassword(initialData.password));
     }
   }, [initialData]);
+
+  // コンポーネントのアンマウント時にリセット
+  useEffect(() => {
+    return () => {
+      resetForm();
+    };
+  }, [resetForm]);
 
   const validateName = (name: string): string | undefined => {
     if (!name.trim()) {
@@ -287,29 +330,29 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 relative">
       <InteractiveBackground />
       <div className="max-w-md w-full space-y-6 sm:space-y-8 relative z-10">
         {/* Header */}
         <FadeInUp delay={0}>
           <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-2">Pairiod</h1>
-            <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">新規アカウントを作成</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white mb-2">Pairiod</h1>
+            <p className="text-base sm:text-lg text-neutral-600 dark:text-gray-300 mb-6 sm:mb-8">新規アカウントを作成</p>
           </div>
         </FadeInUp>
 
         {/* Signup Card */}
         <ScaleIn delay={100}>
-          <div className="bg-white rounded-xl shadow-lg border border-medical p-6 sm:p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-medical dark:border-gray-700 p-6 sm:p-8">
           <div className="mb-6">
-            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 text-center">新規登録</h2>
-            <p className="text-sm sm:text-base text-neutral-600 text-center mt-2">必要な情報を入力してください</p>
+            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900 dark:text-white text-center">新規登録</h2>
+            <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300 text-center mt-2">必要な情報を入力してください</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 お名前 <span className="text-red-500">*</span>
               </label>
               <input
@@ -320,21 +363,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={() => handleBlur('name')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                   errors.name && touched.name
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
+                    : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                 }`}
                 placeholder="山田太郎"
               />
               {errors.name && touched.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
               )}
             </div>
 
             {/* Furigana Field */}
             <div>
-              <label htmlFor="furigana" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="furigana" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 フリガナ <span className="text-red-500">*</span>
               </label>
               <input
@@ -345,21 +388,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.furigana}
                 onChange={handleChange}
                 onBlur={() => handleBlur('furigana')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                   errors.furigana && touched.furigana
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
+                    : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                 }`}
                 placeholder="ヤマダタロウ"
               />
               {errors.furigana && touched.furigana && (
-                <p className="mt-1 text-sm text-red-600">{errors.furigana}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.furigana}</p>
               )}
             </div>
 
             {/* Nickname Field */}
             <div>
-              <label htmlFor="nickname" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="nickname" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 ニックネーム <span className="text-red-500">*</span>
               </label>
               <input
@@ -370,25 +413,25 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.nickname}
                 onChange={handleChange}
                 onBlur={() => handleBlur('nickname')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                   errors.nickname && touched.nickname
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
+                    : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                 }`}
                 placeholder="タロウ"
                 maxLength={20}
               />
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-neutral-500 dark:text-gray-400">
                 ヘッダーに表示される名前です（20文字以内）
               </p>
               {errors.nickname && touched.nickname && (
-                <p className="mt-1 text-sm text-red-600">{errors.nickname}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nickname}</p>
               )}
             </div>
 
             {/* Gender Field */}
             <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-neutral-700 mb-2" id="gender-label">
+              <label htmlFor="gender" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2" id="gender-label">
                 性別 <span className="text-red-500">*</span>
               </label>
               <CustomSelect
@@ -417,13 +460,13 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 required
               />
               {errors.gender && touched.gender && (
-                <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.gender}</p>
               )}
             </div>
 
             {/* Phone Field */}
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 電話番号 <span className="text-red-500">*</span>
               </label>
               <input
@@ -434,21 +477,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.phone}
                 onChange={handleChange}
                 onBlur={() => handleBlur('phone')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                   errors.phone && touched.phone
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
+                    : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                 }`}
                 placeholder="09012345678"
               />
               {errors.phone && touched.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
               )}
             </div>
 
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 メールアドレス <span className="text-red-500">*</span>
               </label>
               <input
@@ -459,21 +502,21 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={() => handleBlur('email')}
-                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                   errors.email && touched.email
                     ? 'border-red-500 focus:ring-red-500'
-                    : 'border-medical focus:ring-primary-500'
+                    : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                 }`}
                 placeholder="example@email.com"
               />
               {errors.email && touched.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 パスワード <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -485,10 +528,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   value={formData.password}
                   onChange={handleChange}
                   onBlur={() => handleBlur('password')}
-                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                     touched.password && !passwordValidation.isValid
                       ? 'border-red-500 focus:ring-red-500'
-                      : 'border-medical focus:ring-primary-500'
+                      : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                   }`}
                   placeholder="大文字・数字を含む8文字以上"
                 />
@@ -498,11 +541,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   className="absolute inset-y-0 right-0 pr-3 flex items-center touch-manipulation"
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
@@ -515,19 +558,19 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center space-x-2 text-xs">
                     <div className={`w-2 h-2 rounded-full ${passwordValidation.length ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className={passwordValidation.length ? 'text-green-600' : 'text-red-600'}>
+                    <span className={passwordValidation.length ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                       8文字以上
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-xs">
                     <div className={`w-2 h-2 rounded-full ${passwordValidation.uppercase ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-600'}>
+                    <span className={passwordValidation.uppercase ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                       大文字を含む
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 text-xs">
                     <div className={`w-2 h-2 rounded-full ${passwordValidation.number ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    <span className={passwordValidation.number ? 'text-green-600' : 'text-red-600'}>
+                    <span className={passwordValidation.number ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                       数字を含む
                     </span>
                   </div>
@@ -537,7 +580,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                 パスワード（確認用） <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -549,10 +592,10 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   onBlur={() => handleBlur('confirmPassword')}
-                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 placeholder-neutral-400 text-base min-h-[44px] touch-manipulation ${
+                  className={`w-full px-3 py-3 sm:px-4 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-gray-500 text-base min-h-[44px] touch-manipulation bg-white dark:bg-gray-700 ${
                     errors.confirmPassword && touched.confirmPassword
                       ? 'border-red-500 focus:ring-red-500'
-                      : 'border-medical focus:ring-primary-500'
+                      : 'border-medical dark:border-gray-600 focus:ring-primary-500'
                   }`}
                   placeholder="パスワードを再入力"
                 />
@@ -562,11 +605,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   className="absolute inset-y-0 right-0 pr-3 flex items-center touch-manipulation"
                 >
                   {showConfirmPassword ? (
-                    <svg className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5 text-neutral-400 hover:text-neutral-600 active:text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-neutral-400 dark:text-gray-500 hover:text-neutral-600 dark:hover:text-gray-400 active:text-neutral-700 dark:active:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
@@ -574,7 +617,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                 </button>
               </div>
               {errors.confirmPassword && touched.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -587,11 +630,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 focus:ring-primary-500 border-medical rounded touch-manipulation min-h-[20px] min-w-[20px]"
+                  className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 focus:ring-primary-500 border-medical dark:border-gray-600 rounded touch-manipulation min-h-[20px] min-w-[20px] bg-white dark:bg-gray-700"
                 />
               </div>
               <div className="text-sm sm:text-base leading-relaxed">
-                <label htmlFor="terms" className="text-neutral-700 cursor-pointer">
+                <label htmlFor="terms" className="text-neutral-700 dark:text-gray-300 cursor-pointer">
                   <span className="text-red-500">*</span> 
                   <button
                     type="button"
@@ -646,7 +689,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
 
           {/* Login Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-neutral-600 dark:text-gray-300">
               既にアカウントをお持ちの方は{' '}
               <button
                 onClick={() => {
@@ -665,7 +708,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSignup, isLoading = fa
         {/* Footer */}
         <FadeInUp delay={200}>
           <div className="text-center">
-            <p className="text-xs sm:text-sm text-neutral-500">
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-gray-400">
               © 2025 Pairiod. すべての権利を保有します。
             </p>
           </div>

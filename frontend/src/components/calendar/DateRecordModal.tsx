@@ -160,17 +160,17 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
 
   return createPortal(
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-[9999]">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-2xl sm:w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto sm:m-4">
+      <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-2xl sm:w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto sm:m-4">
         {/* Mobile drag handle */}
         <div className="sm:hidden flex justify-center pt-2 pb-1">
           <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{formatDate(selectedDate)}の記録</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">{formatDate(selectedDate)}の記録</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -233,7 +233,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
               {existingData.partnerData.healthNotes && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-pink-700">健康メモ</label>
-                  <div className="text-sm text-pink-600 bg-white p-3 rounded border border-pink-200">{existingData.partnerData.healthNotes}</div>
+                  <div className="text-sm text-pink-600 dark:text-pink-400 bg-white dark:bg-gray-700 p-3 rounded border border-pink-200 dark:border-pink-700">{existingData.partnerData.healthNotes}</div>
                 </div>
               )}
             </div>
@@ -242,18 +242,18 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           {/* 生理記録セクション - hide for male with partner */}
           {isMaleWithPartner === false && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">生理記録</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">生理記録</h3>
               {isMiddleOfPeriod ? (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-red-700">生理中</span>
+                    <span className="text-sm font-medium text-red-700 dark:text-red-400">生理中</span>
                   </div>
-                  <p className="text-xs text-red-600 mt-1">この日は既存の生理周期内です</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">この日は既存の生理周期内です</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodEnd ? 'cursor-not-allowed bg-gray-100 border-gray-300' : 'cursor-pointer hover:bg-gray-50'}`}>
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodEnd ? 'cursor-not-allowed bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isPeriodStart}
@@ -261,12 +261,12 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                       disabled={isTodayPeriodEnd}
                       className={`w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 ${isTodayPeriodEnd ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
-                    <span className={`text-sm font-medium ${isTodayPeriodEnd ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`text-sm font-medium ${isTodayPeriodEnd ? 'text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
                       生理開始日にする
                       {isTodayPeriodEnd && <span className="block text-xs text-red-500 mt-1">終了日と同じ日に開始はできません</span>}
                     </span>
                   </label>
-                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodStart ? 'cursor-not-allowed bg-gray-100 border-gray-300' : 'cursor-pointer hover:bg-gray-50'}`}>
+                  <label className={`flex items-center space-x-3 p-4 border rounded-lg transition-colors ${isTodayPeriodStart ? 'cursor-not-allowed bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}>
                     <input
                       type="checkbox"
                       checked={formData.isPeriodEnd}
@@ -274,7 +274,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                       disabled={isTodayPeriodStart}
                       className={`w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 ${isTodayPeriodStart ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
-                    <span className={`text-sm font-medium ${isTodayPeriodStart ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <span className={`text-sm font-medium ${isTodayPeriodStart ? 'text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
                       生理終了日にする
                       {isTodayPeriodStart && <span className="block text-xs text-red-500 mt-1">開始日と同じ日に終了はできません</span>}
                     </span>
@@ -285,7 +285,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
               {/* 経血量 */}
               {(formData.isPeriodStart || formData.isPeriodEnd || isInPeriod) && (
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">経血量</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">経血量</label>
                   <div className="grid grid-cols-5 gap-2">
                     {flowIntensityOptions.map((option) => (
                       <button
@@ -295,7 +295,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                         className={`p-3 rounded-lg border text-xs font-medium transition-all ${
                           formData.flowIntensity === option.value
                             ? `${option.color} text-white border-transparent`
-                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                         }`}
                       >
                         {option.label}
@@ -311,7 +311,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           {isMaleWithPartner === false && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">症状</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">症状</h3>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                 {symptomOptions.map((symptom) => (
@@ -321,8 +321,8 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                     onClick={() => handleSymptomToggle(symptom)}
                       className={`p-3 sm:p-3 rounded-lg border text-xs sm:text-sm font-medium transition-all min-h-[44px] ${
                       formData.symptoms.includes(symptom)
-                        ? "bg-primary-50 text-primary-700 border-primary-200"
-                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        ? "bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-700"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                   >
                     {symptom}
@@ -335,7 +335,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
           {/* 気分セクション - hide for male with partner */}
           {isMaleWithPartner === false && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">気分</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">気分</h3>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {moodOptions.map((option) => (
                   <button
@@ -343,7 +343,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, mood: option.value }))}
                     className={`p-2 sm:p-3 rounded-lg border text-xs font-medium transition-all min-h-[44px] ${
-                      formData.mood === option.value ? `${option.color} text-white border-transparent` : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                      formData.mood === option.value ? `${option.color} text-white border-transparent` : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                   >
                     {option.label}
@@ -355,13 +355,13 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
 
           {/* 健康メモセクション */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">健康メモ</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">健康メモ</h3>
             <textarea
               value={formData.healthNotes}
               onChange={(e) => setFormData((prev) => ({ ...prev, healthNotes: e.target.value }))}
               placeholder="体調や気になることを記録してください..."
               rows={3}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-sm sm:text-base"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-sm sm:text-base bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
           </div>
             </>
@@ -369,12 +369,12 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-200 space-y-3 sm:space-y-0">
+        <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
           {existingData?.cycleId && onDelete && (
             <div className="sm:hidden">
               <button
                 onClick={handleDelete}
-                className="w-full px-4 py-3 text-sm font-medium text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                className="w-full px-4 py-3 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
               >
                 生理周期を削除
               </button>
@@ -386,7 +386,7 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
               {existingData?.cycleId && onDelete && (
                 <button
                   onClick={handleDelete}
-                  className="px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-300 rounded-lg hover:bg-red-100 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                 >
                   生理周期を削除
                 </button>
@@ -405,14 +405,14 @@ export const DateRecordModal: React.FC<DateRecordModalProps> = ({ isOpen, onClos
                       healthNotes: "" 
                     }));
                   }}
-                  className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-orange-700 bg-orange-50 border border-orange-300 rounded-lg hover:bg-orange-100 transition-colors"
+                  className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
                 >
                   全てクリア
                 </button>
               )}
               <button
                 onClick={onClose}
-                className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex-1 sm:flex-none px-4 py-3 sm:py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 キャンセル
               </button>

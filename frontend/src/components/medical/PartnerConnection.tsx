@@ -176,7 +176,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
         <div className="flex items-center justify-center py-8 sm:py-12">
           <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary-600"></div>
         </div>
@@ -185,21 +185,21 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-6">
         <div className="text-center sm:text-left">
-          <h2 className="text-base sm:text-lg font-semibold text-neutral-900">パートナー連携</h2>
-          <p className="text-xs sm:text-sm text-neutral-600">パートナーと健康データを共有</p>
+          <h2 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white">パートナー連携</h2>
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-gray-300">パートナーと健康データを共有</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-neutral-100 rounded-lg p-1 mb-4 sm:mb-6">
+      <div className="flex space-x-1 bg-neutral-100 dark:bg-gray-700 rounded-lg p-1 mb-4 sm:mb-6">
         <button
           onClick={() => setActiveTab("status")}
           className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${
-            activeTab === "status" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
+            activeTab === "status" ? "bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-300 shadow-sm" : "text-neutral-600 dark:text-gray-300 hover:text-neutral-900 dark:hover:text-white"
           }`}
         >
           連携状況
@@ -208,7 +208,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
           <button
             onClick={() => setActiveTab("invite")}
             className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${
-              activeTab === "invite" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
+              activeTab === "invite" ? "bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-300 shadow-sm" : "text-neutral-600 dark:text-gray-300 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
             <span className="hidden sm:inline">招待コード生成</span>
@@ -219,7 +219,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
           <button
             onClick={() => setActiveTab("connect")}
             className={`flex-1 py-2 px-2 sm:px-4 rounded-md text-xs sm:text-sm font-medium transition-colors touch-manipulation ${
-              activeTab === "connect" ? "bg-white text-primary-600 shadow-sm" : "text-neutral-600 hover:text-neutral-900"
+              activeTab === "connect" ? "bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-300 shadow-sm" : "text-neutral-600 dark:text-gray-300 hover:text-neutral-900 dark:hover:text-white"
             }`}
           >
             <span className="hidden sm:inline">パートナーに参加</span>
@@ -234,16 +234,16 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         {activeTab === "status" && (
           <div className="space-y-4">
             {isConnected ? (
-              <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 sm:p-4">
+              <div className="bg-pink-50 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700 rounded-lg p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                   <div className="text-center sm:text-left">
-                    <h3 className="text-base sm:text-lg font-medium text-pink-900">連携中</h3>
-                    <p className="text-sm sm:text-base text-pink-700">パートナー: {partnerInfo?.name}</p>
+                    <h3 className="text-base sm:text-lg font-medium text-pink-900 dark:text-pink-100">連携中</h3>
+                    <p className="text-sm sm:text-base text-pink-700 dark:text-pink-200">パートナー: {partnerInfo?.name}</p>
                     <div className="mt-2">
-                      <p className="text-xs sm:text-sm text-pink-600 font-medium">共有されているデータ:</p>
-                      <div className="text-xs text-pink-600 mt-1">
+                      <p className="text-xs sm:text-sm text-pink-600 dark:text-pink-300 font-medium">共有されているデータ:</p>
+                      <div className="text-xs text-pink-600 dark:text-pink-300 mt-1">
                         <div className="flex items-center">
-                          <span className="w-1 h-1 bg-pink-400 rounded-full mr-2"></span>
+                          <span className="w-1 h-1 bg-pink-400 dark:bg-pink-300 rounded-full mr-2"></span>
                           <span>カレンダーデータのみ共有</span>
                         </div>
                       </div>
@@ -253,20 +253,20 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                 <button
                   onClick={handleDisconnect}
                   disabled={actionLoading}
-                  className="mt-3 sm:mt-4 w-full sm:w-auto px-4 py-2 bg-red-100 hover:bg-red-200 active:bg-red-300 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
+                  className="mt-3 sm:mt-4 w-full sm:w-auto px-4 py-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 active:bg-red-300 dark:active:bg-red-900/70 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 dark:text-red-300 rounded-lg text-sm font-medium transition-colors min-h-[44px] touch-manipulation"
                 >
                   {actionLoading ? "処理中..." : "連携を解除"}
                 </button>
               </div>
             ) : (
-              <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 sm:p-6 text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-200 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-neutral-50 dark:bg-gray-700 border border-neutral-200 dark:border-gray-600 rounded-lg p-4 sm:p-6 text-center">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-neutral-200 dark:bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-neutral-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナー未連携</h3>
-                <p className="text-sm sm:text-base text-neutral-600 mb-4 px-2">パートナーと連携して健康データを共有しましょう</p>
+                <h3 className="text-base sm:text-lg font-medium text-neutral-900 dark:text-white mb-2">パートナー未連携</h3>
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300 mb-4 px-2">パートナーと連携して健康データを共有しましょう</p>
                 <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
                   {!isMaleUser && (
                     <button
@@ -279,7 +279,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                   {!isFemaleUser && (
                     <button
                       onClick={() => setActiveTab("connect")}
-                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-primary-300 rounded-lg text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 active:bg-primary-200 transition-colors min-h-[44px] touch-manipulation"
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-primary-300 dark:border-primary-600 rounded-lg text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 active:bg-primary-200 dark:active:bg-primary-900/70 transition-colors min-h-[44px] touch-manipulation"
                     >
                       パートナーに参加
                     </button>
@@ -294,9 +294,9 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         {activeTab === "invite" && (
           <div className="space-y-4">
             {isMaleUser ? (
-              <div className="text-center bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-200 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-4 sm:p-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-amber-200 dark:bg-amber-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -305,8 +305,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-amber-900 mb-2">招待コード生成は利用できません</h3>
-                <p className="text-sm sm:text-base text-amber-700 mb-4 px-2">
+                <h3 className="text-base sm:text-lg font-medium text-amber-900 dark:text-amber-100 mb-2">招待コード生成は利用できません</h3>
+                <p className="text-sm sm:text-base text-amber-700 dark:text-amber-200 mb-4 px-2">
                   男性アカウントでは招待コードの生成機能をご利用いただけません。パートナーから招待コードを受け取って参加してください。
                 </p>
                 <button
@@ -318,14 +318,14 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
               </div>
             ) : (
               <div className="text-center">
-                <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナーを招待</h3>
-                <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 px-2">招待コードを生成してパートナーに共有してください</p>
+                <h3 className="text-base sm:text-lg font-medium text-neutral-900 dark:text-white mb-2">パートナーを招待</h3>
+                <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300 mb-4 sm:mb-6 px-2">招待コードを生成してパートナーに共有してください</p>
 
                 {generatedCode ? (
-                  <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 sm:p-6 mb-4">
+                  <div className="bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-700 rounded-lg p-4 sm:p-6 mb-4">
                     <div className="text-center">
-                      <p className="text-xs sm:text-sm text-primary-600 mb-2">招待コード</p>
-                      <div className="text-2xl sm:text-3xl font-mono font-bold text-primary-900 tracking-widest mb-3 sm:mb-4">{generatedCode}</div>
+                      <p className="text-xs sm:text-sm text-primary-600 dark:text-primary-400 mb-2">招待コード</p>
+                      <div className="text-2xl sm:text-3xl font-mono font-bold text-primary-900 dark:text-primary-100 tracking-widest mb-3 sm:mb-4">{generatedCode}</div>
                       <button
                         onClick={async () => {
                           try {
@@ -358,9 +358,9 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-lg p-6 sm:p-8 mb-4">
+                  <div className="bg-neutral-50 dark:bg-gray-700 border-2 border-dashed border-neutral-300 dark:border-gray-600 rounded-lg p-6 sm:p-8 mb-4">
                     <div className="text-center">
-                      <svg className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-400 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-400 dark:text-gray-500 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -368,7 +368,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                           d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                         />
                       </svg>
-                      <p className="text-sm sm:text-base text-neutral-600">招待コードを生成してください</p>
+                      <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300">招待コードを生成してください</p>
                     </div>
                   </div>
                 )}
@@ -376,7 +376,7 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                 <button
                   onClick={generateInviteCode}
                   disabled={actionLoading}
-                  className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
+                  className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
                 >
                   {actionLoading ? "生成中..." : "招待コードを生成"}
                 </button>
@@ -389,9 +389,9 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
         {activeTab === "connect" && (
           <div className="space-y-4">
             {isFemaleUser ? (
-              <div className="text-center bg-pink-50 border border-pink-200 rounded-lg p-4 sm:p-6">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-pink-200 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center bg-pink-50 dark:bg-pink-900/30 border border-pink-200 dark:border-pink-700 rounded-lg p-4 sm:p-6">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-pink-200 dark:bg-pink-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-pink-600 dark:text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -400,8 +400,8 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base sm:text-lg font-medium text-pink-900 mb-2">パートナー参加機能は利用できません</h3>
-                <p className="text-sm sm:text-base text-pink-700 mb-4 px-2">
+                <h3 className="text-base sm:text-lg font-medium text-pink-900 dark:text-pink-100 mb-2">パートナー参加機能は利用できません</h3>
+                <p className="text-sm sm:text-base text-pink-700 dark:text-pink-200 mb-4 px-2">
                   女性アカウントではパートナーへの参加機能をご利用いただけません。招待コードを生成してパートナーを招待してください。
                 </p>
                 <button
@@ -414,13 +414,13 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
             ) : (
               <>
                 <div className="text-center">
-                  <h3 className="text-base sm:text-lg font-medium text-neutral-900 mb-2">パートナーに参加</h3>
-                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 px-2">パートナーから受け取った招待コードを入力してください</p>
+                  <h3 className="text-base sm:text-lg font-medium text-neutral-900 dark:text-white mb-2">パートナーに参加</h3>
+                  <p className="text-sm sm:text-base text-neutral-600 dark:text-gray-300 mb-4 sm:mb-6 px-2">パートナーから受け取った招待コードを入力してください</p>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="inviteCode" className="block text-xs sm:text-sm font-medium text-neutral-700 mb-2">
+                    <label htmlFor="inviteCode" className="block text-xs sm:text-sm font-medium text-neutral-700 dark:text-gray-300 mb-2">
                       招待コード
                     </label>
                     <input
@@ -430,14 +430,14 @@ export const PartnerConnection: React.FC<PartnerConnectionProps> = () => {
                       onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                       placeholder="例: ABC123"
                       maxLength={6}
-                      className="w-full px-4 py-3 border border-medical rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-center text-xl sm:text-2xl font-mono tracking-widest min-h-[48px] touch-manipulation"
+                      className="w-full px-4 py-3 border border-medical dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-center text-xl sm:text-2xl font-mono tracking-widest min-h-[48px] touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     />
                   </div>
 
                   <button
                     onClick={handleJoinPartner}
                     disabled={inviteCode.length !== 6 || actionLoading}
-                    className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
+                    className="w-full bg-primary-600 hover:bg-primary-700 active:bg-primary-800 disabled:bg-neutral-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors min-h-[48px] touch-manipulation"
                   >
                     {actionLoading ? "連携中..." : "パートナーに参加"}
                   </button>

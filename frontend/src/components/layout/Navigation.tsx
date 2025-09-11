@@ -409,12 +409,12 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center px-4 py-3 text-sm sm:text-base font-medium rounded-lg transition-colors min-h-[48px] ${
-                item.isActive ? "bg-primary-100 text-primary-700" : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+                item.isActive ? "bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600"
               }`}
             >
               <span className="mr-3">{item.icon}</span>
               {item.label}
-              {item.badge && <span className="ml-auto bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">{item.badge}</span>}
+              {item.badge && <span className="ml-auto bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 text-xs px-2 py-1 rounded-full font-medium">{item.badge}</span>}
             </button>
           ))}
         </nav>
@@ -425,20 +425,20 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   return (
     <div className="space-y-6">
       {/* Main Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-5">
-        <h3 className="text-sm font-medium text-gray-600 mb-4">メニュー</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-5">
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">メニュー</h3>
         <nav className="space-y-1">
           {filteredNavigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors min-h-[40px] ${
-                item.isActive ? "bg-primary-100 text-primary-700" : "text-gray-700 hover:bg-gray-100"
+                item.isActive ? "bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               }`}
             >
               <span className="mr-3">{item.icon}</span>
               {item.label}
-              {item.badge && <span className="ml-auto bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full font-medium">{item.badge}</span>}
+              {item.badge && <span className="ml-auto bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 text-xs px-2 py-1 rounded-full font-medium">{item.badge}</span>}
             </button>
           ))}
         </nav>
@@ -446,8 +446,8 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
 
       {/* Quick Actions - hide while loading or for male users */}
       {!isGenderLoading && !isMaleUser && (
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4">
-          <h3 className="text-xs sm:text-sm font-medium text-gray-600 mb-4">クイックアクション</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4">
+          <h3 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-4">クイックアクション</h3>
           <div className="space-y-2">
             {quickActions.map((action) => (
               <button

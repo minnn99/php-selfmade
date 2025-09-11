@@ -443,11 +443,11 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   };
 
   return (
-    <div className={`bg-gradient-to-br ${currentAdvice.bgColor} rounded-xl border border-primary-200 p-3 sm:p-4 ${className}`}>
+    <div className={`bg-gradient-to-br ${currentAdvice.bgColor} dark:from-gray-800 dark:to-gray-700 rounded-xl border border-primary-200 dark:border-gray-600 p-3 sm:p-4 ${className}`}>
       <div className="flex items-start space-x-2 sm:space-x-3">
         <div className="min-w-0 flex-1">
-          <h4 className="text-xs sm:text-sm font-medium text-gray-900 mb-1 leading-tight">{currentAdvice.title}</h4>
-          <p className="text-xs text-gray-600 leading-relaxed">{currentAdvice.message}</p>
+          <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-1 leading-tight">{currentAdvice.title}</h4>
+          <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{currentAdvice.message}</p>
         </div>
       </div>
     </div>

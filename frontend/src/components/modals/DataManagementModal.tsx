@@ -311,17 +311,17 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-70 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4"
       style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
     >
-      <div className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-3xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">データ管理</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">データ管理</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -331,8 +331,8 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           {/* バックアップ作成 */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">バックアップ作成</h3>
-              <p className="text-xs sm:text-sm text-gray-500">全てのデータと設定の完全バックアップを作成</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">バックアップ作成</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">全てのデータと設定の完全バックアップを作成</p>
             </div>
             <button
               onClick={handleCreateBackup}
@@ -354,14 +354,14 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           {/* データエクスポート */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">データエクスポート</h3>
-              <p className="text-xs sm:text-sm text-gray-500">指定した形式でデータを書き出し</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">データエクスポート</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">指定した形式でデータを書き出し</p>
             </div>
 
-            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               {/* エクスポート形式 */}
               <div className="space-y-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">エクスポート形式</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">エクスポート形式</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { value: "json", label: "JSON（完全データ）", desc: "設定含む完全データ" },
@@ -374,11 +374,11 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                         value={format.value}
                         checked={exportFormat === format.value}
                         onChange={(e) => setExportFormat(e.target.value as "json" | "csv")}
-                        className="mt-1 w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 flex-shrink-0"
+                        className="mt-1 w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 flex-shrink-0"
                       />
                       <div className="ml-2 flex-1">
-                        <div className="text-xs sm:text-sm font-medium">{format.label}</div>
-                        <div className="text-xs text-gray-500">{format.desc}</div>
+                        <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">{format.label}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{format.desc}</div>
                       </div>
                     </label>
                   ))}
@@ -387,11 +387,11 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
 
               {/* 日付範囲 */}
               <div className="space-y-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700">データ範囲</label>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">データ範囲</label>
                 <select
                   value={exportDateRange}
                   onChange={(e) => setExportDateRange(e.target.value as "all" | "last12months" | "thisyear" | "custom")}
-                  className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[44px]"
                 >
                   <option value="all">全期間</option>
                   <option value="thisyear">今年</option>
@@ -404,21 +404,21 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
               {exportDateRange === "custom" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">開始日</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">開始日</label>
                     <input
                       type="date"
                       value={customStartDate}
                       onChange={(e) => setCustomStartDate(e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[44px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">終了日</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">終了日</label>
                     <input
                       type="date"
                       value={customEndDate}
                       onChange={(e) => setCustomEndDate(e.target.value)}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                      className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[44px]"
                     />
                   </div>
                 </div>
@@ -431,9 +431,9 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                     type="checkbox"
                     checked={includeSettings}
                     onChange={(e) => setIncludeSettings(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                    className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500"
                   />
-                  <span className="ml-2 text-xs sm:text-sm text-gray-700">設定データを含める</span>
+                  <span className="ml-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300">設定データを含める</span>
                 </label>
               )}
 
@@ -458,12 +458,12 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
           {/* データインポート */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">データインポート</h3>
-              <p className="text-xs sm:text-sm text-gray-500">バックアップファイルからデータを復元</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">データインポート</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">バックアップファイルからデータを復元</p>
             </div>
 
-            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-              <div className="text-xs sm:text-sm text-gray-600">
+            <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                 <p className="mb-2">• JSONファイルのみサポート</p>
                 <p className="mb-2">• 既存のデータは保持されます</p>
                 <p>• 重複するデータは追加される可能性があります</p>
@@ -474,9 +474,9 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                   type="checkbox"
                   checked={includeSettings}
                   onChange={(e) => setIncludeSettings(e.target.checked)}
-                  className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500"
                 />
-                <span className="ml-2 text-xs sm:text-sm text-gray-700">設定データもインポートする</span>
+                <span className="ml-2 text-xs sm:text-sm text-gray-700 dark:text-gray-300">設定データもインポートする</span>
               </label>
 
               <label className="block">
@@ -487,15 +487,15 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                   disabled={isImporting}
                   className="block w-full text-xs sm:text-sm text-gray-500 file:mr-4 file:py-2 sm:file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs sm:file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100 active:file:bg-green-200 disabled:opacity-50 file:min-h-[36px]"
                 />
-                {isImporting && <p className="text-xs sm:text-sm text-gray-600 mt-2">インポート中...</p>}
+                {isImporting && <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-2">インポート中...</p>}
               </label>
             </div>
           </div>
 
           {/* 注意事項 */}
-          <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="p-3 sm:p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg">
             <div className="flex">
-              <svg className="w-5 h-5 text-yellow-400 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-yellow-400 dark:text-yellow-300 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -503,8 +503,8 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                 />
               </svg>
               <div className="text-xs sm:text-sm">
-                <p className="font-medium text-yellow-800">注意事項</p>
-                <ul className="mt-1 text-yellow-700 list-disc list-inside">
+                <p className="font-medium text-yellow-800 dark:text-yellow-300">注意事項</p>
+                <ul className="mt-1 text-yellow-700 dark:text-yellow-300 list-disc list-inside">
                   <li>大量のデータの場合、処理に時間がかかる場合があります</li>
                   <li>インポート前に必ずバックアップを作成してください</li>
                   <li>ファイルサイズが大きい場合はブラウザがフリーズする可能性があります</li>
@@ -515,10 +515,10 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
         </div>
 
         {/* Delete All Data Section */}
-        <div className="p-4 sm:p-6 border-t border-gray-200">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4">
             <div className="flex items-start">
-              <svg className="flex-shrink-0 w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="flex-shrink-0 w-5 h-5 text-red-400 dark:text-red-300 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -526,8 +526,8 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
                 />
               </svg>
               <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-red-800">危険な操作</h3>
-                <div className="mt-2 text-sm text-red-700">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-300">危険な操作</h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                   <p>全ての記録データ（生理周期、症状、流量データなど）を完全に削除してアプリをリセットします。この操作は取り消すことができません。</p>
                 </div>
                 <div className="mt-4">
@@ -544,10 +544,10 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({ isOpen
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-center sm:justify-end p-4 sm:p-6 border-t border-gray-200 flex-shrink-0">
+        <div className="flex items-center justify-center sm:justify-end p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-4 py-3 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
+            className="w-full sm:w-auto px-4 py-3 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-gray-300 dark:active:bg-gray-500 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
             閉じる
           </button>

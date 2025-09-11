@@ -161,15 +161,15 @@ export const DailyRecordsList: React.FC = () => {
     <>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">記録一覧</h2>
-              <p className="text-xs sm:text-sm text-neutral-600">{records.length}件の記録</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">記録一覧</h2>
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-gray-300">{records.length}件の記録</p>
             </div>
             <button
               onClick={() => window.history.back()}
-              className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -180,11 +180,11 @@ export const DailyRecordsList: React.FC = () => {
         </div>
 
         {/* Records List */}
-        <div className="bg-white rounded-xl shadow-sm border border-medical">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700">
           {currentRecords.length === 0 ? (
             <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -193,39 +193,39 @@ export const DailyRecordsList: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">記録がありません</h3>
-              <p className="text-sm text-gray-500">まだ記録が作成されていません。</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">記録がありません</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">まだ記録が作成されていません。</p>
             </div>
           ) : (
             <>
               {/* Records */}
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {currentRecords.map((record) => (
                   <div key={record.date} className="p-4 sm:p-6">
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-2 sm:space-y-0">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center mb-2">
-                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-primary-100 text-primary-800">日記録</span>
-                            <h6 className="font-medium text-gray-900 text-sm break-words">{formatDate(record.date)}</h6>
+                            <span className="px-2 py-1 rounded-full text-xs font-medium mr-2 mb-1 flex-shrink-0 bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400">日記録</span>
+                            <h6 className="font-medium text-gray-900 dark:text-white text-sm break-words">{formatDate(record.date)}</h6>
                           </div>
                           <div className="space-y-1">
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               <div>
-                                <p className="text-xs text-gray-500">気分: {getMoodText(record.mood)}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">気分: {getMoodText(record.mood)}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">体調: {getPhysicalText(record.physicalCondition)}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">体調: {getPhysicalText(record.physicalCondition)}</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">水分: {record.waterIntake}L</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">水分: {record.waterIntake}L</p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">睡眠: {record.sleepHours}h</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">睡眠: {record.sleepHours}h</p>
                               </div>
                             </div>
                             {record.notes && (
-                              <p className="text-xs sm:text-sm text-gray-700 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {record.notes}</p>
+                              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mt-2 whitespace-pre-wrap break-words leading-relaxed">メモ: {record.notes}</p>
                             )}
                           </div>
                         </div>
@@ -234,7 +234,7 @@ export const DailyRecordsList: React.FC = () => {
                           <div className="hidden sm:flex sm:flex-row sm:space-x-1">
                             <button
                               onClick={() => handleEdit(record)}
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
+                              className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
                               title="編集"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +248,7 @@ export const DailyRecordsList: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDelete(record.date)}
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
+                              className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
                               title="削除"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +268,7 @@ export const DailyRecordsList: React.FC = () => {
                       <div className="flex justify-end space-x-2 sm:hidden">
                         <button
                           onClick={() => handleEdit(record)}
-                          className="flex items-center space-x-1 px-3 py-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
+                          className="flex items-center space-x-1 px-3 py-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation min-h-[40px]"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
@@ -282,7 +282,7 @@ export const DailyRecordsList: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(record.date)}
-                          className="flex items-center space-x-1 px-3 py-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors touch-manipulation min-h-[40px]"
+                          className="flex items-center space-x-1 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors touch-manipulation min-h-[40px]"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
@@ -302,9 +302,9 @@ export const DailyRecordsList: React.FC = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-4 py-3 border-t border-gray-200 sm:px-6">
+                <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-500">
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       <span>
                         {startIndex + 1}-{Math.min(endIndex, filteredRecords.length)} / {filteredRecords.length}件
                       </span>
@@ -313,7 +313,7 @@ export const DailyRecordsList: React.FC = () => {
                       <button
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         前へ
                       </button>
@@ -337,8 +337,8 @@ export const DailyRecordsList: React.FC = () => {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                               currentPage === pageNum
-                                ? "text-primary-600 bg-primary-50 border border-primary-300"
-                                : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+                                ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border border-primary-300 dark:border-primary-700"
+                                : "text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                             }`}
                           >
                             {pageNum}
@@ -349,7 +349,7 @@ export const DailyRecordsList: React.FC = () => {
                       <button
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         次へ
                       </button>
@@ -378,10 +378,10 @@ export const DailyRecordsList: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
             <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -390,16 +390,16 @@ export const DailyRecordsList: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900">記録を削除</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">記録を削除</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-6">この記録を削除してもよろしいですか？この操作は取り消せません。</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">この記録を削除してもよろしいですか？この操作は取り消せません。</p>
             <div className="flex space-x-3">
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
                   setRecordToDelete(null);
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
                 キャンセル
               </button>

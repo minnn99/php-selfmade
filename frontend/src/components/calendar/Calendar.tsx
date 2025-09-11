@@ -803,7 +803,7 @@ export const Calendar: React.FC = () => {
     let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation ";
 
     if (!day.isCurrentMonth) {
-      baseStyle += "text-gray-300 ";
+      baseStyle += "text-gray-300 dark:text-gray-600 ";
     } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
       // 今日かつ生理関連の場合
       baseStyle += "bg-purple-600 text-white rounded-lg ";
@@ -827,16 +827,16 @@ export const Calendar: React.FC = () => {
       baseStyle += "bg-red-500 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
-      baseStyle += "bg-red-100 text-red-700 border border-red-300 rounded-lg ";
+      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 rounded-lg ";
     } else if (day.isOvulation) {
       // 排卵日の場合
       baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else if (day.isFertile) {
       // 妊娠可能期間の場合
-      baseStyle += "bg-pink-100 text-pink-800 border border-pink-300 rounded-lg ";
+      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 border border-pink-300 dark:border-pink-700 rounded-lg ";
     } else {
       // 通常の日付
-      baseStyle += "text-gray-700 hover:bg-gray-100 active:bg-gray-200 rounded-lg ";
+      baseStyle += "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-lg ";
     }
 
     return baseStyle;
@@ -860,25 +860,25 @@ export const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-medical p-4 sm:p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">カレンダー</h2>
-          <p className="text-sm text-neutral-600">生理周期と症状を確認</p>
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">カレンダー</h2>
+          <p className="text-sm text-neutral-600 dark:text-gray-400">生理周期と症状を確認</p>
         </div>
         <div className="flex items-center justify-center sm:space-x-3">
           <div className="flex items-center space-x-1">
-            <button onClick={goToPreviousMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={goToPreviousMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors touch-manipulation">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="px-3 py-2 sm:px-4 text-base sm:text-lg font-semibold text-gray-900 min-w-[100px] sm:min-w-[120px] text-center">
+            <div className="px-3 py-2 sm:px-4 text-base sm:text-lg font-semibold text-gray-900 dark:text-white min-w-[100px] sm:min-w-[120px] text-center">
               {currentYear}年{monthNames[currentMonth]}
             </div>
-            <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={goToNextMonth} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors touch-manipulation">
+              <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -893,7 +893,7 @@ export const Calendar: React.FC = () => {
           <div
             key={dayName}
             className={`h-8 sm:h-10 flex items-center justify-center text-xs sm:text-sm font-medium ${
-              index === 0 ? "text-red-600" : index === 6 ? "text-blue-600" : "text-gray-600"
+              index === 0 ? "text-red-600 dark:text-red-400" : index === 6 ? "text-blue-600 dark:text-blue-400" : "text-gray-600 dark:text-gray-300"
             }`}
           >
             {dayName}
@@ -910,32 +910,32 @@ export const Calendar: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="border-t border-gray-200 pt-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">凡例</h3>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">凡例</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-xs">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-purple-500 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">今日</span>
+            <span className="text-gray-600 dark:text-gray-400">今日</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">生理日</span>
+            <span className="text-gray-600 dark:text-gray-400">生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-100 border border-red-300 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">予測生理日</span>
+            <div className="w-3 h-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600 dark:text-gray-400">予測生理日</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-pink-500 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">排卵日</span>
+            <span className="text-gray-600 dark:text-gray-400">排卵日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-pink-100 border border-pink-300 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">妊娠しやすい時期</span>
+            <div className="w-3 h-3 bg-pink-100 dark:bg-pink-900 border border-pink-300 dark:border-pink-700 rounded-full flex-shrink-0"></div>
+            <span className="text-gray-600 dark:text-gray-400">妊娠しやすい時期</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-amber-500 rounded-full flex-shrink-0"></div>
-            <span className="text-gray-600">症状記録</span>
+            <span className="text-gray-600 dark:text-gray-400">症状記録</span>
           </div>
         </div>
       </div>
