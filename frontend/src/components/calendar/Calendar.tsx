@@ -62,6 +62,8 @@ export const Calendar: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0); // カレンダー強制再描画用
   const [userGender, setUserGender] = useState<string>("");
   const [isConnectedToPartner, setIsConnectedToPartner] = useState(false);
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false); // 初回ロード完了フラグ
+  const [loadedMonthsRange, setLoadedMonthsRange] = useState<{start: Date; end: Date} | null>(null); // ロード済み月範囲
 
   const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
@@ -71,9 +73,12 @@ export const Calendar: React.FC = () => {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
-  // Load calendar data when date changes
+  // 前後何ヶ月分のデータをプリロードするか
+  const MONTHS_TO_PRELOAD = 3;
+
+  // 初回ロード時に複数月のデータを一括取得
   useEffect(() => {
-    const loadData = async () => {
+    const loadInitialData = async () => {
       // まずユーザー情報を読み込み
       const userData = await authAPI.getUser();
       const gender = (userData.data as { user?: { gender?: string } })?.user?.gender || "";
@@ -83,8 +88,11 @@ export const Calendar: React.FC = () => {
       const isConnected = partnerStatus.success && (partnerStatus.data as { is_connected?: boolean })?.is_connected;
       setIsConnectedToPartner(!!isConnected);
 
-      // ユーザー情報取得後にカレンダーデータを読み込み
-      await loadCalendarData(gender, isConnected);
+      // 初回のみ複数月のデータを一括ロード
+      if (!isInitialLoadComplete) {
+        await loadMultipleMonthsData(gender, isConnected);
+        setIsInitialLoadComplete(true);
+      }
 
       // MenstrualStatusManagerを初期化（認証後に実行）
       try {
@@ -102,7 +110,42 @@ export const Calendar: React.FC = () => {
       cleanupOldLocalStorageData();
     };
 
-    loadData();
+    if (!isInitialLoadComplete) {
+      loadInitialData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 月が変更された時、必要に応じて追加データをロード
+  useEffect(() => {
+    const checkAndLoadAdditionalData = async () => {
+      if (!isInitialLoadComplete || !loadedMonthsRange) return;
+      
+      // 現在表示している月がロード済み範囲内かチェック
+      const currentMonthDate = new Date(currentYear, currentMonth, 1);
+      
+      if (currentMonthDate < loadedMonthsRange.start || currentMonthDate > loadedMonthsRange.end) {
+        // 範囲外の場合、追加でデータをロード
+        const monthsToLoad = [];
+        for (let i = -MONTHS_TO_PRELOAD; i <= MONTHS_TO_PRELOAD; i++) {
+          const targetDate = new Date(currentYear, currentMonth + i, 1);
+          monthsToLoad.push({
+            year: targetDate.getFullYear(),
+            month: targetDate.getMonth() + 1
+          });
+        }
+        
+        // 新しい範囲でデータを再ロード
+        await loadMultipleMonthsData(userGender, isConnectedToPartner);
+        
+        // 新しいロード済み範囲を更新
+        const newStartDate = new Date(currentYear, currentMonth - MONTHS_TO_PRELOAD, 1);
+        const newEndDate = new Date(currentYear, currentMonth + MONTHS_TO_PRELOAD + 1, 0);
+        setLoadedMonthsRange({ start: newStartDate, end: newEndDate });
+      }
+    };
+    
+    checkAndLoadAdditionalData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentYear, currentMonth]);
 
@@ -119,7 +162,12 @@ export const Calendar: React.FC = () => {
 
       // Reload calendar data to reflect changes
       timeoutId = setTimeout(async () => {
-        await loadCalendarData(userGender, isConnectedToPartner);
+        // 初回ロードが完了している場合は、複数月分を再ロード
+        if (isInitialLoadComplete) {
+          await loadMultipleMonthsData(userGender, isConnectedToPartner);
+        } else {
+          await loadCalendarData(userGender, isConnectedToPartner);
+        }
         setRefreshKey((prev) => prev + 1);
       }, 100);
     };
@@ -193,6 +241,109 @@ export const Calendar: React.FC = () => {
       }
     } catch {
       // Silent error handling - migration failed
+    }
+  };
+
+  // 複数月のデータを一括で読み込む関数
+  const loadMultipleMonthsData = async (gender?: string, isConnected?: boolean) => {
+    const currentGender = gender ?? userGender;
+    const currentConnected = isConnected ?? isConnectedToPartner;
+    
+    try {
+      const today = new Date();
+      const monthsToLoad = [];
+      
+      // 前後3ヶ月分の年月を計算
+      for (let i = -MONTHS_TO_PRELOAD; i <= MONTHS_TO_PRELOAD; i++) {
+        const targetDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        monthsToLoad.push({
+          year: targetDate.getFullYear(),
+          month: targetDate.getMonth() + 1 // API用に1-indexed
+        });
+      }
+      
+      // ロード済み範囲を記録
+      const startDate = new Date(today.getFullYear(), today.getMonth() - MONTHS_TO_PRELOAD, 1);
+      const endDate = new Date(today.getFullYear(), today.getMonth() + MONTHS_TO_PRELOAD + 1, 0);
+      setLoadedMonthsRange({ start: startDate, end: endDate });
+      
+      // 並列で全月のデータを取得
+      const allCalendarData = await Promise.all(
+        monthsToLoad.map(({ year, month }) => 
+          menstrualCycleAPI.getCalendarData(year, month)
+        )
+      );
+      
+      // 全データを結合
+      const combinedCalendarData: Record<string, CalendarDayData> = {};
+      allCalendarData.forEach(response => {
+        const data = (response.data as Record<string, CalendarDayData>) || {};
+        Object.assign(combinedCalendarData, data);
+      });
+      
+      setCalendarApiData(combinedCalendarData);
+      
+      // 症状データも同様に取得
+      const allSymptomsData = await Promise.all(
+        monthsToLoad.map(({ year, month }) => {
+          const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+          const lastDay = new Date(year, month, 0).getDate();
+          const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+          return dailySymptomsAPI.getSymptomsRange(startDate, endDate);
+        })
+      );
+      
+      // 症状データを結合
+      const combinedSymptomsData: Record<string, SymptomsData> = {};
+      allSymptomsData.forEach(response => {
+        if (response.success && response.data) {
+          const symptomsDataResponse = response.data as Record<string, unknown>;
+          Object.keys(symptomsDataResponse).forEach((dateKey) => {
+            const symptomData = symptomsDataResponse[dateKey] as {
+              symptoms?: string[];
+              mood?: string;
+              healthNotes?: string;
+              health_notes?: string;
+              flowIntensity?: number;
+              flow_intensity?: number;
+            };
+            const formattedDate = dateKey.split(' ')[0];
+            combinedSymptomsData[formattedDate] = {
+              symptoms: symptomData.symptoms || [],
+              mood: symptomData.mood || "",
+              healthNotes: symptomData.healthNotes || symptomData.health_notes || "",
+              flowIntensity: symptomData.flowIntensity || symptomData.flow_intensity || undefined,
+            };
+          });
+        }
+      });
+      
+      setSymptomsData(combinedSymptomsData);
+      
+      // パートナーデータも取得（該当する場合）
+      if (currentConnected && (currentGender === "male" || currentGender === "男性")) {
+        const allPartnerData = await Promise.all(
+          monthsToLoad.map(({ year, month }) => 
+            partnerAPI.getPartnerCalendar(year, month)
+          )
+        );
+        
+        const combinedPartnerData: Record<string, CalendarDayData> = {};
+        allPartnerData.forEach(response => {
+          if (response.success && (response.data as { calendar_data?: Array<CalendarDayData & { date: string }> })?.calendar_data) {
+            (response.data as { calendar_data: Array<CalendarDayData & { date: string }> }).calendar_data.forEach((dayData) => {
+              combinedPartnerData[dayData.date] = dayData;
+            });
+          }
+        });
+        
+        setPartnerCalendarData(combinedPartnerData);
+      }
+      
+    } catch (error) {
+      console.error("Failed to load multiple months data:", error);
+      // フォールバック：現在月のみ読み込む
+      await loadCalendarData(currentGender, currentConnected);
     }
   };
 
@@ -677,7 +828,11 @@ export const Calendar: React.FC = () => {
       if (hasPeriodInfo) {
         
         setTimeout(async () => {
-          await loadCalendarData();
+          if (isInitialLoadComplete) {
+            await loadMultipleMonthsData();
+          } else {
+            await loadCalendarData();
+          }
           setRefreshKey((prev) => prev + 1);
         }, 100);
       } else {
@@ -774,7 +929,11 @@ export const Calendar: React.FC = () => {
       await menstrualCycleAPI.deleteCycle(cycleId);
 
       // カレンダーデータを再読み込み
-      await loadCalendarData(); // 既存の状態を使用
+      if (isInitialLoadComplete) {
+        await loadMultipleMonthsData(); // 複数月分を再ロード
+      } else {
+        await loadCalendarData(); // 既存の状態を使用
+      }
 
       // カレンダーを強制再描画
       setRefreshKey((prev) => prev + 1);
@@ -827,13 +986,13 @@ export const Calendar: React.FC = () => {
       baseStyle += "bg-red-500 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
-      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 rounded-lg ";
+      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 ring-1 ring-red-300 dark:ring-red-700 rounded-lg ";
     } else if (day.isOvulation) {
       // 排卵日の場合
       baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else if (day.isFertile) {
       // 妊娠可能期間の場合
-      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 border border-pink-300 dark:border-pink-700 rounded-lg ";
+      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 ring-1 ring-pink-300 dark:ring-pink-700 rounded-lg ";
     } else {
       // 通常の日付
       baseStyle += "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-lg ";
@@ -922,7 +1081,7 @@ export const Calendar: React.FC = () => {
             <span className="text-gray-600 dark:text-gray-400">生理日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded-full flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-red-100 dark:bg-red-900 ring-1 ring-red-300 dark:ring-red-700 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600 dark:text-gray-400">予測生理日</span>
           </div>
           <div className="flex items-center space-x-2">
@@ -930,7 +1089,7 @@ export const Calendar: React.FC = () => {
             <span className="text-gray-600 dark:text-gray-400">排卵日</span>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-pink-100 dark:bg-pink-900 border border-pink-300 dark:border-pink-700 rounded-full flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-pink-100 dark:bg-pink-900 ring-1 ring-pink-300 dark:ring-pink-700 rounded-full flex-shrink-0"></div>
             <span className="text-gray-600 dark:text-gray-400">妊娠しやすい時期</span>
           </div>
           <div className="flex items-center space-x-2">

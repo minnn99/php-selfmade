@@ -496,7 +496,7 @@ export const Statistics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
         <div className="flex items-center justify-center h-32 sm:h-64">
           <div className="flex items-center space-x-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
@@ -509,7 +509,7 @@ export const Statistics: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
         <div className="text-center py-8 sm:py-12">
           <div className="text-red-500 dark:text-red-400 mb-4">
             <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -531,7 +531,7 @@ export const Statistics: React.FC = () => {
 
   if (!cycleStats) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
         <div className="text-center py-8 sm:py-12">
           <div className="text-gray-500 dark:text-gray-400 mb-4">
             <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -556,7 +556,7 @@ export const Statistics: React.FC = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">統計・分析</h2>
@@ -567,7 +567,7 @@ export const Statistics: React.FC = () => {
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as "3months" | "6months" | "1year" | "all")}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 min-h-[44px] w-full sm:w-auto touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-3 py-2 ring-1 ring-gray-300 dark:ring-gray-600 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] w-full sm:w-auto touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="3months">過去3ヶ月</option>
                 <option value="6months">過去6ヶ月</option>
@@ -606,7 +606,7 @@ export const Statistics: React.FC = () => {
       {/* 詳細統計 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* 周期の詳細 */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">周期の詳細</h3>
           <div className="space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center py-2 sm:py-3 border-b border-gray-100 dark:border-gray-700">
@@ -630,7 +630,7 @@ export const Statistics: React.FC = () => {
 
         {/* 流量統計 */}
         {flowStats && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">流量の傾向</h3>
             <div className="mb-3 sm:mb-4">
               <div className="text-center p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
@@ -657,7 +657,7 @@ export const Statistics: React.FC = () => {
 
       {/* 症状統計 */}
       {symptomStats && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">よく見られる症状</h3>
           {symptomStats.mostCommonSymptoms.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -715,7 +715,7 @@ export const Statistics: React.FC = () => {
 
       {/* 周期別症状分析 */}
       {symptomStats && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">周期別症状分析</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 生理日 */}
@@ -791,11 +791,11 @@ export const Statistics: React.FC = () => {
 
       {/* 健康指標の詳細 */}
       {cycleStats && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">健康指標の詳細</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 周期安定性 */}
-            <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div className="p-4 ring-1 ring-gray-200 dark:ring-gray-600 rounded-lg">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">周期安定性</h4>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">{cycleStats.irregularityScore}%</span>
@@ -815,7 +815,7 @@ export const Statistics: React.FC = () => {
             </div>
 
             {/* 予測精度 */}
-            <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div className="p-4 ring-1 ring-gray-200 dark:ring-gray-600 rounded-lg">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">予測精度</h4>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{cycleStats.totalCycles >= 3 ? Math.max(60, 100 - cycleStats.irregularityScore) : 0}%</span>
@@ -829,7 +829,7 @@ export const Statistics: React.FC = () => {
             </div>
 
             {/* 健康状態スコア */}
-            <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
+            <div className="p-4 ring-1 ring-gray-200 dark:ring-gray-600 rounded-lg">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">健康状態スコア</h4>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -848,7 +848,7 @@ export const Statistics: React.FC = () => {
       )}
 
       {/* 分析とアドバイス */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm ring-1 ring-medical dark:ring-gray-700 p-4 sm:p-6">
         <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-3 sm:mb-4">分析とアドバイス</h3>
         <div className="space-y-3 sm:space-y-4">
           {/* 周期の規則性についてのアドバイス */}
