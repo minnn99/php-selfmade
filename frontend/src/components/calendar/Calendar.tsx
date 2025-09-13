@@ -959,43 +959,43 @@ export const Calendar: React.FC = () => {
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {
-    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation box-border ";
+    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation box-border border ";
 
     if (!day.isCurrentMonth) {
-      baseStyle += "text-gray-300 dark:text-gray-600 ";
+      baseStyle += "text-gray-300 dark:text-gray-600 border-transparent ";
     } else if (day.isToday && (day.hasPeriod || day.isPeriodStart)) {
       // 今日かつ生理関連の場合
-      baseStyle += "bg-purple-600 text-white rounded-lg ";
+      baseStyle += "bg-purple-600 text-white rounded-lg border-transparent ";
     } else if (day.isToday && day.hasPartnerPeriod) {
       // 今日かつパートナーの生理期間の場合
-      baseStyle += "bg-purple-600 text-white rounded-lg ";
+      baseStyle += "bg-purple-600 text-white rounded-lg border-transparent ";
     } else if (day.isToday && day.isPredictedPeriod) {
       // 今日かつ予測生理日の場合
-      baseStyle += "bg-purple-600 text-white rounded-lg ";
+      baseStyle += "bg-purple-600 text-white rounded-lg border-transparent ";
     } else if (day.isToday && day.isOvulation) {
       // 今日かつ排卵日の場合
-      baseStyle += "bg-purple-600 text-white rounded-lg ";
+      baseStyle += "bg-purple-600 text-white rounded-lg border-transparent ";
     } else if (day.isToday && day.isFertile) {
       // 今日かつ妊娠可能期間の場合
-      baseStyle += "bg-purple-600 text-white rounded-lg ";
+      baseStyle += "bg-purple-600 text-white rounded-lg border-transparent ";
     } else if (day.isToday) {
       // 今日のみの場合
-      baseStyle += "bg-purple-500 text-white font-bold rounded-lg ";
+      baseStyle += "bg-purple-500 text-white font-bold rounded-lg border-transparent ";
     } else if (day.hasPeriod || day.isPeriodStart || day.isPeriodEnd || day.hasPartnerPeriod) {
       // 生理期間中・開始日・終了日・パートナーの生理期間の場合（統一して赤いスタイル）
-      baseStyle += "bg-red-500 text-white rounded-lg ";
+      baseStyle += "bg-red-500 text-white rounded-lg border-transparent ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
-      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 rounded-lg ";
+      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 rounded-lg ";
     } else if (day.isOvulation) {
       // 排卵日の場合
-      baseStyle += "bg-pink-500 text-white rounded-lg ";
+      baseStyle += "bg-pink-500 text-white rounded-lg border-transparent ";
     } else if (day.isFertile) {
       // 妊娠可能期間の場合
-      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 border border-pink-300 dark:border-pink-700 rounded-lg ";
+      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 border-pink-300 dark:border-pink-700 rounded-lg ";
     } else {
       // 通常の日付
-      baseStyle += "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-lg ";
+      baseStyle += "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-lg border-transparent ";
     }
 
     return baseStyle;

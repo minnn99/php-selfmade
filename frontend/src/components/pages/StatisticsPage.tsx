@@ -53,9 +53,7 @@ export const StatisticsPage: React.FC = () => {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">アクセス制限</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              男性ユーザーは統計機能をご利用いただけません。
-            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">男性ユーザーは統計機能をご利用いただけません。</p>
             <button
               onClick={() => window.history.back()}
               className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors"
@@ -69,7 +67,7 @@ export const StatisticsPage: React.FC = () => {
   }
 
   return (
-    <FadeInUp delay={100}>
+    <FadeInUp>
       <Statistics />
     </FadeInUp>
   );
