@@ -50,7 +50,19 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
         return notification;
       });
       
-      setNotifications(notifications);
+      // 通知パネルを開いた時点ですべて既読にする
+      const updatedNotifications = notifications.map((notification: NotificationItem) => ({
+        ...notification,
+        isRead: true,
+      }));
+      
+      // 既読状態をlocalStorageに保存
+      localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+      
+      setNotifications(updatedNotifications);
+      
+      // 通知バッジを更新
+      window.dispatchEvent(new CustomEvent('notificationUpdated'));
     } else {
       setNotifications([]);
     }

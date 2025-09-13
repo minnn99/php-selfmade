@@ -959,7 +959,7 @@ export const Calendar: React.FC = () => {
 
   // 日付セルのスタイルを決定
   const getDayStyle = (day: CalendarDay) => {
-    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation ";
+    let baseStyle = "h-10 sm:h-12 w-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors relative touch-manipulation box-border ";
 
     if (!day.isCurrentMonth) {
       baseStyle += "text-gray-300 dark:text-gray-600 ";
@@ -986,13 +986,13 @@ export const Calendar: React.FC = () => {
       baseStyle += "bg-red-500 text-white rounded-lg ";
     } else if (day.isPredictedPeriod) {
       // 予測生理日の場合
-      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 ring-1 ring-red-300 dark:ring-red-700 rounded-lg ";
+      baseStyle += "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-300 dark:border-red-700 rounded-lg ";
     } else if (day.isOvulation) {
       // 排卵日の場合
       baseStyle += "bg-pink-500 text-white rounded-lg ";
     } else if (day.isFertile) {
       // 妊娠可能期間の場合
-      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 ring-1 ring-pink-300 dark:ring-pink-700 rounded-lg ";
+      baseStyle += "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-300 border border-pink-300 dark:border-pink-700 rounded-lg ";
     } else {
       // 通常の日付
       baseStyle += "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 rounded-lg ";
