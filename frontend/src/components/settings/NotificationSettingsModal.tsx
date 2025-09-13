@@ -228,7 +228,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       const info = await notificationManager.getScheduledNotificationsInfo();
       setScheduleInfo(info);
       alert("スケジュール情報を確認してください（下に表示されます）");
-    } catch (error) {
+    } catch {
       alert("スケジュール情報の取得に失敗しました");
     }
   };
@@ -239,7 +239,7 @@ export const NotificationSettingsModal: React.FC<NotificationSettingsModalProps>
       try {
         await notificationManager.testScheduledNotifications();
         alert("現在の設定で通知をテストしました！");
-      } catch (error) {
+      } catch {
         alert("テストに失敗しました");
       }
     } else {

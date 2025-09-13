@@ -41,7 +41,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       
       // 重複IDをチェックして修正
       const seenIds = new Set();
-      notifications = notifications.map((notification: any, index: number) => {
+      notifications = notifications.map((notification: NotificationItem, index: number) => {
         if (seenIds.has(notification.id)) {
           // 重複IDを修正
           notification.id = `${notification.type}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 11)}`;

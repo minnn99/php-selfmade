@@ -9,6 +9,31 @@ interface UserSettings {
   generalReminders: boolean;
 }
 
+interface CycleData {
+  startDate: string;
+  endDate?: string;
+  isPeriodStart?: boolean;
+}
+
+interface DetailedSettings {
+  menstrualReminder?: {
+    enabled: boolean;
+    daysBeforeStart: number;
+    time: string;
+  };
+  ovulationReminder?: {
+    enabled: boolean;
+    daysBeforeOvulation: number;
+    time: string;
+  };
+  pillReminder?: {
+    enabled: boolean;
+    pillName: string;
+    times: string[];
+    reminderMinutes: number;
+  };
+}
+
 class NotificationManager {
   private static instance: NotificationManager;
   private settings: UserSettings;
@@ -49,7 +74,7 @@ class NotificationManager {
     }
   }
 
-  private loadDetailedSettings(): any {
+  private loadDetailedSettings(): DetailedSettings | null {
     try {
       const saved = localStorage.getItem('notificationSettings');
       if (saved) {
@@ -109,7 +134,7 @@ class NotificationManager {
     }
   }
 
-  private async getCurrentCycleData(): Promise<any> {
+  private async getCurrentCycleData(): Promise<CycleData | null> {
     try {
       // Get cycle data from localStorage
       const cycleData = JSON.parse(localStorage.getItem('cycleData') || '[]');
@@ -118,7 +143,7 @@ class NotificationManager {
 
       // Find current or most recent cycle
       const today = new Date();
-      const currentCycle = cycleData.find((cycle: any) => {
+      const currentCycle = cycleData.find((cycle: CycleData) => {
         const startDate = new Date(cycle.startDate);
         const endDate = cycle.endDate ? new Date(cycle.endDate) : null;
         return startDate <= today && (!endDate || endDate >= today);
@@ -130,7 +155,7 @@ class NotificationManager {
     }
   }
 
-  private async scheduleUpcomingNotifications(cycleData: any): Promise<void> {
+  private async scheduleUpcomingNotifications(cycleData: CycleData): Promise<void> {
     if (!cycleData.startDate) return;
 
     const detailedSettings = this.loadDetailedSettings();
@@ -227,7 +252,7 @@ class NotificationManager {
       const times = detailedSettings.pillReminder.times || ["08:00"];
       const reminderMinutes = detailedSettings.pillReminder.reminderMinutes || 0;
 
-      times.forEach((time: string) => {
+      times.forEach((time) => {
         // Calculate notification time for today and tomorrow
         const today = new Date();
         const tomorrow = new Date(today);
@@ -258,9 +283,9 @@ class NotificationManager {
   }
 
 
-  public sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod' | 'moodChanges', data?: any): void {
+  public sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod'): void {
     if (this.settings.partnerNotifications && notificationService.hasPermission()) {
-      notificationService.sendPartnerNotification(type, data);
+      notificationService.sendPartnerNotification(type);
     }
   }
 
@@ -373,7 +398,7 @@ class NotificationManager {
       const reminderMinutes = detailedSettings.pillReminder.reminderMinutes || 0;
       const reminderText = reminderMinutes === 0 ? "ちょうど" : `${reminderMinutes}分前`;
       
-      times.forEach((time: string) => {
+      times.forEach((time) => {
         const today = new Date();
         const [hours, minutes] = time.split(':').map(Number);
         const notificationTime = new Date(today);

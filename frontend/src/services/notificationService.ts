@@ -7,6 +7,8 @@ interface NotificationData {
   requireInteraction?: boolean;
 }
 
+type NotificationType = 'period' | 'medication' | 'appointment' | 'reminder' | 'system';
+
 class NotificationService {
   private static instance: NotificationService;
   private notificationPermission: NotificationPermission = 'default';
@@ -41,10 +43,10 @@ class NotificationService {
     return this.notificationPermission === 'granted';
   }
 
-  private addToInternalNotificationSystem(title: string, message: string, type: string = 'system'): void {
+  private addToInternalNotificationSystem(title: string, message: string, type: NotificationType = 'system'): void {
     const appNotification = {
       id: `${type}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`, // より一意なIDを生成
-      type: type as any,
+      type,
       title: title.replace('Pairiod - ', ''),
       message: message,
       timestamp: new Date().toISOString(),
@@ -108,7 +110,7 @@ class NotificationService {
 
   // 生理予定日の通知
   public sendPeriodReminderNotification(daysUntil: number): boolean {
-    let title = 'Pairiod - 生理予定日のお知らせ';
+    const title = 'Pairiod - 生理予定日のお知らせ';
     let body = '';
 
     if (daysUntil === 0) {
@@ -158,7 +160,7 @@ class NotificationService {
 
   // パートナー向け通知
   public sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod'): boolean {
-    let title = 'Pairiod - パートナー情報';
+    const title = 'Pairiod - パートナー情報';
     let body = '';
 
     switch (type) {
