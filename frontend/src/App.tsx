@@ -146,6 +146,19 @@ function App() {
 
   // Add notification to notification center
   const addLoginNotification = (userName: string) => {
+    // Check if login notifications are enabled in security settings
+    const securitySettings = localStorage.getItem("securitySettings");
+    if (securitySettings) {
+      try {
+        const settings = JSON.parse(securitySettings);
+        if (!settings.loginSecurity?.loginNotifications) {
+          return; // Exit if login notifications are disabled
+        }
+      } catch {
+        // If parsing fails, proceed with default behavior
+      }
+    }
+    
     // Get existing notifications
     const storedNotifications = localStorage.getItem("notifications");
     const notifications = storedNotifications ? JSON.parse(storedNotifications) : [];

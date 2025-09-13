@@ -9,6 +9,7 @@ import { ConfirmationModal } from "../modals/ConfirmationModal";
 import { SessionExpiredModal } from "../modals/SessionExpiredModal";
 import { authAPI } from "../../services/api";
 import { DarkModeToggle } from "../shared/DarkModeToggle";
+import { notificationManager } from "../../services/notificationManager";
 
 // Page components
 import { DashboardPage } from "../pages/DashboardPage";
@@ -186,6 +187,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  // Initialize notification manager
+  useEffect(() => {
+    // Initialize notification manager and check for today's notifications
+    notificationManager.checkTodayNotifications();
   }, []);
 
   // 性別に基づく色分けのヘルパー関数

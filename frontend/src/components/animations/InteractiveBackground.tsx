@@ -18,12 +18,22 @@ interface InteractiveBackgroundProps {
 }
 
 // 生理周期アプリに合うカラーパレット（ウェーブ用）
-const waveColors: string[] = [
+// ライトモード用の色
+const lightWaveColors: string[] = [
   'rgba(255, 182, 193, 0.5)', // ライトピンク
   'rgba(255, 192, 203, 0.45)', // ピンク
   'rgba(230, 230, 250, 0.4)', // ラベンダー
   'rgba(240, 248, 255, 0.5)', // アリスブルー
   'rgba(255, 228, 225, 0.45)', // ミスティローズ
+];
+
+// ダークモード用の控えめな色
+const darkWaveColors: string[] = [
+  'rgba(147, 51, 234, 0.15)', // 紫（控えめ）
+  'rgba(99, 102, 241, 0.12)', // インディゴ（控えめ）
+  'rgba(59, 130, 246, 0.1)', // ブルー（控えめ）
+  'rgba(139, 92, 246, 0.12)', // バイオレット（控えめ）
+  'rgba(168, 85, 247, 0.1)', // パープル（控えめ）
 ];
 
 export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ className = "" }) => {
@@ -33,8 +43,29 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
   const mouseRef = useRef({ x: 0, y: 0 });
   const timeRef = useRef(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
+    // ダークモードの検出
+    const checkDarkMode = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setIsDarkMode(isDark);
+      return isDark;
+    };
+
+    // 初回チェック
+    const currentIsDark = checkDarkMode();
+
+    // MutationObserverでダークモード切り替えを監視
+    const observer = new MutationObserver(() => {
+      checkDarkMode();
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -54,9 +85,11 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
     const initWavePoints = () => {
       wavePointsRef.current = [];
       const waveCount = Math.min(6, Math.max(3, Math.floor(canvas.height / 200))); // レスポンシブウェーブ数
+      const waveColors = currentIsDark ? darkWaveColors : lightWaveColors;
 
       for (let i = 0; i < waveCount; i++) {
         const baseY = (canvas.height / (waveCount + 1)) * (i + 1);
+        const baseOpacity = currentIsDark ? Math.random() * 0.15 + 0.1 : Math.random() * 0.3 + 0.5;
         wavePointsRef.current.push({
           x: 0,
           y: baseY,
@@ -66,7 +99,7 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
           amplitude: Math.random() * 30 + 20, // ウェーブの振幅
           frequency: Math.random() * 0.02 + 0.01, // ウェーブの周波数
           phase: Math.random() * Math.PI * 2, // 位相
-          opacity: Math.random() * 0.3 + 0.5,
+          opacity: baseOpacity,
           color: waveColors[Math.floor(Math.random() * waveColors.length)]
         });
       }
@@ -164,16 +197,18 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
         ctx.save();
         
         // 外側のリング
-        ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = 'rgba(255, 182, 193, 0.6)';
+        const ringColor = currentIsDark ? 'rgba(139, 92, 246, 0.3)' : 'rgba(255, 182, 193, 0.6)';
+        ctx.globalAlpha = currentIsDark ? 0.2 : 0.3;
+        ctx.strokeStyle = ringColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(mouseRef.current.x, mouseRef.current.y, 40 + Math.sin(timeRef.current * 5) * 5, 0, Math.PI * 2);
         ctx.stroke();
         
         // 内側の点
-        ctx.globalAlpha = 0.6;
-        ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
+        const dotColor = currentIsDark ? 'rgba(139, 92, 246, 0.4)' : 'rgba(255, 182, 193, 0.8)';
+        ctx.globalAlpha = currentIsDark ? 0.3 : 0.6;
+        ctx.fillStyle = dotColor;
         ctx.beginPath();
         ctx.arc(mouseRef.current.x, mouseRef.current.y, 3, 0, Math.PI * 2);
         ctx.fill();
@@ -193,11 +228,24 @@ export const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ cl
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('mousemove', handleMouseMove);
+      observer.disconnect();
       if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
       }
     };
   }, []);
+
+  // ダークモード変更時にウェーブポイントを再初期化
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const waveColors = isDarkMode ? darkWaveColors : lightWaveColors;
+    
+    wavePointsRef.current.forEach((wave) => {
+      wave.opacity = isDarkMode ? Math.random() * 0.15 + 0.1 : Math.random() * 0.3 + 0.5;
+      wave.color = waveColors[Math.floor(Math.random() * waveColors.length)];
+    });
+  }, [isDarkMode]);
 
   return (
     <canvas

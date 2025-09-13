@@ -37,7 +37,20 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     // localStorageから通知を読み込み（実際の実装では API から取得）
     const storedNotifications = localStorage.getItem("notifications");
     if (storedNotifications) {
-      setNotifications(JSON.parse(storedNotifications));
+      let notifications = JSON.parse(storedNotifications);
+      
+      // 重複IDをチェックして修正
+      const seenIds = new Set();
+      notifications = notifications.map((notification: any, index: number) => {
+        if (seenIds.has(notification.id)) {
+          // 重複IDを修正
+          notification.id = `${notification.type}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 11)}`;
+        }
+        seenIds.add(notification.id);
+        return notification;
+      });
+      
+      setNotifications(notifications);
     } else {
       setNotifications([]);
     }

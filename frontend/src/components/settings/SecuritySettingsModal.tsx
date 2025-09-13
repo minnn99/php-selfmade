@@ -19,7 +19,6 @@ interface SecuritySettings {
     sessionTimeout: number; // minutes
     deviceRemembering: boolean;
     loginNotifications: boolean;
-    suspiciousActivityAlerts: boolean;
   };
 }
 
@@ -36,7 +35,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
       sessionTimeout: 60,
       deviceRemembering: true,
       loginNotifications: true,
-      suspiciousActivityAlerts: true,
     },
   });
 
@@ -291,7 +289,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
               <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
                 <div className="flex-1 mr-4">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ログイン通知</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">新しいデバイスからのログイン通知</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">ログイン時に通知を受け取る</p>
                 </div>
                 <input
                   type="checkbox"
@@ -314,18 +312,6 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                 />
               </label>
 
-              <label className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer min-h-[44px]">
-                <div className="flex-1 mr-4">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">不審なアクティビティ通知</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">異常なアクセスパターンの検知</p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.loginSecurity.suspiciousActivityAlerts}
-                  onChange={(e) => updateSetting("loginSecurity", "suspiciousActivityAlerts", e.target.checked)}
-                  className="w-5 h-5 text-primary-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-primary-500 focus:ring-2"
-                />
-              </label>
             </div>
           </div>
         </div>
