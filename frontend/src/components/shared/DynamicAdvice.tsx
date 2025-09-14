@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { menstrualCycleAPI, partnerAPI } from "../../services/api";
 import { useUserStore } from "../../stores/userStore";
-import { useTranslation } from "../../hooks/useLanguage";
 
 interface DynamicAdviceProps {
   className?: string;
@@ -16,14 +15,13 @@ interface AdviceContent {
 }
 
 export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) => {
-  const { t } = useTranslation();
   const [currentAdvice, setCurrentAdvice] = useState<AdviceContent>({
     title: "今日のアドバイス",
     message: "読み込み中...",
     bgColor: "from-primary-50 to-purple-50",
     textColor: "text-primary-600",
   });
-  
+
   // Use global user store
   const { user, isMaleWithPartner, isUserLoading, isPartnerLoading } = useUserStore();
 
@@ -48,18 +46,20 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         const today = new Date();
         const todayString = today.toISOString().split("T")[0];
 
-        if (user?.gender === 'male' || user?.gender === '男性') {
+        if (user?.gender === "male" || user?.gender === "男性") {
           // 男性ユーザーの場合
           if (isMaleWithPartner) {
             // パートナー接続済みの場合、パートナーのカレンダーデータを取得
             const partnerCalendarResponse = await partnerAPI.getPartnerCalendar(today.getFullYear(), today.getMonth() + 1);
             if (partnerCalendarResponse.success && partnerCalendarResponse.data) {
-              const responseData = partnerCalendarResponse.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> } | Record<string, unknown>;
+              const responseData = partnerCalendarResponse.data as
+                | { calendar_data?: Array<{ date: string; [key: string]: unknown }> }
+                | Record<string, unknown>;
 
               // パートナーAPIのレスポンス形式をチェック
-              if ('calendar_data' in responseData && Array.isArray(responseData.calendar_data)) {
+              if ("calendar_data" in responseData && Array.isArray(responseData.calendar_data)) {
                 // 配列形式の場合
-                const todayEntry = responseData.calendar_data.find(entry => entry.date === todayString);
+                const todayEntry = responseData.calendar_data.find((entry) => entry.date === todayString);
                 if (todayEntry) {
                   generateMaleAdviceFromPartnerData(todayEntry);
                   return;
@@ -79,22 +79,22 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         } else {
           // 女性ユーザーの場合、自分のカレンダーデータを取得
           const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
-          
+
           // レスポンス形式を確認して適切に今日のデータを取得
           let todayData: Record<string, unknown> | undefined;
-          
+
           if (calendarResponse.data) {
             const responseData = calendarResponse.data as Record<string, unknown> | { dates?: Array<{ date: string; [key: string]: unknown }> };
-            
+
             // dates配列形式の場合
-            if ('dates' in responseData && Array.isArray(responseData.dates)) {
+            if ("dates" in responseData && Array.isArray(responseData.dates)) {
               const todayEntry = responseData.dates.find((entry: { date: string; [key: string]: unknown }) => entry.date === todayString);
               todayData = todayEntry;
             }
             // オブジェクト形式の場合（従来）
-            else if (typeof responseData === 'object' && !('dates' in responseData)) {
+            else if (typeof responseData === "object" && !("dates" in responseData)) {
               const data = (responseData as Record<string, unknown>)[todayString];
-              todayData = data && typeof data === 'object' ? data as Record<string, unknown> : undefined;
+              todayData = data && typeof data === "object" ? (data as Record<string, unknown>) : undefined;
             }
           }
 
@@ -152,7 +152,7 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     if (todayTypedData.hasPeriod || todayTypedData.isPeriodStart) {
       // カレンダーデータを最優先で信頼する
       // isPeriodStartが設定されている場合は新しい周期の開始として扱う
-      
+
       const dayOfPeriod = getDayOfPeriod(todayData);
       if (dayOfPeriod <= 3) {
         setCurrentAdvice({
@@ -188,8 +188,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       return;
     } else if (todayTypedData.isFertile) {
       setCurrentAdvice({
-        title: t('dashboard.pregnancyPossibilityPeriod'),
-        message: t('dashboard.pregnancyPossibilityMessage'),
+        title: "妊娠可能性期間",
+        message: "妊娠しやすい時期です。基礎体温を測定し、体調管理を心がけましょう。",
         bgColor: "from-pink-50 to-rose-50",
         textColor: "text-pink-600",
       });
@@ -300,19 +300,19 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
     // menstrualStatusManagerから正しい日数を取得
     try {
       const currentStatus = menstrualStatusManager.getCurrentStatus();
-      
+
       if (currentStatus?.hasActiveCycle && currentStatus?.activeCycle?.start_date) {
         const startDateStr = currentStatus.activeCycle.start_date;
         const startDate = new Date(startDateStr);
         const today = new Date();
-        
+
         // ローカル日付で計算（時間を無視）
         const startLocal = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
         const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        
+
         const diffTime = todayLocal.getTime() - startLocal.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        
+
         // 生理期間内（1-7日）の場合のみ返す
         if (diffDays >= 1 && diffDays <= 7) {
           return diffDays;
@@ -448,7 +448,9 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
   };
 
   return (
-    <div className={`bg-gradient-to-br ${currentAdvice.bgColor} dark:from-gray-800 dark:to-gray-700 rounded-xl border border-primary-200 dark:border-gray-600 p-3 sm:p-4 ${className}`}>
+    <div
+      className={`bg-gradient-to-br ${currentAdvice.bgColor} dark:from-gray-800 dark:to-gray-700 rounded-xl border border-primary-200 dark:border-gray-600 p-3 sm:p-4 ${className}`}
+    >
       <div className="flex items-start space-x-2 sm:space-x-3">
         <div className="min-w-0 flex-1">
           <h4 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mb-1 leading-tight">{currentAdvice.title}</h4>

@@ -3,7 +3,6 @@ import { DateRecordModal, type RecordData } from "./DateRecordModal";
 import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { getDatePeriodStatus } from "../../utils/periodStatusHelper";
-import { useTranslation } from "../../hooks/useLanguage";
 
 interface CalendarDay {
   year: number;
@@ -52,7 +51,6 @@ interface SymptomsData {
 }
 
 export const Calendar: React.FC = () => {
-  const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDateForModal, setSelectedDateForModal] = useState<Date | null>(null);
@@ -1013,8 +1011,8 @@ export const Calendar: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">{t('calendar.title')}</h2>
-          <p className="text-sm text-neutral-600 dark:text-gray-400">{t('calendar.subtitle')}</p>
+          <h2 className="text-lg sm:text-xl font-semibold text-neutral-900 dark:text-white">カレンダー</h2>
+          <p className="text-sm text-neutral-600 dark:text-gray-400">日々の記録を管理</p>
         </div>
         <div className="flex items-center justify-center sm:space-x-3">
           <div className="flex items-center space-x-1">

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { menstrualCycleAPI } from "../../services/api";
 import { ConfirmationModal } from "../modals/ConfirmationModal"; // 追加
-import { useTranslation } from "../../hooks/useLanguage";
 
 interface SettingsSidebarProps {
   isOpen: boolean;
@@ -18,7 +17,6 @@ interface SettingItem {
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClose, onDataDeleted }) => {
-  const { t } = useTranslation();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSecondConfirmModal, setShowSecondConfirmModal] = useState(false);
 
@@ -113,8 +111,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
   const settingItems: SettingItem[] = [
     {
       id: "profile",
-      title: t('settings.profile'),
-      description: t('settings.profileDescription'),
+      title: "プロフィール",
+      description: "個人情報とアカウント設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -125,8 +123,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "notifications",
-      title: t('settings.notifications'),
-      description: t('settings.notificationsDescription'),
+      title: "通知設定",
+      description: "生理予定日やリマインダーの通知設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -142,8 +140,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "privacy",
-      title: t('settings.privacy'),
-      description: t('settings.privacyDescription'),
+      title: "プライバシー",
+      description: "データ共有とプライバシー設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -159,8 +157,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "security",
-      title: t('settings.security'),
-      description: t('settings.securityDescription'),
+      title: "セキュリティ",
+      description: "パスワードとセキュリティ設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -176,8 +174,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "data",
-      title: t('settings.dataManagement'),
-      description: t('settings.dataManagementDescription'),
+      title: "データ管理",
+      description: "データのエクスポートとバックアップ",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -193,8 +191,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "appearance",
-      title: t('settings.appearance'),
-      description: t('settings.appearanceDescription'),
+      title: "外観設定",
+      description: "テーマとディスプレイ設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -210,8 +208,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "support",
-      title: t('settings.support'),
-      description: t('settings.supportDescription'),
+      title: "サポート",
+      description: "ヘルプとお問い合わせ",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -227,8 +225,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
     },
     {
       id: "delete_all_data",
-      title: t('settings.deleteAllData'),
-      description: t('settings.deleteAllDataDescription'),
+      title: "全データ削除",
+      description: "すべての生理周期データを削除",
       icon: (
         <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -256,7 +254,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({ isOpen, onClos
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
-          <h2 className="text-xl font-semibold text-neutral-900">{t('settings.title')}</h2>
+          <h2 className="text-xl font-semibold text-neutral-900">設定</h2>
           <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
             <svg className="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

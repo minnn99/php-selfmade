@@ -129,7 +129,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     {
       id: "appearance",
       title: "外観",
-      description: "テーマ、言語設定",
+      description: "テーマ",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -140,7 +140,6 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
           />
         </svg>
       ),
-      badge: "BETA",
       onClick: () => {
         setShowAppearanceModal(true);
       },
@@ -217,7 +216,9 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                         {item.title}
                       </h3>
                       {item.badge && (
-                        <span className="ml-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">{item.badge}</span>
+                        <span className="ml-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs px-2 py-1 rounded-full font-medium flex-shrink-0">
+                          {item.badge}
+                        </span>
                       )}
                     </div>
                     <p className="text-xs sm:text-sm text-neutral-500 dark:text-gray-400 mt-1 leading-relaxed break-words">{item.description}</p>

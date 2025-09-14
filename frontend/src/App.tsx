@@ -12,7 +12,6 @@ import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
 import { useUserStore } from "./stores/userStore";
 import { initializeNotifications } from "./main";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { LanguageProvider } from "./contexts/LanguageContext";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -154,14 +153,12 @@ function App() {
   if (isLoading) {
     return (
       <ThemeProvider>
-        <LanguageProvider>
-          <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-neutral-600 dark:text-gray-300">読み込み中...</p>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-neutral-600 dark:text-gray-300">読み込み中...</p>
           </div>
-        </LanguageProvider>
+        </div>
       </ThemeProvider>
     );
   }
@@ -169,9 +166,7 @@ function App() {
   if (currentView === "welcome") {
     return (
       <ThemeProvider>
-        <LanguageProvider>
-          <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />
-        </LanguageProvider>
+        <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />
       </ThemeProvider>
     );
   }
@@ -257,9 +252,7 @@ function App() {
   if (currentView === "signup") {
     return (
       <ThemeProvider>
-        <LanguageProvider>
-          <SignupPage onShowLogin={() => setCurrentView("login")} />
-        </LanguageProvider>
+        <SignupPage onShowLogin={() => setCurrentView("login")} />
       </ThemeProvider>
     );
   }
@@ -272,17 +265,14 @@ function App() {
   if (!isAuthenticated) {
     return (
       <ThemeProvider>
-        <LanguageProvider>
-          <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />
-        </LanguageProvider>
+        <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />
       </ThemeProvider>
     );
   }
 
   return (
     <ThemeProvider>
-      <LanguageProvider>
-        <BrowserRouter>
+      <BrowserRouter>
           <ProtectedRoute
             onUnauthorized={() => {
               setIsAuthenticated(false);
@@ -301,8 +291,7 @@ function App() {
             onClose={handleSessionExpiredModalClose}
             message={sessionExpiredMessage}
           />
-        </BrowserRouter>
-      </LanguageProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

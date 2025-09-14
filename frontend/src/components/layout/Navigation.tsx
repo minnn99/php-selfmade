@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, userDataAPI, authAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { DynamicAdvice } from "../shared/DynamicAdvice";
-import { useTranslation } from "../../hooks/useLanguage";
 
 interface NavigationItem {
   id: string;
@@ -19,7 +18,6 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
-  const { t } = useTranslation();
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaleUser, setIsMaleUser] = useState(false);
@@ -237,7 +235,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   const navigationItems: NavigationItem[] = [
     {
       id: "dashboard",
-      label: t('navigation.dashboard'),
+      label: "ダッシュボード",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -252,7 +250,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "pregnancy-support",
-      label: t('navigation.pregnancySupport'),
+      label: "妊娠サポート",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -268,7 +266,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "partner-connection",
-      label: t('navigation.partnerConnection'),
+      label: "パートナー連携",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -283,7 +281,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "self-care",
-      label: t('navigation.selfCare'),
+      label: "セルフケア",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -298,7 +296,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "medical-records",
-      label: t('navigation.diagnosticRecords'),
+      label: "診断記録",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -313,7 +311,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "statistics",
-      label: t('navigation.statistics'),
+      label: "統計",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -328,7 +326,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "settings",
-      label: t('navigation.settings'),
+      label: "設定",
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -362,7 +360,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   }> = [
     {
       id: "period-start",
-      label: t('navigation.periodStart'),
+      label: "生理開始",
       color: menstrualStatus?.hasActiveCycle ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 active:bg-red-700",
       disabled: (menstrualStatus?.hasActiveCycle as boolean) || loading,
       onClick: handleStartPeriod,
@@ -386,7 +384,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     }] : []),
     {
       id: "period-end",
-      label: t('navigation.periodEnd'),
+      label: "生理終了",
       color: !menstrualStatus?.hasActiveCycle || isTodayPeriodStart() ? "bg-gray-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 active:bg-green-700",
       disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading || isTodayPeriodStart(),
       onClick: handleEndPeriod,
