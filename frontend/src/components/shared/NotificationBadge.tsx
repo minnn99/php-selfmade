@@ -14,8 +14,20 @@ export const NotificationBadge: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    const loadUnreadCount = () => {
-      const storedNotifications = localStorage.getItem("notifications");
+    const loadUnreadCount = async () => {
+      // Get current user ID
+      let userId = "unknown";
+      try {
+        const { authAPI } = await import('../../services/api');
+        const userData = await authAPI.getUser();
+        const user = (userData.data as { user?: { id?: string | number } })?.user;
+        userId = user?.id?.toString() || "unknown";
+      } catch {
+        // Fallback
+      }
+
+      const notificationKey = `notifications_${userId}`;
+      const storedNotifications = localStorage.getItem(notificationKey);
       if (storedNotifications) {
         const notifications: NotificationItem[] = JSON.parse(storedNotifications);
         const unreadNotifications = notifications.filter(n => !n.isRead);
@@ -30,7 +42,7 @@ export const NotificationBadge: React.FC = () => {
 
     // Listen for storage changes to update badge when notifications change
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "notifications") {
+      if (e.key && e.key.startsWith("notifications_")) {
         loadUnreadCount();
       }
     };

@@ -48,32 +48,35 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
         const today = new Date();
         const todayString = today.toISOString().split("T")[0];
 
-        if (isMaleWithPartner) {
-          // 男性ユーザーでパートナー接続済みの場合、パートナーのカレンダーデータを取得
-          const partnerCalendarResponse = await partnerAPI.getPartnerCalendar(today.getFullYear(), today.getMonth() + 1);
-          if (partnerCalendarResponse.success && partnerCalendarResponse.data) {
-            const responseData = partnerCalendarResponse.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> } | Record<string, unknown>;
-            
-            // パートナーAPIのレスポンス形式をチェック
-            if ('calendar_data' in responseData && Array.isArray(responseData.calendar_data)) {
-              // 配列形式の場合
-              const todayEntry = responseData.calendar_data.find(entry => entry.date === todayString);
-              if (todayEntry) {
-                generateMaleAdviceFromPartnerData(todayEntry);
-                return;
-              }
-            } else {
-              // オブジェクト形式の場合（通常のカレンダーAPIと同じ）
-              const todayData = (responseData as Record<string, unknown>)[todayString];
-              if (todayData && typeof todayData === "object") {
-                generateMaleAdviceFromPartnerData(todayData as Record<string, unknown>);
-                return;
+        if (user?.gender === 'male' || user?.gender === '男性') {
+          // 男性ユーザーの場合
+          if (isMaleWithPartner) {
+            // パートナー接続済みの場合、パートナーのカレンダーデータを取得
+            const partnerCalendarResponse = await partnerAPI.getPartnerCalendar(today.getFullYear(), today.getMonth() + 1);
+            if (partnerCalendarResponse.success && partnerCalendarResponse.data) {
+              const responseData = partnerCalendarResponse.data as { calendar_data?: Array<{ date: string; [key: string]: unknown }> } | Record<string, unknown>;
+
+              // パートナーAPIのレスポンス形式をチェック
+              if ('calendar_data' in responseData && Array.isArray(responseData.calendar_data)) {
+                // 配列形式の場合
+                const todayEntry = responseData.calendar_data.find(entry => entry.date === todayString);
+                if (todayEntry) {
+                  generateMaleAdviceFromPartnerData(todayEntry);
+                  return;
+                }
+              } else {
+                // オブジェクト形式の場合（通常のカレンダーAPIと同じ）
+                const todayData = (responseData as Record<string, unknown>)[todayString];
+                if (todayData && typeof todayData === "object") {
+                  generateMaleAdviceFromPartnerData(todayData as Record<string, unknown>);
+                  return;
+                }
               }
             }
           }
-          // 男性でパートナー未接続の場合は男性向けアドバイス
+          // 男性でパートナー未接続の場合は男性向けデフォルトアドバイス
           setMaleDefaultAdvice();
-        } else if (user?.gender !== 'male' && user?.gender !== '男性') {
+        } else {
           // 女性ユーザーの場合、自分のカレンダーデータを取得
           const calendarResponse = await menstrualCycleAPI.getCalendarData(today.getFullYear(), today.getMonth() + 1);
           

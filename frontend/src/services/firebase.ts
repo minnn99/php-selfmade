@@ -79,10 +79,10 @@ export const initializeFCM = async () => {
 // フォアグラウンド通知受信
 export const setupForegroundListener = () => {
   const messaging = getMessaging(app);
-  
-  onMessage(messaging, (payload) => {
+
+  onMessage(messaging, async (payload) => {
     console.log('フォアグラウンド通知受信:', payload);
-    
+
     // カスタム通知を作成
     const notification = {
       id: Date.now().toString(),
@@ -93,11 +93,23 @@ export const setupForegroundListener = () => {
       isRead: false,
       priority: payload.data?.priority || 'medium'
     };
-    
-    // LocalStorageに保存
-    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+
+    // Get user ID for user-specific storage
+    let userId = "unknown";
+    try {
+      const { authAPI } = await import('./api');
+      const userData = await authAPI.getUser();
+      const user = (userData.data as { user?: { id?: string | number } })?.user;
+      userId = user?.id?.toString() || "unknown";
+    } catch {
+      // Fallback
+    }
+
+    // LocalStorageにユーザー固有で保存
+    const notificationKey = `notifications_${userId}`;
+    const notifications = JSON.parse(localStorage.getItem(notificationKey) || '[]');
     notifications.unshift(notification);
-    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem(notificationKey, JSON.stringify(notifications));
     
     // バッジ更新イベント発火
     window.dispatchEvent(new CustomEvent('notificationUpdated'));

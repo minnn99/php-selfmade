@@ -20,6 +20,18 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
   const [isVisible, setIsVisible] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
+  // ユーザーIDを取得する共通関数
+  const getCurrentUserId = async (): Promise<string> => {
+    try {
+      const { authAPI } = await import('../../services/api');
+      const userData = await authAPI.getUser();
+      const user = (userData.data as { user?: { id?: string | number } })?.user;
+      return user?.id?.toString() || "unknown";
+    } catch {
+      return "unknown";
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
@@ -33,9 +45,13 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }
   }, [isOpen]);
 
-  const loadNotifications = () => {
-    // localStorageから通知を読み込み（実際の実装では API から取得）
-    const storedNotifications = localStorage.getItem("notifications");
+  const loadNotifications = async () => {
+    // Get current user ID to load user-specific notifications
+    const userId = await getCurrentUserId();
+
+    // localStorageからユーザー固有の通知を読み込み
+    const notificationKey = `notifications_${userId}`;
+    const storedNotifications = localStorage.getItem(notificationKey);
     if (storedNotifications) {
       let notifications = JSON.parse(storedNotifications);
       
@@ -57,7 +73,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       }));
       
       // 既読状態をlocalStorageに保存
-      localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+      localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
       
       setNotifications(updatedNotifications);
       
@@ -68,31 +84,41 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     const updatedNotifications = notifications.map(notification =>
       notification.id === id ? { ...notification, isRead: true } : notification
     );
     setNotifications(updatedNotifications);
-    localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+
+    // Get user ID for storage key
+    const userId = await getCurrentUserId();
+    const notificationKey = `notifications_${userId}`;
+    localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
     // Dispatch custom event to update badge
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     const updatedNotifications = notifications.map(notification => ({
       ...notification,
       isRead: true,
     }));
     setNotifications(updatedNotifications);
-    localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+
+    const userId = await getCurrentUserId();
+    const notificationKey = `notifications_${userId}`;
+    localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
     // Dispatch custom event to update badge
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
     const updatedNotifications = notifications.filter(notification => notification.id !== id);
     setNotifications(updatedNotifications);
-    localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
+
+    const userId = await getCurrentUserId();
+    const notificationKey = `notifications_${userId}`;
+    localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
     // Dispatch custom event to update badge
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
   };

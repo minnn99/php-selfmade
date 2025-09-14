@@ -95,6 +95,33 @@ function App() {
   }, [currentView]);
 
   const handleLogout = async () => {
+    // Check if user wants to clear notification history on logout
+    const securitySettings = localStorage.getItem("securitySettings");
+    let shouldClearNotifications = false;
+
+    if (securitySettings) {
+      try {
+        const settings = JSON.parse(securitySettings);
+        shouldClearNotifications = settings.loginSecurity?.clearNotificationsOnLogout || false;
+      } catch {
+        // If parsing fails, don't clear notifications
+      }
+    }
+
+    // Clear notifications only if user has enabled this setting
+    if (shouldClearNotifications) {
+      try {
+        const userData = await authAPI.getUser();
+        const user = (userData.data as { user?: { id?: string | number } })?.user;
+        const userId = user?.id?.toString() || "unknown";
+
+        const notificationKey = `notifications_${userId}`;
+        localStorage.removeItem(notificationKey);
+      } catch {
+        // If user data fetch fails, still proceed with logout
+      }
+    }
+
     // 新しい認証システムを使用してログアウト
     await authAPI.logout();
     authAPI.stopTokenChecker();
@@ -150,7 +177,7 @@ function App() {
   }
 
   // Add notification to notification center
-  const addLoginNotification = (userName: string) => {
+  const addLoginNotification = (userName: string, userId: string) => {
     // Check if login notifications are enabled in security settings
     const securitySettings = localStorage.getItem("securitySettings");
     if (securitySettings) {
@@ -163,9 +190,10 @@ function App() {
         // If parsing fails, proceed with default behavior
       }
     }
-    
-    // Get existing notifications
-    const storedNotifications = localStorage.getItem("notifications");
+
+    // Get existing notifications for this specific user
+    const notificationKey = `notifications_${userId}`;
+    const storedNotifications = localStorage.getItem(notificationKey);
     const notifications = storedNotifications ? JSON.parse(storedNotifications) : [];
     
     // Create new login notification
@@ -187,8 +215,8 @@ function App() {
       notifications.pop();
     }
     
-    // Save to localStorage
-    localStorage.setItem("notifications", JSON.stringify(notifications));
+    // Save to localStorage with user-specific key
+    localStorage.setItem(notificationKey, JSON.stringify(notifications));
     
     // Dispatch event to update notification badge
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
@@ -207,15 +235,15 @@ function App() {
     // Get user data and add notification
     try {
       const userData = await authAPI.getUser();
-      const userName = (userData.data as { user?: { nickname?: string; name?: string } })?.user?.nickname || 
-                       (userData.data as { user?: { nickname?: string; name?: string } })?.user?.name || 
-                       "ユーザー";
-      
+      const user = (userData.data as { user?: { id?: string | number; nickname?: string; name?: string } })?.user;
+      const userName = user?.nickname || user?.name || "ユーザー";
+      const userId = user?.id?.toString() || "unknown";
+
       // Add login notification to notification center
-      addLoginNotification(userName);
+      addLoginNotification(userName, userId);
     } catch {
       // Add generic notification if user data fetch fails
-      addLoginNotification("ユーザー");
+      addLoginNotification("ユーザー", "unknown");
     }
     
     // Check for redirect URL after login
