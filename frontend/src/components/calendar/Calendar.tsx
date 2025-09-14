@@ -248,23 +248,23 @@ export const Calendar: React.FC = () => {
   const loadMultipleMonthsData = async (gender?: string, isConnected?: boolean) => {
     const currentGender = gender ?? userGender;
     const currentConnected = isConnected ?? isConnectedToPartner;
-    
+
     try {
-      const today = new Date();
+      const baseDate = currentDate; // 現在表示中の月を基準にする
       const monthsToLoad = [];
-      
+
       // 前後3ヶ月分の年月を計算
       for (let i = -MONTHS_TO_PRELOAD; i <= MONTHS_TO_PRELOAD; i++) {
-        const targetDate = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 1);
         monthsToLoad.push({
           year: targetDate.getFullYear(),
           month: targetDate.getMonth() + 1 // API用に1-indexed
         });
       }
-      
+
       // ロード済み範囲を記録
-      const startDate = new Date(today.getFullYear(), today.getMonth() - MONTHS_TO_PRELOAD, 1);
-      const endDate = new Date(today.getFullYear(), today.getMonth() + MONTHS_TO_PRELOAD + 1, 0);
+      const startDate = new Date(baseDate.getFullYear(), baseDate.getMonth() - MONTHS_TO_PRELOAD, 1);
+      const endDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + MONTHS_TO_PRELOAD + 1, 0);
       setLoadedMonthsRange({ start: startDate, end: endDate });
       
       // 並列で全月のデータを取得
@@ -379,20 +379,8 @@ export const Calendar: React.FC = () => {
       const data = await menstrualCycleAPI.getCalendarData(currentYear, currentMonth + 1);
       const rawData = (data.data as Record<string, CalendarDayData>) || {};
 
-      // 古いデータをフィルタリング（30日以上前のデータは無視）
-      const currentDate = new Date();
-      const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const filteredData: Record<string, CalendarDayData> = {};
-
-      Object.keys(rawData).forEach((dateKey) => {
-        const keyDate = new Date(dateKey);
-        if (keyDate >= thirtyDaysAgo || keyDate.getMonth() === currentMonth) {
-          // 30日以内、または表示中の月のデータのみ保持
-          filteredData[dateKey] = rawData[dateKey];
-        }
-      });
-
-      setCalendarApiData(filteredData);
+      // すべてのデータをそのまま使用（フィルタリングを削除）
+      setCalendarApiData(rawData);
 
       // 症状データをAPIから取得（現在月の範囲）
       try {
