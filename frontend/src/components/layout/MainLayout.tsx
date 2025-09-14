@@ -38,6 +38,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   const [userLoading, setUserLoading] = useState(true);
   const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
   const [sessionExpiredMessage, setSessionExpiredMessage] = useState("");
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // URLパスから現在のビューを決定
   const getCurrentView = () => {
@@ -195,6 +196,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
     notificationManager.checkTodayNotifications();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // ドロップダウンの外側をクリックした時にメニューを閉じる
+      if (showUserDropdown) {
+        const target = event.target as Element;
+        if (!target.closest('.user-dropdown-container')) {
+          setShowUserDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showUserDropdown]);
+
   // 性別に基づく色分けのヘルパー関数
   const getGenderColors = (gender: string) => {
     const isMale = gender === 'male' || gender === '男性';
@@ -225,29 +241,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
               <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white">Pairiod</h1>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* ユーザー名表示 */}
-              {(() => {
-                const colors = getGenderColors(userGender);
-                return (
-                  <div className={`hidden lg:flex items-center space-x-2 px-3 py-1.5 ${colors.bgColor} rounded-full border ${colors.borderColor}`}>
-                    <div className={`w-6 h-6 ${colors.iconBg} rounded-full flex items-center justify-center`}>
-                      <svg className={`w-3 h-3 ${colors.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <span className={`text-sm font-medium ${colors.textColor}`}>
-                      {userLoading ? "..." : userName}
-                    </span>
-                  </div>
-                );
-              })()}
               {/* Dark Mode Toggle */}
               <DarkModeToggle />
+
               {/* Notification Button - Always visible */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                  className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center" 
+                  className="p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   title="通知"
                 >
                   <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,13 +256,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
                   </svg>
                   <NotificationBadge />
                 </button>
-                
-                <NotificationPopup 
+
+                <NotificationPopup
                   isOpen={isNotificationOpen}
                   onClose={() => setIsNotificationOpen(false)}
                 />
               </div>
-              
+
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -276,17 +277,64 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
                   )}
                 </svg>
               </button>
-              
-              {/* Desktop Logout Button */}
-              <button
-                onClick={handleLogoutClick}
-                className="hidden lg:flex p-2 sm:p-3 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
-                title="ログアウト"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
+
+              {/* Desktop User Menu with Dropdown */}
+              {(() => {
+                const colors = getGenderColors(userGender);
+                return (
+                  <div className="hidden lg:block relative user-dropdown-container">
+                    <button
+                      onClick={() => setShowUserDropdown(!showUserDropdown)}
+                      className={`flex items-center justify-center w-10 h-10 ${colors.iconBg} rounded-full hover:bg-opacity-80 transition-colors`}
+                      title={userLoading ? "..." : userName}
+                    >
+                      <svg className={`w-5 h-5 ${colors.iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showUserDropdown && (
+                      <>
+                        {/* Backdrop */}
+                        <div
+                          className="fixed inset-0 z-10 animate-[fadeIn_0.15s_ease-out]"
+                          onClick={() => setShowUserDropdown(false)}
+                        />
+
+                        {/* Dropdown Content */}
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 animate-[dropdownIn_0.2s_ease-out] origin-top-right">
+                          {/* User Info */}
+                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {userLoading ? "読み込み中..." : userName}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {userGender === '女性' || userGender === 'female' ? '女性' : '男性'}
+                            </p>
+                          </div>
+
+                          {/* Menu Items */}
+                          <div className="py-1">
+                            <button
+                              onClick={() => {
+                                setShowUserDropdown(false);
+                                handleLogoutClick();
+                              }}
+                              className="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            >
+                              <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              ログアウト
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
