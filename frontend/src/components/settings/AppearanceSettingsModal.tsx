@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage, useTranslation } from '../../contexts/LanguageContext';
 
 interface AppearanceSettingsModalProps {
   isOpen: boolean;
@@ -23,19 +24,21 @@ const languageOptions = [
 
 export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = ({ isOpen, onClose, onSave }) => {
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const { language, changeLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<AppearanceSettings>({
     language: {
-      locale: "ja-JP",
+      locale: language,
     },
   });
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem("appearanceSettings");
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      setSettings(parsedSettings);
-    }
-  }, []);
+    setSettings({
+      language: {
+        locale: language,
+      },
+    });
+  }, [language]);
 
 
   const handleSave = () => {
@@ -52,6 +55,11 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
         [field]: value,
       },
     }));
+
+    // 言語設定が変更された場合、即座に言語を変更
+    if (category === 'language' && field === 'locale') {
+      changeLanguage(value as any);
+    }
   };
 
   if (!isOpen) return null;
@@ -65,7 +73,7 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">外観設定</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">{t('settings.appearance')}</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,8 +86,8 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
           {/* テーマ設定 */}
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">テーマ設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">ダークモード/ライトモードの切り替えはヘッダーのボタンから行えます</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">{t('settings.theme')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">{t('settings.themeDescription')}</p>
             </div>
 
             {/* 現在のテーマ状態を表示 */}
@@ -89,10 +97,10 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
                   <div className="text-2xl">{isDarkMode ? "🌙" : "☀️"}</div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      現在のテーマ: {isDarkMode ? "ダークモード" : "ライトモード"}
+                      {t('settings.currentTheme')}: {isDarkMode ? t('settings.darkMode') : t('settings.lightMode')}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      ヘッダーのボタンで切り替えできます
+                      {t('settings.headerToggleNote')}
                     </p>
                   </div>
                 </div>
@@ -100,7 +108,7 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
                   onClick={toggleDarkMode}
                   className="px-4 py-2 text-sm font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg transition-colors"
                 >
-                  切り替え
+                  {t('settings.toggleTheme')}
                 </button>
               </div>
             </div>
@@ -109,12 +117,12 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
           {/* 言語設定 */}
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">言語設定</h3>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">アプリで使用する言語を選択</p>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">{t('settings.language')}</h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-tight">{t('settings.selectLanguage')}</p>
             </div>
 
             <div className="space-y-2 sm:space-y-3">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">表示言語</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">{t('settings.selectLanguage')}</label>
               <select
                 value={settings.language.locale}
                 onChange={(e) => updateSetting("language", "locale", e.target.value)}
@@ -136,13 +144,13 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
             onClick={onClose}
             className="px-4 py-3 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 active:bg-gray-300 dark:active:bg-gray-500 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            キャンセル
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-3 text-sm sm:text-base font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-800 rounded-lg transition-colors min-h-[44px] flex items-center justify-center"
           >
-            保存
+            {t('common.save')}
           </button>
         </div>
       </div>

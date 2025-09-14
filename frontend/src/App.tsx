@@ -12,6 +12,7 @@ import { useTokenInteractionChecker } from "./hooks/useTokenInteractionChecker";
 import { useUserStore } from "./stores/userStore";
 import { initializeNotifications } from "./main";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -126,12 +127,14 @@ function App() {
   if (isLoading) {
     return (
       <ThemeProvider>
-        <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-neutral-600 dark:text-gray-300">読み込み中...</p>
+        <LanguageProvider>
+          <div className="min-h-screen bg-gradient-to-br from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <p className="text-neutral-600 dark:text-gray-300">読み込み中...</p>
+            </div>
           </div>
-        </div>
+        </LanguageProvider>
       </ThemeProvider>
     );
   }
@@ -139,7 +142,9 @@ function App() {
   if (currentView === "welcome") {
     return (
       <ThemeProvider>
-        <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />
+        <LanguageProvider>
+          <WelcomeScreen onGetStarted={handleGetStarted} onLogin={handleWelcomeLogin} />
+        </LanguageProvider>
       </ThemeProvider>
     );
   }
@@ -224,7 +229,9 @@ function App() {
   if (currentView === "signup") {
     return (
       <ThemeProvider>
-        <SignupPage onShowLogin={() => setCurrentView("login")} />
+        <LanguageProvider>
+          <SignupPage onShowLogin={() => setCurrentView("login")} />
+        </LanguageProvider>
       </ThemeProvider>
     );
   }
@@ -237,33 +244,37 @@ function App() {
   if (!isAuthenticated) {
     return (
       <ThemeProvider>
-        <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />
+        <LanguageProvider>
+          <LoginPage key="login" onLoginSuccess={handleLoginSuccess} onShowWelcome={handleShowWelcome} />
+        </LanguageProvider>
       </ThemeProvider>
     );
   }
 
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <ProtectedRoute
-          onUnauthorized={() => {
-            setIsAuthenticated(false);
-            setCurrentView("login");
-            authAPI.stopTokenChecker();
-            // Clear user data from global store
-            clearUserData();
-          }}
-        >
-          <MainLayout onLogout={handleLogout} />
-        </ProtectedRoute>
-        
-        {/* セッション期限切れモーダル */}
-        <SessionExpiredModal
-          isOpen={showSessionExpiredModal}
-          onClose={handleSessionExpiredModalClose}
-          message={sessionExpiredMessage}
-        />
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <ProtectedRoute
+            onUnauthorized={() => {
+              setIsAuthenticated(false);
+              setCurrentView("login");
+              authAPI.stopTokenChecker();
+              // Clear user data from global store
+              clearUserData();
+            }}
+          >
+            <MainLayout onLogout={handleLogout} />
+          </ProtectedRoute>
+
+          {/* セッション期限切れモーダル */}
+          <SessionExpiredModal
+            isOpen={showSessionExpiredModal}
+            onClose={handleSessionExpiredModalClose}
+            message={sessionExpiredMessage}
+          />
+        </BrowserRouter>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

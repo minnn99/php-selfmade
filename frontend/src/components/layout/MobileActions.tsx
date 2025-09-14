@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI, userDataAPI, authAPI } from '../../services/api';
 import { menstrualStatusManager } from '../../services/menstrualStatusManager';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 export const MobileActions: React.FC = () => {
+  const { t } = useTranslation();
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaleUser, setIsMaleUser] = useState(false);
@@ -308,7 +310,7 @@ export const MobileActions: React.FC = () => {
       {/* Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4">
         <h3 className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 mb-4">
-          クイックアクション
+          {t('dashboard.quickActions')}
           {/* デバッグ情報 */}
           {menstrualStatus && (
             <span className="ml-2 text-xs text-gray-400 dark:text-gray-500">

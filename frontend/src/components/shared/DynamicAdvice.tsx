@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { menstrualCycleAPI, partnerAPI } from "../../services/api";
 import { useUserStore } from "../../stores/userStore";
+import { useTranslation } from "../../contexts/LanguageContext";
 
 interface DynamicAdviceProps {
   className?: string;
@@ -15,6 +16,7 @@ interface AdviceContent {
 }
 
 export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) => {
+  const { t } = useTranslation();
   const [currentAdvice, setCurrentAdvice] = useState<AdviceContent>({
     title: "今日のアドバイス",
     message: "読み込み中...",
@@ -183,8 +185,8 @@ export const DynamicAdvice: React.FC<DynamicAdviceProps> = ({ className = "" }) 
       return;
     } else if (todayTypedData.isFertile) {
       setCurrentAdvice({
-        title: "妊娠可能期間",
-        message: "妊娠可能期間です。体調管理に気をつけて、バランスの良い食事を心がけましょう。",
+        title: t('dashboard.pregnancyPossibilityPeriod'),
+        message: t('dashboard.pregnancyPossibilityMessage'),
         bgColor: "from-pink-50 to-rose-50",
         textColor: "text-pink-600",
       });

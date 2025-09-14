@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, userDataAPI, authAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { DynamicAdvice } from "../shared/DynamicAdvice";
+import { useTranslation } from "../../contexts/LanguageContext";
 
 interface NavigationItem {
   id: string;
@@ -18,6 +19,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange, mobileMenuOnly = false }) => {
+  const { t } = useTranslation();
   const [menstrualStatus, setMenstrualStatus] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMaleUser, setIsMaleUser] = useState(false);
@@ -235,7 +237,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   const navigationItems: NavigationItem[] = [
     {
       id: "dashboard",
-      label: "ダッシュボード",
+      label: t('navigation.dashboard'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -250,7 +252,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "pregnancy-support",
-      label: "妊娠サポート",
+      label: t('navigation.pregnancySupport'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -266,7 +268,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "partner-connection",
-      label: "パートナー連動",
+      label: t('navigation.partnerConnection'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -281,7 +283,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "self-care",
-      label: "セルフケア",
+      label: t('navigation.selfCare'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -296,7 +298,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "medical-records",
-      label: "診断記録",
+      label: t('navigation.diagnosticRecords'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -311,7 +313,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "statistics",
-      label: "統計",
+      label: t('navigation.statistics'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -326,7 +328,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     },
     {
       id: "settings",
-      label: "設定",
+      label: t('navigation.settings'),
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -360,7 +362,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
   }> = [
     {
       id: "period-start",
-      label: "生理開始",
+      label: t('navigation.periodStart'),
       color: menstrualStatus?.hasActiveCycle ? "bg-gray-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 active:bg-red-700",
       disabled: (menstrualStatus?.hasActiveCycle as boolean) || loading,
       onClick: handleStartPeriod,
@@ -384,7 +386,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeView, onViewChange
     }] : []),
     {
       id: "period-end",
-      label: "生理終了",
+      label: t('navigation.periodEnd'),
       color: !menstrualStatus?.hasActiveCycle || isTodayPeriodStart() ? "bg-gray-300 cursor-not-allowed" : "bg-green-500 hover:bg-green-600 active:bg-green-700",
       disabled: !(menstrualStatus?.hasActiveCycle as boolean) || loading || isTodayPeriodStart(),
       onClick: handleEndPeriod,

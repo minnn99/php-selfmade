@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, partnerAPI, authAPI } from "../../services/api";
 import { FadeInUp } from "../animations";
+import { useTranslation } from "../../contexts/LanguageContext";
 
 interface PredictionData {
   nextPeriodDate: string | null; // 次の生理周期開始予定日
@@ -10,6 +11,7 @@ interface PredictionData {
 }
 
 export const OverviewCards: React.FC = () => {
+  const { t } = useTranslation();
   const [predictionData, setPredictionData] = useState<PredictionData>({
     nextPeriodDate: null,
     nextOvulationDate: null,
@@ -222,7 +224,7 @@ export const OverviewCards: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6 min-h-[180px] flex flex-col">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの次の生理予定日" : "次の生理周期予定日"}
+              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? t('dashboard.partnerNextPeriodDate') : t('dashboard.nextPeriodDate')}
             </h3>
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +269,7 @@ export const OverviewCards: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6 min-h-[180px] flex flex-col">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? "パートナーの排卵予定日" : "排卵予定日"}
+              {(userGender === "male" || userGender === "男性") && isConnectedToPartner ? t('dashboard.partnerOvulationDate') : t('dashboard.ovulationDate')}
             </h3>
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,7 +312,7 @@ export const OverviewCards: React.FC = () => {
       <FadeInUp delay={200}>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-medical dark:border-gray-700 p-4 sm:p-6 min-h-[180px] flex flex-col">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">パートナー連携状況</h3>
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{t('dashboard.partnerConnectionStatus')}</h3>
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -344,7 +346,7 @@ export const OverviewCards: React.FC = () => {
               </>
             ) : (
               <>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-500 dark:text-gray-400">未連携</p>
+                <p className="text-xl sm:text-2xl font-semibold text-gray-500 dark:text-gray-400">{t('dashboard.notConnected')}</p>
                 <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">パートナーと連携していません</p>
                 <div className="flex items-center space-x-1 h-2">
                   <span className="w-2 h-2 bg-gray-400 dark:bg-gray-600 rounded-full"></span>

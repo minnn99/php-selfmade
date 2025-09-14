@@ -20,6 +20,50 @@
   @apply transition-colors duration-200;
 }
 
+/* カスタムスクロールバー - 控えめスタイル */
+@layer base {
+  /* Webkit ブラウザ用 */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(156, 163, 175, 0.1);
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.4);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(236, 72, 153, 0.6);
+  }
+
+  /* ダークモード対応 */
+  @media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-track {
+      background: rgba(75, 85, 99, 0.2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(75, 85, 99, 0.6);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(236, 72, 153, 0.7);
+    }
+  }
+
+  /* Firefox用 */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.4) rgba(156, 163, 175, 0.1);
+  }
+}
+
 /* Toast Animation */
 @keyframes slide-in-right {
   from {

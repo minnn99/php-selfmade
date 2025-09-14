@@ -1,0 +1,90 @@
+export const ja = {
+  common: {
+    save: "保存",
+    cancel: "キャンセル",
+    close: "閉じる",
+    confirm: "確認",
+    edit: "編集",
+    delete: "削除",
+    loading: "読み込み中...",
+    error: "エラーが発生しました"
+  },
+  navigation: {
+    dashboard: "ダッシュボード",
+    calendar: "カレンダー",
+    analytics: "統計",
+    medical: "医療記録",
+    settings: "設定",
+    pregnancySupport: "妊娠サポート",
+    partnerConnection: "パートナー連動",
+    selfCare: "セルフケア",
+    dailyRecords: "日次記録",
+    diagnosticRecords: "診断記録",
+    statistics: "統計",
+    periodStart: "生理開始",
+    periodEnd: "生理終了"
+  },
+  auth: {
+    login: "ログイン",
+    signup: "新規登録",
+    logout: "ログアウト",
+    email: "メールアドレス",
+    password: "パスワード",
+    forgotPassword: "パスワードを忘れた方はこちら"
+  },
+  calendar: {
+    title: "カレンダー",
+    subtitle: "生理周期と症状を記録"
+  },
+  dashboard: {
+    nextPeriodDate: "次の生理周期予定日",
+    partnerNextPeriodDate: "パートナーの次の生理予定日",
+    ovulationDate: "排卵予定日",
+    partnerOvulationDate: "パートナーの排卵予定日",
+    partnerConnectionStatus: "パートナー連携状況",
+    notConnected: "未連携",
+    connected: "連携済み",
+    quickActions: "クイックアクション",
+    pregnancyPossibilityPeriod: "妊娠可能期間",
+    pregnancyPossibilityMessage: "体調管理に気を付けて、\nバランスの良い食事を心がけましょう。",
+    menu: "メニュー",
+    days: "日"
+  },
+  analytics: {
+    title: "統計",
+    nextPeriod: "次の生理予定日",
+    ovulation: "次の排卵予定日",
+    partner: "パートナー連携状況",
+    notConnected: "未連携",
+    connected: "連携済み"
+  },
+  settings: {
+    title: "設定",
+    profile: "ユーザー情報",
+    profileDescription: "名前、プロフィール、アカウント情報",
+    notifications: "通知設定",
+    notificationsDescription: "プッシュ通知、メール通知の設定",
+    appearance: "外観",
+    appearanceDescription: "テーマ、言語設定",
+    security: "セキュリティ",
+    securityDescription: "パスワード変更、2段階認証",
+    language: "言語設定",
+    currentLanguage: "現在の言語",
+    selectLanguage: "表示言語を選択",
+    theme: "テーマ設定",
+    currentTheme: "現在のテーマ",
+    darkMode: "ダークモード",
+    lightMode: "ライトモード",
+    toggleTheme: "切り替え",
+    themeDescription: "ダークモード/ライトモードの切り替えはヘッダーのボタンから行えます",
+    headerToggleNote: "ヘッダーのボタンで切り替えできます",
+    privacy: "プライバシー",
+    privacyDescription: "データ共有、プライバシー設定",
+    dataManagement: "データ管理",
+    dataManagementDescription: "データのエクスポート、削除",
+    support: "サポート",
+    supportDescription: "ヘルプ、お問い合わせ",
+    deleteAllData: "全データ削除",
+    deleteAllDataDescription: "全ての生理周期データを完全に削除します"
+  }
+};
