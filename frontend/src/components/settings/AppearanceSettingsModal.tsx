@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from 'react-dom';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useLanguage, useTranslation } from '../../contexts/LanguageContext';
+import { type Language } from '../../contexts/LanguageContextDefinition';
+import { useLanguage, useTranslation } from '../../hooks/useLanguage';
 
 interface AppearanceSettingsModalProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ export const AppearanceSettingsModal: React.FC<AppearanceSettingsModalProps> = (
 
     // 言語設定が変更された場合、即座に言語を変更
     if (category === 'language' && field === 'locale') {
-      changeLanguage(value as any);
+      changeLanguage(value as Language);
     }
   };
 

@@ -1,18 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-// 言語タイプの定義
-export type Language = 'ja-JP' | 'en-US' | 'ko-KR' | 'zh-CN';
-
-// Context用の型定義
-interface LanguageContextType {
-  language: Language;
-  changeLanguage: (lang: Language) => void;
-  t: (key: string) => string;
-}
-
-// Context作成
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+import { LanguageContext, type Language } from './LanguageContextDefinition';
 
 // LanguageProvider Props
 interface LanguageProviderProps {
@@ -25,7 +13,7 @@ import { ko } from '../locales/ko';
 import { en } from '../locales/en';
 import { zh } from '../locales/zh';
 
-const translations: Record<Language, Record<string, any>> = {
+const translations: Record<Language, Record<string, unknown>> = {
   'ja-JP': ja,
   'en-US': en,
   'ko-KR': ko,
@@ -68,11 +56,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // 翻訳関数
   const t = (key: string): string => {
     const keys = key.split('.');
-    let value: any = translations[language];
+    let value: unknown = translations[language];
 
     for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
+      if (value && typeof value === 'object' && value !== null && k in value) {
+        value = (value as Record<string, unknown>)[k];
       } else {
         // キーが見つからない場合はキーをそのまま返す
         return key;
@@ -89,17 +77,3 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   );
 };
 
-// カスタムフック
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
-};
-
-// useTranslation フック（react-i18next風）
-export const useTranslation = () => {
-  const { t } = useLanguage();
-  return { t };
-};

@@ -35,7 +35,7 @@ const getSavedLanguage = () => {
       return settings.language?.locale || 'ja-JP';
     }
     return 'ja-JP';
-  } catch (error) {
+  } catch {
     return 'ja-JP';
   }
 };
