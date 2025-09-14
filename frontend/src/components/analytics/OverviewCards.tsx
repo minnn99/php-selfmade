@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, partnerAPI, authAPI } from "../../services/api";
 import { FadeInUp } from "../animations";
-import { useTranslation } from "../../contexts/LanguageContext";
+import { useTranslation } from "../../hooks/useLanguage";
 
 interface PredictionData {
   nextPeriodDate: string | null; // 次の生理周期開始予定日

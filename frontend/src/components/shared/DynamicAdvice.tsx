@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { menstrualCycleAPI, partnerAPI } from "../../services/api";
 import { useUserStore } from "../../stores/userStore";
-import { useTranslation } from "../../contexts/LanguageContext";
+import { useTranslation } from "../../hooks/useLanguage";
 
 interface DynamicAdviceProps {
   className?: string;

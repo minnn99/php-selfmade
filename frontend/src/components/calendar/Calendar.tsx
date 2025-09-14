@@ -3,7 +3,7 @@ import { DateRecordModal, type RecordData } from "./DateRecordModal";
 import { menstrualCycleAPI, partnerAPI, authAPI, dailySymptomsAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { getDatePeriodStatus } from "../../utils/periodStatusHelper";
-import { useTranslation } from "../../contexts/LanguageContext";
+import { useTranslation } from "../../hooks/useLanguage";
 
 interface CalendarDay {
   year: number;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { menstrualCycleAPI, userDataAPI, authAPI } from '../../services/api';
 import { menstrualStatusManager } from '../../services/menstrualStatusManager';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from '../../hooks/useLanguage';
 
 export const MobileActions: React.FC = () => {
   const { t } = useTranslation();

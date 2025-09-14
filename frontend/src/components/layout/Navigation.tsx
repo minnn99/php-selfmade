@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { menstrualCycleAPI, userDataAPI, authAPI } from "../../services/api";
 import { menstrualStatusManager } from "../../services/menstrualStatusManager";
 import { DynamicAdvice } from "../shared/DynamicAdvice";
-import { useTranslation } from "../../contexts/LanguageContext";
+import { useTranslation } from "../../hooks/useLanguage";
 
 interface NavigationItem {
   id: string;
