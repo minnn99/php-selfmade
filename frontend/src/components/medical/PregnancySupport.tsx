@@ -50,14 +50,18 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
   const [pregnancyHistory, setPregnancyHistory] = useState<PregnancyHistoryRecord[]>([]);
   const [selectedHistoryRecord, setSelectedHistoryRecord] = useState<PregnancyHistoryRecord | null>(null);
   const [showHistoryDetailModal, setShowHistoryDetailModal] = useState(false);
+  const [showDeleteHistoryModal, setShowDeleteHistoryModal] = useState(false);
+  const [historyToDelete, setHistoryToDelete] = useState<{ index: number; record: PregnancyHistoryRecord } | null>(null);
 
   useEffect(() => {
+    // ローカルストレージから状態を復元
     const savedMode = localStorage.getItem("pregnancyMode");
     const savedPregnant = localStorage.getItem("isPregnant");
     const savedStartDate = localStorage.getItem("pregnancyStartDate");
     const savedRecords = localStorage.getItem("pregnancyRecords");
     const savedHistory = localStorage.getItem("pregnancyHistory");
 
+    // まずローカルストレージの状態を設定
     if (savedMode) setIsPregnancyMode(JSON.parse(savedMode));
     if (savedPregnant) setIsPregnant(JSON.parse(savedPregnant));
     if (savedStartDate) setPregnancyStartDate(savedStartDate);
@@ -67,27 +71,54 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     if (savedMode && JSON.parse(savedMode)) {
       loadOvulationData();
     }
-    
-    // APIから最新のデータを読み込み
-    loadPregnancyRecords();
+
+    // ローカルストレージの状態を設定した後にAPIデータを読み込み
+    // これにより、現在の状態が優先されるようになる
+    setTimeout(() => {
+      loadPregnancyRecords();
+    }, 100);
   }, []);
 
   const loadPregnancyRecords = async () => {
     try {
       const response = await userDataAPI.getPregnancyRecords();
       if (response.success && response.data) {
-        const responseData = response.data as { records_data?: PregnancyRecord[]; start_date?: string };
+        const responseData = response.data as {
+          records_data?: PregnancyRecord[];
+          start_date?: string;
+          is_active?: boolean;
+          is_current_pregnancy?: boolean;
+        };
         const records = responseData.records_data || [];
         setPregnancyRecords(records);
         // ローカルストレージも更新
         localStorage.setItem("pregnancyRecords", JSON.stringify(records));
-        
-        // 妊娠開始日も更新
-        if (responseData.start_date) {
-          setPregnancyStartDate(responseData.start_date);
-          localStorage.setItem("pregnancyStartDate", responseData.start_date);
-          setIsPregnant(true);
-          localStorage.setItem("isPregnant", JSON.stringify(true));
+
+        // 既にlocalStorageに妊娠状態が保存されている場合は、それを優先する
+        const savedPregnant = localStorage.getItem("isPregnant");
+        const currentIsPregnant = savedPregnant ? JSON.parse(savedPregnant) : false;
+
+        // ローカルストレージに妊娠状態がない場合のみ、APIの情報を使用する
+        if (savedPregnant === null) {
+          // 現在の妊娠（進行中）のみ状態を更新する
+          // APIから is_active または is_current_pregnancy フラグが来た場合のみ妊娠状態を true にする
+          if (responseData.start_date && (responseData.is_active || responseData.is_current_pregnancy)) {
+            setPregnancyStartDate(responseData.start_date);
+            localStorage.setItem("pregnancyStartDate", responseData.start_date);
+            setIsPregnant(true);
+            localStorage.setItem("isPregnant", JSON.stringify(true));
+          } else if (responseData.start_date) {
+            // 過去の記録がある場合は開始日のみ設定（妊娠状態は変更しない）
+            setPregnancyStartDate(responseData.start_date);
+            localStorage.setItem("pregnancyStartDate", responseData.start_date);
+          }
+        } else {
+          // ローカルストレージに状態がある場合は、記録のみ更新
+          // 既存の妊娠状態は維持
+          if (responseData.start_date && currentIsPregnant) {
+            setPregnancyStartDate(responseData.start_date);
+            localStorage.setItem("pregnancyStartDate", responseData.start_date);
+          }
         }
       }
     } catch {
@@ -243,6 +274,29 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
     const diffTime = ovulationDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  const handleDeleteHistory = () => {
+    if (!historyToDelete) return;
+
+    // 履歴から該当の記録を削除
+    const updatedHistory = pregnancyHistory.filter((_, index) => index !== historyToDelete.index);
+    setPregnancyHistory(updatedHistory);
+
+    // ローカルストレージも更新
+    localStorage.setItem("pregnancyHistory", JSON.stringify(updatedHistory));
+
+    // モーダルを閉じる
+    setShowDeleteHistoryModal(false);
+    setHistoryToDelete(null);
+
+    // APIにも削除リクエストを送信（実装されている場合）
+    // TODO: API削除機能の実装
+  };
+
+  const confirmDeleteHistory = (index: number, record: PregnancyHistoryRecord) => {
+    setHistoryToDelete({ index, record });
+    setShowDeleteHistoryModal(true);
   };
 
   // Show records page if requested
@@ -549,6 +603,26 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
         />
       )}
 
+      {/* Delete History Confirmation Modal */}
+      {showDeleteHistoryModal && historyToDelete && (
+        <ConfirmationModal
+          message={`妊娠記録 #${historyToDelete.index + 1} を削除しますか？
+
+期間: ${historyToDelete.record.start_date} 〜 ${historyToDelete.record.end_date}
+記録数: ${historyToDelete.record.records_data?.length || 0} 件
+
+この操作は取り消しできません。`}
+          onConfirm={handleDeleteHistory}
+          onCancel={() => {
+            setShowDeleteHistoryModal(false);
+            setHistoryToDelete(null);
+          }}
+          confirmButtonText="削除する"
+          cancelButtonText="キャンセル"
+          confirmButtonClass="px-4 sm:px-6 py-3 rounded-md bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition-colors text-sm sm:text-base font-medium min-h-[44px] flex items-center justify-center"
+        />
+      )}
+
       {/* Pregnancy Confirmation Modal */}
       {showPregnancyConfirmModal &&
         createPortal(
@@ -722,17 +796,25 @@ export const PregnancySupport: React.FC<PregnancySupportProps> = ({ className = 
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{history.records_data?.length || 0} 件の記録</p>
-                          <button
-                            onClick={() => {
-                              setSelectedHistoryRecord(history);
-                              setShowHistoryDetailModal(true);
-                              setShowHistoryModal(false);
-                            }}
-                            className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 active:text-primary-800 dark:active:text-primary-200 hover:underline"
-                          >
-                            詳細を見る
-                          </button>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{history.records_data?.length || 0} 件の記録</p>
+                          <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-3">
+                            <button
+                              onClick={() => {
+                                setSelectedHistoryRecord(history);
+                                setShowHistoryDetailModal(true);
+                                setShowHistoryModal(false);
+                              }}
+                              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 active:text-primary-800 dark:active:text-primary-200 hover:underline"
+                            >
+                              詳細を見る
+                            </button>
+                            <button
+                              onClick={() => confirmDeleteHistory(index, history)}
+                              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 active:text-red-800 dark:active:text-red-200 hover:underline"
+                            >
+                              削除
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
