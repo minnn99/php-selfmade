@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 interface NotificationItem {
   id: string;
@@ -32,6 +32,45 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }
   };
 
+  const loadNotifications = useCallback(async () => {
+    // Get current user ID to load user-specific notifications
+    const userId = await getCurrentUserId();
+
+    // localStorageからユーザー固有の通知を読み込み
+    const notificationKey = `notifications_${userId}`;
+    const storedNotifications = localStorage.getItem(notificationKey);
+    if (storedNotifications) {
+      let notifications = JSON.parse(storedNotifications);
+
+      // 重複IDをチェックして修正
+      const seenIds = new Set();
+      notifications = notifications.map((notification: NotificationItem, index: number) => {
+        if (seenIds.has(notification.id)) {
+          // 重複IDを修正
+          notification.id = `${notification.type}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 11)}`;
+        }
+        seenIds.add(notification.id);
+        return notification;
+      });
+
+      // 通知パネルを開いた時点ですべて既読にする
+      const updatedNotifications = notifications.map((notification: NotificationItem) => ({
+        ...notification,
+        isRead: true,
+      }));
+
+      // 既読状態をlocalStorageに保存
+      localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
+
+      setNotifications(updatedNotifications);
+
+      // 通知バッジを更新
+      window.dispatchEvent(new CustomEvent('notificationUpdated'));
+    } else {
+      setNotifications([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
@@ -43,46 +82,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       // アニメーション終了後にDOMから削除
       setTimeout(() => setShouldRender(false), 300);
     }
-  }, [isOpen]);
-
-  const loadNotifications = async () => {
-    // Get current user ID to load user-specific notifications
-    const userId = await getCurrentUserId();
-
-    // localStorageからユーザー固有の通知を読み込み
-    const notificationKey = `notifications_${userId}`;
-    const storedNotifications = localStorage.getItem(notificationKey);
-    if (storedNotifications) {
-      let notifications = JSON.parse(storedNotifications);
-      
-      // 重複IDをチェックして修正
-      const seenIds = new Set();
-      notifications = notifications.map((notification: NotificationItem, index: number) => {
-        if (seenIds.has(notification.id)) {
-          // 重複IDを修正
-          notification.id = `${notification.type}-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 11)}`;
-        }
-        seenIds.add(notification.id);
-        return notification;
-      });
-      
-      // 通知パネルを開いた時点ですべて既読にする
-      const updatedNotifications = notifications.map((notification: NotificationItem) => ({
-        ...notification,
-        isRead: true,
-      }));
-      
-      // 既読状態をlocalStorageに保存
-      localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
-      
-      setNotifications(updatedNotifications);
-      
-      // 通知バッジを更新
-      window.dispatchEvent(new CustomEvent('notificationUpdated'));
-    } else {
-      setNotifications([]);
-    }
-  };
+  }, [isOpen, loadNotifications]);
 
   const markAsRead = async (id: string) => {
     const updatedNotifications = notifications.map(notification =>
