@@ -48,10 +48,13 @@ class NotificationManager {
   private static instance: NotificationManager;
   private settings: UserSettings;
   private scheduledNotifications: Set<string> = new Set();
+  private checkInterval: number | null = null;
+  private lastCheckDate: string | null = null;
 
   private constructor() {
     this.settings = this.loadSettings();
     this.initializeEventListeners();
+    this.startPeriodicCheck();
   }
 
   public static getInstance(): NotificationManager {
@@ -122,9 +125,164 @@ class NotificationManager {
   private initializeEventListeners(): void {
     // Listen for menstrual data updates
     window.addEventListener('menstrualDataUpdated', this.handleMenstrualDataUpdate.bind(this));
-    
+
     // Listen for partner status updates
     window.addEventListener('partnerStatusUpdated', this.handlePartnerUpdate.bind(this));
+
+    // Listen for visibility change to restart check when page becomes visible
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.checkAndSendDueNotifications();
+      }
+    });
+  }
+
+  // 定期チェックシステムを開始
+  private startPeriodicCheck(): void {
+    // 既存のインターバルをクリア
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+    }
+
+    // 1分ごとにチェック
+    this.checkInterval = window.setInterval(() => {
+      this.checkAndSendDueNotifications();
+    }, 60000); // 1分間隔
+
+    // 初回実行
+    this.checkAndSendDueNotifications();
+  }
+
+  // 現在時刻に送信すべき通知をチェックして送信
+  private async checkAndSendDueNotifications(): Promise<void> {
+    if (!notificationService.hasPermission()) return;
+
+    const now = new Date();
+    const today = now.toDateString();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // 日付が変わった場合、送信済み通知をリセット
+    if (this.lastCheckDate !== today) {
+      this.scheduledNotifications.clear();
+      this.lastCheckDate = today;
+    }
+
+    try {
+      // MySQLから設定を読み込み
+      let detailedSettings = await this.loadDetailedSettingsFromAPI();
+      if (!detailedSettings) {
+        detailedSettings = this.loadDetailedSettings();
+      }
+      if (!detailedSettings) return;
+
+      // ピルリマインダーのチェック
+      if (this.settings.pillReminders && detailedSettings.pillReminder?.enabled) {
+        await this.checkPillNotifications(detailedSettings.pillReminder, currentTime, today);
+      }
+
+      // 生理・排卵期通知のチェック（生理データが必要）
+      const cycleData = await this.getCurrentCycleData();
+      if (cycleData?.startDate) {
+        await this.checkCycleNotifications(detailedSettings, cycleData, currentTime, today);
+      }
+    } catch (error) {
+      console.error('定期チェック中にエラーが発生:', error);
+    }
+  }
+
+  // ピル通知のチェック
+  private async checkPillNotifications(pillReminder: any, currentTime: string, today: string): Promise<void> {
+    const pillName = pillReminder.pillName || "ピル";
+    const times = pillReminder.times || ["08:00"];
+    const reminderMinutes = pillReminder.reminderMinutes || 0;
+
+    for (const time of times) {
+      const [targetHours, targetMinutes] = time.split(':').map(Number);
+      const notificationTime = new Date();
+      notificationTime.setHours(targetHours, targetMinutes - reminderMinutes, 0, 0);
+
+      const notificationTimeStr = `${String(notificationTime.getHours()).padStart(2, '0')}:${String(notificationTime.getMinutes()).padStart(2, '0')}`;
+      const notificationKey = `pill-${pillName}-${today}-${time}`;
+
+      // 現在時刻と通知時刻が一致し、まだ送信していない場合
+      if (notificationTimeStr === currentTime && !this.scheduledNotifications.has(notificationKey)) {
+        await notificationService.sendMedicationReminder(pillName, reminderMinutes);
+        this.scheduledNotifications.add(notificationKey);
+
+        // UIの即座更新のために追加のイベントを発火
+        window.dispatchEvent(new CustomEvent('notificationUpdated'));
+      }
+    }
+  }
+
+  // 生理・排卵期通知のチェック
+  private async checkCycleNotifications(detailedSettings: any, cycleData: any, currentTime: string, today: string): Promise<void> {
+    const startDate = new Date(cycleData.startDate);
+    const cycleLength = 28;
+    const nextPeriodDate = new Date(startDate);
+    nextPeriodDate.setDate(nextPeriodDate.getDate() + cycleLength);
+
+    // 生理リマインダーのチェック
+    if (this.settings.periodReminders && detailedSettings.menstrualReminder?.enabled) {
+      const daysBefore = detailedSettings.menstrualReminder.daysBeforeStart || 1;
+      const time = detailedSettings.menstrualReminder.time || "09:00";
+
+      const notificationDate = new Date(nextPeriodDate);
+      notificationDate.setDate(notificationDate.getDate() - daysBefore);
+
+      const todayDate = new Date().toDateString();
+      const notificationDateStr = notificationDate.toDateString();
+
+      if (todayDate === notificationDateStr && time === currentTime) {
+        const notificationKey = `period-${today}-${time}`;
+        if (!this.scheduledNotifications.has(notificationKey)) {
+          await notificationService.sendPeriodReminderNotification(daysBefore);
+          this.scheduledNotifications.add(notificationKey);
+
+          // UIの即座更新のために追加のイベントを発火
+          window.dispatchEvent(new CustomEvent('notificationUpdated'));
+        }
+      }
+    }
+
+    // 排卵期通知のチェック
+    if (this.settings.ovulationReminders && detailedSettings.ovulationReminder?.enabled) {
+      const time = detailedSettings.ovulationReminder.time || "09:00";
+
+      // 排卵日計算（次回生理の14日前）
+      const ovulationDate = new Date(nextPeriodDate);
+      ovulationDate.setDate(ovulationDate.getDate() - 14);
+
+      // 妊娠しやすい期間開始（排卵日の5日前）
+      const fertilityStartDate = new Date(ovulationDate);
+      fertilityStartDate.setDate(fertilityStartDate.getDate() - 5);
+
+      const todayDate = new Date().toDateString();
+
+      // 妊娠しやすい期間開始の通知
+      if (todayDate === fertilityStartDate.toDateString() && time === currentTime) {
+        const notificationKey = `fertility-start-${today}-${time}`;
+        if (!this.scheduledNotifications.has(notificationKey)) {
+          await notificationService.sendFertilityPeriodStartNotification();
+          this.scheduledNotifications.add(notificationKey);
+
+          // UIの即座更新のために追加のイベントを発火
+          window.dispatchEvent(new CustomEvent('notificationUpdated'));
+        }
+      }
+
+      // 排卵日の通知
+      if (todayDate === ovulationDate.toDateString() && time === currentTime) {
+        const notificationKey = `ovulation-day-${today}-${time}`;
+        if (!this.scheduledNotifications.has(notificationKey)) {
+          await notificationService.sendOvulationDayNotification();
+          this.scheduledNotifications.add(notificationKey);
+
+          // UIの即座更新のために追加のイベントを発火
+          window.dispatchEvent(new CustomEvent('notificationUpdated'));
+        }
+      }
+    }
   }
 
   private async handleMenstrualDataUpdate(): Promise<void> {
@@ -137,65 +295,23 @@ class NotificationManager {
       const cycleData = await this.getCurrentCycleData();
 
       if (cycleData) {
-        await this.scheduleUpcomingNotifications(cycleData);
-
         // Send immediate notifications if appropriate
         if (cycleData.isPeriodStart && this.settings.partnerNotifications) {
           this.sendPartnerNotification('menstrualStart');
         }
       }
 
-      // ピルの通知は生理データに関係なくスケジュール
-      await this.schedulePillReminders();
+      // 定期チェックシステムがピル通知を処理するため、手動スケジューリングは不要
     } catch (error) {
       console.error('Error handling menstrual data update:', error);
     }
   }
 
-  // ピルリマインダーを生理データに関係なくスケジュール
-  private async schedulePillReminders(): Promise<void> {
-    if (!notificationService.hasPermission()) return;
-
-    // MySQLから設定を優先的に読み込み
-    let detailedSettings = await this.loadDetailedSettingsFromAPI();
-    if (!detailedSettings) {
-      detailedSettings = this.loadDetailedSettings();
-    }
-    if (!detailedSettings) return;
-
-    // ピルリマインダーのスケジュール
-    if (this.settings.pillReminders && detailedSettings.pillReminder?.enabled) {
-      const pillName = detailedSettings.pillReminder.pillName || "ピル";
-      const times = detailedSettings.pillReminder.times || ["08:00"];
-      const reminderMinutes = detailedSettings.pillReminder.reminderMinutes || 0;
-
-      times.forEach((time) => {
-        // Calculate notification time for today and tomorrow
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        [today, tomorrow].forEach(targetDate => {
-          const [hours, minutes] = time.split(':').map(Number);
-          const notificationDate = new Date(targetDate);
-          notificationDate.setHours(hours, minutes - reminderMinutes, 0, 0);
-
-          const timeUntilNotification = notificationDate.getTime() - Date.now();
-
-          // Schedule if notification time is in the future and within next 48 hours
-          if (timeUntilNotification > 0 && timeUntilNotification <= 48 * 60 * 60 * 1000) {
-            const notificationKey = `pill-${pillName}-${notificationDate.toDateString()}-${time}`;
-            if (!this.scheduledNotifications.has(notificationKey)) {
-              setTimeout(() => {
-                notificationService.sendMedicationReminder(pillName, reminderMinutes);
-              }, timeUntilNotification);
-
-              this.scheduledNotifications.add(notificationKey);
-              console.log(`ピルリマインド scheduled for ${notificationDate.toLocaleString()} (${reminderMinutes}分前)`);
-            }
-          }
-        });
-      });
+  // クリーンアップメソッド
+  public destroy(): void {
+    if (this.checkInterval) {
+      clearInterval(this.checkInterval);
+      this.checkInterval = null;
     }
   }
 
@@ -203,161 +319,84 @@ class NotificationManager {
     // Handle partner-related notifications
     if (this.settings.partnerNotifications && notificationService.hasPermission()) {
       // This could be expanded based on specific partner events
-      console.log('Partner status updated - notifications could be sent here');
     }
   }
 
   private async getCurrentCycleData(): Promise<CycleData | null> {
     try {
-      // Get cycle data from localStorage
-      const cycleData = JSON.parse(localStorage.getItem('cycleData') || '[]');
-      
-      if (!cycleData.length) return null;
-
-      // Find current or most recent cycle
+      // まずDBから最新のカレンダーデータを取得
+      const { menstrualCycleAPI } = await import('./api');
       const today = new Date();
-      const currentCycle = cycleData.find((cycle: CycleData) => {
-        const startDate = new Date(cycle.startDate);
-        const endDate = cycle.endDate ? new Date(cycle.endDate) : null;
-        return startDate <= today && (!endDate || endDate >= today);
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1;
+
+      // 現在月とその前月のデータを取得
+      const [currentMonthData, prevMonthData] = await Promise.all([
+        menstrualCycleAPI.getCalendarData(currentYear, currentMonth),
+        menstrualCycleAPI.getCalendarData(
+          currentMonth === 1 ? currentYear - 1 : currentYear,
+          currentMonth === 1 ? 12 : currentMonth - 1
+        )
+      ]);
+
+      // 全カレンダーデータを結合
+      const allCalendarData = {
+        ...(prevMonthData.data as Record<string, any> || {}),
+        ...(currentMonthData.data as Record<string, any> || {})
+      };
+
+
+      // 生理開始日を探す（最新の生理開始日を取得）
+      const menstrualStartDates: Array<{ date: string; dateObj: Date }> = [];
+
+      Object.entries(allCalendarData).forEach(([dateStr, dayData]: [string, any]) => {
+        if (dayData && dayData.is_period_start === true) {
+          menstrualStartDates.push({
+            date: dateStr,
+            dateObj: new Date(dateStr)
+          });
+        }
       });
 
-      return currentCycle || cycleData[cycleData.length - 1];
-    } catch {
-      return null;
-    }
-  }
-
-  private async scheduleUpcomingNotifications(cycleData: CycleData): Promise<void> {
-    if (!cycleData.startDate) return;
-
-    // MySQLから設定を優先的に読み込み、フォールバックとしてlocalStorageを使用
-    let detailedSettings = await this.loadDetailedSettingsFromAPI();
-    if (!detailedSettings) {
-      detailedSettings = this.loadDetailedSettings();
-    }
-    if (!detailedSettings) return;
-
-    const startDate = new Date(cycleData.startDate);
-    const cycleLength = 28; // Default cycle length, should be user-configurable
-    const today = new Date();
-
-    // Calculate next period date
-    const nextPeriodDate = new Date(startDate);
-    nextPeriodDate.setDate(nextPeriodDate.getDate() + cycleLength);
-
-    // Schedule period reminders based on user settings
-    if (this.settings.periodReminders && detailedSettings.menstrualReminder?.enabled) {
-      const daysBefore = detailedSettings.menstrualReminder.daysBeforeStart || 1;
-      const time = detailedSettings.menstrualReminder.time || "09:00";
-      
-      const notificationDate = new Date(nextPeriodDate);
-      notificationDate.setDate(notificationDate.getDate() - daysBefore);
-      
-      const [hours, minutes] = time.split(':').map(Number);
-      notificationDate.setHours(hours, minutes, 0, 0);
-
-      const timeUntilNotification = notificationDate.getTime() - today.getTime();
-      
-      if (timeUntilNotification > 0 && timeUntilNotification <= 7 * 24 * 60 * 60 * 1000) { // 7日以内
-        const notificationKey = `period-${notificationDate.toDateString()}-${time}`;
-        if (!this.scheduledNotifications.has(notificationKey)) {
-          setTimeout(() => {
-            notificationService.sendPeriodReminderNotification(daysBefore);
-          }, timeUntilNotification);
-          
-          this.scheduledNotifications.add(notificationKey);
-          console.log(`生理リマインド scheduled for ${notificationDate.toLocaleString()} (${daysBefore}日前, ${time})`);
-        }
+      if (menstrualStartDates.length === 0) {
+        console.log('❌ 生理開始日が見つかりません');
+        return null;
       }
-    }
 
-    // Schedule fertility period and ovulation notifications based on user settings
-    if (this.settings.ovulationReminders && detailedSettings.ovulationReminder?.enabled) {
-      const time = detailedSettings.ovulationReminder.time || "09:00";
-      
-      // Calculate ovulation date (typically 14 days before next period)
-      const ovulationDate = new Date(nextPeriodDate);
-      ovulationDate.setDate(ovulationDate.getDate() - 14);
-      
-      // Calculate fertility period start (typically 5 days before ovulation)
-      const fertilityStartDate = new Date(ovulationDate);
-      fertilityStartDate.setDate(fertilityStartDate.getDate() - 5);
-      
-      const [hours, minutes] = time.split(':').map(Number);
-      
-      // Schedule fertility period start notification
-      const fertilityNotificationDate = new Date(fertilityStartDate);
-      fertilityNotificationDate.setHours(hours, minutes, 0, 0);
-      
-      const timeUntilFertilityNotification = fertilityNotificationDate.getTime() - today.getTime();
-      
-      if (timeUntilFertilityNotification > 0 && timeUntilFertilityNotification <= 7 * 24 * 60 * 60 * 1000) {
-        const fertilityNotificationKey = `fertility-start-${fertilityNotificationDate.toDateString()}-${time}`;
-        if (!this.scheduledNotifications.has(fertilityNotificationKey)) {
-          setTimeout(() => {
-            notificationService.sendFertilityPeriodStartNotification();
-          }, timeUntilFertilityNotification);
-          
-          this.scheduledNotifications.add(fertilityNotificationKey);
-          console.log(`排卵期開始 scheduled for ${fertilityNotificationDate.toLocaleString()}`);
-        }
-      }
-      
-      // Schedule ovulation day notification
-      const ovulationNotificationDate = new Date(ovulationDate);
-      ovulationNotificationDate.setHours(hours, minutes, 0, 0);
-      
-      const timeUntilOvulationNotification = ovulationNotificationDate.getTime() - today.getTime();
-      
-      if (timeUntilOvulationNotification > 0 && timeUntilOvulationNotification <= 7 * 24 * 60 * 60 * 1000) {
-        const ovulationNotificationKey = `ovulation-day-${ovulationNotificationDate.toDateString()}-${time}`;
-        if (!this.scheduledNotifications.has(ovulationNotificationKey)) {
-          setTimeout(() => {
-            notificationService.sendOvulationDayNotification();
-          }, timeUntilOvulationNotification);
-          
-          this.scheduledNotifications.add(ovulationNotificationKey);
-          console.log(`排卵日 scheduled for ${ovulationNotificationDate.toLocaleString()}`);
-        }
-      }
-    }
+      // 最新の生理開始日を取得
+      menstrualStartDates.sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime());
+      const latestCycle = menstrualStartDates[0];
 
-    // Schedule pill reminders based on user settings
-    if (this.settings.pillReminders && detailedSettings.pillReminder?.enabled) {
-      const pillName = detailedSettings.pillReminder.pillName || "ピル";
-      const times = detailedSettings.pillReminder.times || ["08:00"];
-      const reminderMinutes = detailedSettings.pillReminder.reminderMinutes || 0;
+      const cycleData: CycleData = {
+        startDate: latestCycle.date,
+        isPeriodStart: true
+      };
 
-      times.forEach((time) => {
-        // Calculate notification time for today and tomorrow
+      return cycleData;
+    } catch (error) {
+      console.error('DB からの生理データ取得エラー:', error);
+
+      // フォールバック: localStorageからの取得を試行
+      try {
+        const cycleData = JSON.parse(localStorage.getItem('cycleData') || '[]');
+
+        if (!cycleData.length) return null;
+
+        // Find current or most recent cycle
         const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        [today, tomorrow].forEach(targetDate => {
-          const [hours, minutes] = time.split(':').map(Number);
-          const notificationDate = new Date(targetDate);
-          notificationDate.setHours(hours, minutes - reminderMinutes, 0, 0);
-
-          const timeUntilNotification = notificationDate.getTime() - Date.now();
-
-          // Schedule if notification time is in the future and within next 48 hours
-          if (timeUntilNotification > 0 && timeUntilNotification <= 48 * 60 * 60 * 1000) {
-            const notificationKey = `pill-${pillName}-${notificationDate.toDateString()}-${time}`;
-            if (!this.scheduledNotifications.has(notificationKey)) {
-              setTimeout(() => {
-                notificationService.sendMedicationReminder(pillName, reminderMinutes);
-              }, timeUntilNotification);
-
-              this.scheduledNotifications.add(notificationKey);
-              console.log(`ピルリマインド scheduled for ${notificationDate.toLocaleString()} (${reminderMinutes}分前)`);
-            }
-          }
+        const currentCycle = cycleData.find((cycle: CycleData) => {
+          const startDate = new Date(cycle.startDate);
+          const endDate = cycle.endDate ? new Date(cycle.endDate) : null;
+          return startDate <= today && (!endDate || endDate >= today);
         });
-      });
+
+        return currentCycle || cycleData[cycleData.length - 1];
+      } catch {
+        return null;
+      }
     }
   }
+
 
 
   public sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod'): void {
@@ -408,10 +447,7 @@ class NotificationManager {
       }, 10000); // 10 seconds delay
     }
 
-    // ピル通知を初期化時にスケジュール（生理データに関係なく）
-    setTimeout(() => {
-      this.schedulePillReminders();
-    }, 2000); // 2秒遅延で実行
+    // 定期チェックシステムがすべての通知を処理するため、手動スケジューリングは不要
   }
 
   public clearScheduledNotifications(): void {
@@ -434,6 +470,8 @@ class NotificationManager {
       info.push("通知設定が見つかりません");
       return info;
     }
+
+    info.push("📋 定期チェックシステムで管理される通知:");
 
     // 生理・排卵期通知は生理データが必要
     if (cycleData?.startDate) {
@@ -491,23 +529,30 @@ class NotificationManager {
       const times = detailedSettings.pillReminder.times || ["08:00"];
       const reminderMinutes = detailedSettings.pillReminder.reminderMinutes || 0;
       const reminderText = reminderMinutes === 0 ? "ちょうど" : `${reminderMinutes}分前`;
-      
+
       times.forEach((time) => {
-        const today = new Date();
+        const now = new Date();
         const [hours, minutes] = time.split(':').map(Number);
-        const notificationTime = new Date(today);
+        const notificationTime = new Date(now);
         notificationTime.setHours(hours, minutes - reminderMinutes, 0, 0);
-        
+
         // If today's time has passed, show tomorrow's time
-        if (notificationTime < today) {
+        if (notificationTime <= now) {
           notificationTime.setDate(notificationTime.getDate() + 1);
         }
-        
-        info.push(`💊 ${pillName}リマインド: ${notificationTime.toLocaleString('ja-JP')} (${reminderText})`);
+
+        info.push(`💊 ${pillName}リマインド: 毎日 ${time} (${reminderText})`);
+        info.push(`   次回: ${notificationTime.toLocaleString('ja-JP')}`);
       });
     } else {
       info.push("💊 ピルリマインド: 無効");
     }
+
+    info.push("");
+    info.push("⏰ システム状態:");
+    info.push(`   定期チェック: ${this.checkInterval ? '動作中' : '停止中'}`);
+    info.push(`   最終チェック日: ${this.lastCheckDate || '未実行'}`);
+    info.push(`   今日送信済み通知数: ${this.scheduledNotifications.size}`);
 
     return info;
   }

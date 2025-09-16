@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 
 interface NotificationItem {
   id: string;
@@ -32,7 +32,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     }
   };
 
-  const loadNotifications = useCallback(async () => {
+  const loadNotifications = async () => {
     // Get current user ID to load user-specific notifications
     const userId = await getCurrentUserId();
 
@@ -69,12 +69,15 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     } else {
       setNotifications([]);
     }
-  }, []);
+  };
 
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
-      loadNotifications();
+      // ポップアップが開く度に強制的に最新データを取得
+      setTimeout(() => {
+        loadNotifications();
+      }, 0);
       // アニメーションのために少し遅延させる
       setTimeout(() => setIsVisible(true), 10);
     } else {
@@ -82,7 +85,23 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       // アニメーション終了後にDOMから削除
       setTimeout(() => setShouldRender(false), 300);
     }
-  }, [isOpen, loadNotifications]);
+  }, [isOpen]);
+
+  // 通知更新イベントをリッスンしてリアルタイム更新（常時リスナー）
+  useEffect(() => {
+    const handleNotificationUpdate = () => {
+      // ポップアップが開いている時は即座にリロード
+      if (isOpen) {
+        loadNotifications();
+      }
+    };
+
+    window.addEventListener('notificationUpdated', handleNotificationUpdate);
+
+    return () => {
+      window.removeEventListener('notificationUpdated', handleNotificationUpdate);
+    };
+  }, [isOpen]);
 
   const markAsRead = async (id: string) => {
     const updatedNotifications = notifications.map(notification =>

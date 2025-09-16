@@ -194,6 +194,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onLogout }) => {
   useEffect(() => {
     // Initialize notification manager and check for today's notifications
     notificationManager.checkTodayNotifications();
+
+    // アプリ起動時に生理データ更新イベントを発火して通知をスケジュール
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('menstrualDataUpdated'));
+    }, 1000); // 1秒遅延で実行
   }, []);
 
   useEffect(() => {
