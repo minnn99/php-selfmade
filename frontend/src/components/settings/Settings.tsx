@@ -31,49 +31,37 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [userGender, setUserGender] = useState<string>("");
+  const [userGender, setUserGender] = useState<"male" | "female" | "">("");
 
-  // ユーザーの性別を取得
+  // ユーザーの性別を取得（DBから）
   useEffect(() => {
     const getUserGender = async () => {
       try {
-        // まずprofileDataから試す
-        const profileData = localStorage.getItem("profileData");
-        console.log("Profile data from localStorage:", profileData);
-
-        if (profileData) {
-          const data = JSON.parse(profileData);
-          console.log("Parsed profile data:", data);
-          console.log("User gender from profileData:", data.gender);
-          if (data.gender) {
-            setUserGender(data.gender);
-            return;
-          }
-        }
-
-        // profileDataがない場合は、APIから取得
+        // APIから直接取得（DBから）
         const { authAPI } = await import('../../services/api');
         const userData = await authAPI.getUser();
-        console.log("User data from API:", userData);
 
-        const responseData = userData.data as { user?: { gender?: string; name?: string; birth_date?: string } };
-        if (responseData?.user) {
+        const responseData = userData.data as { user?: { gender?: "male" | "female"; name?: string; birth_date?: string } };
+        if (responseData?.user && responseData.user.gender) {
           const user = responseData.user;
-          console.log("User gender from API:", user.gender);
-          setUserGender(user.gender || "");
+          // DBから取得した性別を設定
+          setUserGender(user.gender as "male" | "female");
 
-          // localStorageにも保存
+          // localStorageにも保存（キャッシュとして）
           const profileToSave = {
             name: user.name || "",
             gender: user.gender || "",
             birthDate: user.birth_date || ""
           };
           localStorage.setItem("profileData", JSON.stringify(profileToSave));
+        } else {
+          // 性別情報がない場合は女性として扱う（制限をかけない）
+          setUserGender("female");
         }
       } catch (error) {
-        console.error("Failed to get user gender:", error);
-        // テスト用にハードコード（後で削除）
-        setUserGender("male");
+        console.error("Failed to get user gender from API:", error);
+        // エラーの場合は制限をかけない（女性として扱う）
+        setUserGender("female");
       }
     };
     getUserGender();
@@ -339,7 +327,6 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {settingItems.map((item) => {
                 const isRestricted = userGender === "male" && (item.id === "notifications" || item.id === "data");
-                console.log(`Item: ${item.id}, User gender: ${userGender}, Is restricted: ${isRestricted}`);
                 return (
                   <button
                     key={item.id}
@@ -427,7 +414,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                     onClick={() => {
                       console.log("=== 環境チェック ===");
                       console.log("User Agent:", navigator.userAgent);
-                      console.log("Platform:", navigator.platform);
+                      console.log("User Agent Platform:", (navigator as any).userAgentData?.platform || "Unknown");
                       console.log("Notification Support:", "Notification" in window);
                       console.log("Permission:", Notification.permission);
                       console.log("Document visibility:", document.visibilityState);
