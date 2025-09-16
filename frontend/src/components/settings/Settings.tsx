@@ -149,7 +149,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
     }
   };
 
-  const sendTestNotification = (notificationService: any) => {
+  const sendTestNotification = async (notificationService: typeof import("../../services/notificationService").notificationService) => {
     console.log("6. テスト通知送信開始");
 
     try {
@@ -165,7 +165,7 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
 
       // サービス経由でのテスト
       console.log("9. notificationService経由のテスト");
-      const success = notificationService.sendMedicationReminder("テスト用ピル", 0);
+      const success = await notificationService.sendMedicationReminder("テスト用ピル", 0);
       console.log("10. 通知送信結果:", success);
 
       if (success) {
@@ -414,7 +414,8 @@ export const Settings: React.FC<SettingsProps> = ({ onDataDeleted, onLogout }) =
                     onClick={() => {
                       console.log("=== 環境チェック ===");
                       console.log("User Agent:", navigator.userAgent);
-                      console.log("User Agent Platform:", (navigator as any).userAgentData?.platform || "Unknown");
+                      const nav = navigator as Navigator & { userAgentData?: { platform?: string } };
+                      console.log("User Agent Platform:", nav.userAgentData?.platform || "Unknown");
                       console.log("Notification Support:", "Notification" in window);
                       console.log("Permission:", Notification.permission);
                       console.log("Document visibility:", document.visibilityState);
