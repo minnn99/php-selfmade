@@ -191,7 +191,9 @@ class NotificationManager {
   }
 
   // ピル通知のチェック
-  private async checkPillNotifications(pillReminder: any, currentTime: string, today: string): Promise<void> {
+  private async checkPillNotifications(pillReminder: DetailedSettings['pillReminder'], currentTime: string, today: string): Promise<void> {
+    if (!pillReminder) return;
+
     const pillName = pillReminder.pillName || "ピル";
     const times = pillReminder.times || ["08:00"];
     const reminderMinutes = pillReminder.reminderMinutes || 0;
@@ -216,7 +218,7 @@ class NotificationManager {
   }
 
   // 生理・排卵期通知のチェック
-  private async checkCycleNotifications(detailedSettings: any, cycleData: any, currentTime: string, today: string): Promise<void> {
+  private async checkCycleNotifications(detailedSettings: DetailedSettings, cycleData: CycleData, currentTime: string, today: string): Promise<void> {
     const startDate = new Date(cycleData.startDate);
     const cycleLength = 28;
     const nextPeriodDate = new Date(startDate);
@@ -341,16 +343,16 @@ class NotificationManager {
 
       // 全カレンダーデータを結合
       const allCalendarData = {
-        ...(prevMonthData.data as Record<string, any> || {}),
-        ...(currentMonthData.data as Record<string, any> || {})
+        ...(prevMonthData.data as Record<string, unknown> || {}),
+        ...(currentMonthData.data as Record<string, unknown> || {})
       };
 
 
       // 生理開始日を探す（最新の生理開始日を取得）
       const menstrualStartDates: Array<{ date: string; dateObj: Date }> = [];
 
-      Object.entries(allCalendarData).forEach(([dateStr, dayData]: [string, any]) => {
-        if (dayData && dayData.is_period_start === true) {
+      Object.entries(allCalendarData).forEach(([dateStr, dayData]: [string, unknown]) => {
+        if (dayData && typeof dayData === 'object' && dayData !== null && 'is_period_start' in dayData && (dayData as { is_period_start: boolean }).is_period_start === true) {
           menstrualStartDates.push({
             date: dateStr,
             dateObj: new Date(dateStr)

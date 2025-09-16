@@ -85,6 +85,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
       // アニメーション終了後にDOMから削除
       setTimeout(() => setShouldRender(false), 300);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // 通知更新イベントをリッスンしてリアルタイム更新（常時リスナー）
@@ -101,6 +102,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({ isOpen, on
     return () => {
       window.removeEventListener('notificationUpdated', handleNotificationUpdate);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const markAsRead = async (id: string) => {
