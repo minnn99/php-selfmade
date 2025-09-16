@@ -114,12 +114,18 @@ export const setupForegroundListener = () => {
     // バッジ更新イベント発火
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
     
-    // ブラウザ通知表示
-    if (Notification.permission === 'granted') {
+    // ブラウザ通知表示（FCMメッセージの場合のみ）
+    // ローカル通知との競合を避けるため、FCMから来た通知のみ表示
+    if (Notification.permission === 'granted' && payload.from) {
+      console.log('Creating FCM browser notification:', notification.title);
       new Notification(notification.title, {
         body: notification.message,
-        tag: notification.id
+        icon: '/favicon.ico',
+        tag: notification.id,
+        silent: false
       });
+    } else {
+      console.log('Skipping FCM browser notification to avoid conflicts');
     }
   });
 };

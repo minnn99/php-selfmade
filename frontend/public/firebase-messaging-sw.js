@@ -22,8 +22,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'お知らせ';
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/vite.svg',
+    badge: '/vite.svg',
     tag: payload.data?.type || 'default',
     data: {
       click_action: payload.data?.click_action || '/',
@@ -82,8 +82,8 @@ self.addEventListener('push', (event) => {
     const notificationTitle = payload.notification?.title || 'お知らせ';
     const notificationOptions = {
       body: payload.notification?.body || '',
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: '/vite.svg',
+      badge: '/vite.svg',
       data: payload.data || {}
     };
 

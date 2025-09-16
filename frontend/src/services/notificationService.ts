@@ -43,7 +43,7 @@ class NotificationService {
     return this.notificationPermission === 'granted';
   }
 
-  private addToInternalNotificationSystem(title: string, message: string, type: NotificationType = 'system'): void {
+  private async addToInternalNotificationSystem(title: string, message: string, type: NotificationType = 'system'): Promise<void> {
     const appNotification = {
       id: `${type}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`, // より一意なIDを生成
       type,
@@ -54,62 +54,159 @@ class NotificationService {
       priority: 'medium' as const,
     };
 
+    // ユーザーIDを取得
+    let userId = "unknown";
+    try {
+      const { authAPI } = await import('./api');
+      const userData = await authAPI.getUser();
+      const user = (userData.data as { user?: { id?: string | number } })?.user;
+      userId = user?.id?.toString() || "unknown";
+    } catch {
+      // Fallback to unknown
+    }
+
+    // ユーザー固有のキーを使用
+    const notificationKey = `notifications_${userId}`;
+
     // 既存の通知を取得
-    const existingNotifications = JSON.parse(localStorage.getItem("notifications") || "[]");
-    
+    const existingNotifications = JSON.parse(localStorage.getItem(notificationKey) || "[]");
+
     // 新しい通知を先頭に追加
     const updatedNotifications = [appNotification, ...existingNotifications];
-    
+
     // localStorageに保存
-    localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
-    
+    localStorage.setItem(notificationKey, JSON.stringify(updatedNotifications));
+
     // 通知更新イベントを発火
     window.dispatchEvent(new CustomEvent('notificationUpdated'));
   }
 
 
-  public sendNotification(data: NotificationData): boolean {
+  public async sendNotification(data: NotificationData): Promise<boolean> {
+    console.log('sendNotification called:', data);
+    console.log('Current notification permission:', Notification.permission);
+
     if (!this.hasPermission()) {
-      console.warn('通知権限が許可されていません');
+      console.warn('通知権限が許可されていません. 現在の権限:', Notification.permission);
+      const permission = await this.requestPermission();
+      console.log('権限リクエスト結果:', permission);
+      if (permission === 'granted') {
+        // 権限が許可されたら通知を再送信
+        return this.sendNotification(data);
+      }
+
+      // 権限がなくてもアプリ内通知は追加
+      const notificationType = this.getNotificationType(data.tag);
+      this.addToInternalNotificationSystem(data.title, data.body, notificationType);
       return false;
     }
 
     try {
+      // Service Workerが利用可能か確認（controllerがなくても利用可能）
+      if ('serviceWorker' in navigator) {
+        try {
+          console.log('Waiting for Service Worker to be ready...');
+          const registration = await navigator.serviceWorker.ready;
+
+          console.log('Service Worker is ready, using it for notification:', data.title);
+
+          const notificationOptions = {
+            body: data.body,
+            icon: data.icon || '/vite.svg',
+            badge: data.badge || '/vite.svg',
+            tag: data.tag || `pill-reminder-${Date.now()}`,
+            requireInteraction: data.requireInteraction || false,
+            silent: false,
+            data: {
+              click_action: '/',
+              type: this.getNotificationType(data.tag),
+              timestamp: Date.now()
+            },
+            vibrate: [200, 100, 200]
+          };
+
+          console.log('Service Worker notification options:', notificationOptions);
+
+          // Service Worker APIを使用して通知を表示
+          await registration.showNotification(data.title, notificationOptions);
+
+          console.log('✅ Service Worker notification created successfully:', data.title);
+
+          // アプリ内通知システムにも追加
+          const notificationType = this.getNotificationType(data.tag);
+          this.addToInternalNotificationSystem(data.title, data.body, notificationType);
+
+          return true;
+        } catch (swError) {
+          console.error('Service Worker notification failed, falling back to Notification API:', swError);
+          // Service Workerでの通知が失敗した場合、フォールバック
+        }
+      }
+
+      // Service Workerが利用できない、または失敗した場合は従来のNotification APIを使用
+      console.log('Using fallback Notification API:', data.title);
+
       const notification = new Notification(data.title, {
         body: data.body,
         icon: data.icon || '/vite.svg',
         badge: data.badge || '/vite.svg',
-        tag: data.tag || 'pairiod-notification',
+        tag: data.tag || `local-notification-${Date.now()}`,
         requireInteraction: data.requireInteraction || false,
+        silent: false,
       });
 
-      // 通知がクリックされた時の処理
+      console.log('Notification API object created:', notification);
+
+      notification.onshow = () => {
+        console.log('✅ Notification API shown successfully:', data.title);
+      };
+
       notification.onclick = () => {
+        console.log('Notification clicked');
         window.focus();
         notification.close();
       };
 
-      // 5秒後に自動で閉じる
+      notification.onerror = (error) => {
+        console.error('❌ Notification API error:', error);
+      };
+
       setTimeout(() => {
-        notification.close();
-      }, 5000);
+        if (notification) {
+          notification.close();
+        }
+      }, 10000);
 
       // アプリ内通知システムにも追加
-      const notificationType = data.tag?.includes('period') ? 'period' : 
-                              data.tag?.includes('medication') ? 'medication' : 
-                              data.tag?.includes('appointment') ? 'appointment' : 
-                              data.tag?.includes('reminder') ? 'reminder' : 'system';
+      const notificationType = this.getNotificationType(data.tag);
       this.addToInternalNotificationSystem(data.title, data.body, notificationType);
 
       return true;
     } catch (error) {
-      console.error('通知送信エラー:', error);
+      console.error('❌ 通知送信エラー:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
+
+      // エラーが発生してもアプリ内通知は追加
+      const notificationType = this.getNotificationType(data.tag);
+      this.addToInternalNotificationSystem(data.title, data.body, notificationType);
       return false;
     }
   }
 
+  private getNotificationType(tag?: string): NotificationType {
+    if (tag?.includes('period')) return 'period';
+    if (tag?.includes('medication')) return 'medication';
+    if (tag?.includes('appointment')) return 'appointment';
+    if (tag?.includes('reminder')) return 'reminder';
+    return 'system';
+  }
+
   // 生理予定日の通知
-  public sendPeriodReminderNotification(daysUntil: number): boolean {
+  public async sendPeriodReminderNotification(daysUntil: number): Promise<boolean> {
     const title = 'Pairiod - 生理予定日のお知らせ';
     let body = '';
 
@@ -130,7 +227,7 @@ class NotificationService {
   }
 
   // 排卵期開始の通知
-  public sendFertilityPeriodStartNotification(): boolean {
+  public async sendFertilityPeriodStartNotification(): Promise<boolean> {
     return this.sendNotification({
       title: 'Pairiod - 排卵期のお知らせ',
       body: '排卵期間に入りました。妊娠しやすい期間です 💕',
@@ -140,7 +237,7 @@ class NotificationService {
   }
 
   // 排卵日の通知
-  public sendOvulationDayNotification(): boolean {
+  public async sendOvulationDayNotification(): Promise<boolean> {
     return this.sendNotification({
       title: 'Pairiod - 排卵日のお知らせ',
       body: '今日は排卵日です。最も妊娠しやすい日です 🥚',
@@ -150,7 +247,7 @@ class NotificationService {
   }
 
   // 後方互換性のための旧関数（テスト用）
-  public sendOvulationReminderNotification(daysUntil: number = 0): boolean {
+  public async sendOvulationReminderNotification(daysUntil: number = 0): Promise<boolean> {
     if (daysUntil === 0) {
       return this.sendOvulationDayNotification();
     } else {
@@ -159,7 +256,7 @@ class NotificationService {
   }
 
   // パートナー向け通知
-  public sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod'): boolean {
+  public async sendPartnerNotification(type: 'menstrualStart' | 'ovulationPeriod'): Promise<boolean> {
     const title = 'Pairiod - パートナー情報';
     let body = '';
 
@@ -180,7 +277,7 @@ class NotificationService {
   }
 
   // 服薬リマインダー
-  public sendMedicationReminder(medicationName: string, minutesBefore: number = 0): boolean {
+  public async sendMedicationReminder(medicationName: string, minutesBefore: number = 0): Promise<boolean> {
     let body = '';
     
     if (minutesBefore === 0) {
@@ -206,7 +303,7 @@ class NotificationService {
   }
 
   // 一般的なリマインダー
-  public sendGeneralReminder(title: string, message: string): boolean {
+  public async sendGeneralReminder(title: string, message: string): Promise<boolean> {
     return this.sendNotification({
       title: `Pairiod - ${title}`,
       body: message,
@@ -215,7 +312,7 @@ class NotificationService {
   }
 
   // 症状記録のリマインダー
-  public sendSymptomReminderNotification(): boolean {
+  public async sendSymptomReminderNotification(): Promise<boolean> {
     return this.sendNotification({
       title: 'Pairiod - 症状記録のリマインダー',
       body: '今日の症状や気分を記録しましょう 📝',
@@ -224,7 +321,7 @@ class NotificationService {
   }
 
   // 健康チェックのリマインダー
-  public sendHealthCheckReminder(): boolean {
+  public async sendHealthCheckReminder(): Promise<boolean> {
     return this.sendNotification({
       title: 'Pairiod - 健康チェック',
       body: '定期的な婦人科検診をお忘れなく 🏥',
