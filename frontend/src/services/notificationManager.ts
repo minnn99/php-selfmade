@@ -102,6 +102,12 @@ class NotificationManager {
 
   private async loadDetailedSettingsFromAPI(): Promise<DetailedSettings | null> {
     try {
+      // 認証状態をチェック
+      const { authAPI } = await import('./api');
+      if (!authAPI.isAuthenticated()) {
+        return null;
+      }
+
       const response = await userDataAPI.getSettings() as UserDataResponse;
       if (response.data?.notificationSettings) {
         return response.data.notificationSettings;
@@ -326,8 +332,13 @@ class NotificationManager {
 
   private async getCurrentCycleData(): Promise<CycleData | null> {
     try {
+      // 認証状態をチェック
+      const { authAPI, menstrualCycleAPI } = await import('./api');
+      if (!authAPI.isAuthenticated()) {
+        return null;
+      }
+
       // まずDBから最新のカレンダーデータを取得
-      const { menstrualCycleAPI } = await import('./api');
       const today = new Date();
       const currentYear = today.getFullYear();
       const currentMonth = today.getMonth() + 1;

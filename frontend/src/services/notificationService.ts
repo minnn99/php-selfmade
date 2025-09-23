@@ -83,13 +83,9 @@ class NotificationService {
 
 
   public async sendNotification(data: NotificationData): Promise<boolean> {
-    console.log('sendNotification called:', data);
-    console.log('Current notification permission:', Notification.permission);
-
     if (!this.hasPermission()) {
       console.warn('通知権限が許可されていません. 現在の権限:', Notification.permission);
       const permission = await this.requestPermission();
-      console.log('権限リクエスト結果:', permission);
       if (permission === 'granted') {
         // 権限が許可されたら通知を再送信
         return this.sendNotification(data);
@@ -105,10 +101,7 @@ class NotificationService {
       // Service Workerが利用可能か確認（controllerがなくても利用可能）
       if ('serviceWorker' in navigator) {
         try {
-          console.log('Waiting for Service Worker to be ready...');
           const registration = await navigator.serviceWorker.ready;
-
-          console.log('Service Worker is ready, using it for notification:', data.title);
 
           const notificationOptions = {
             body: data.body,
@@ -125,12 +118,8 @@ class NotificationService {
             vibrate: [200, 100, 200]
           };
 
-          console.log('Service Worker notification options:', notificationOptions);
-
           // Service Worker APIを使用して通知を表示
           await registration.showNotification(data.title, notificationOptions);
-
-          console.log('✅ Service Worker notification created successfully:', data.title);
 
           // アプリ内通知システムにも追加
           const notificationType = this.getNotificationType(data.tag);
@@ -144,8 +133,6 @@ class NotificationService {
       }
 
       // Service Workerが利用できない、または失敗した場合は従来のNotification APIを使用
-      console.log('Using fallback Notification API:', data.title);
-
       const notification = new Notification(data.title, {
         body: data.body,
         icon: data.icon || '/vite.svg',
@@ -155,14 +142,7 @@ class NotificationService {
         silent: false,
       });
 
-      console.log('Notification API object created:', notification);
-
-      notification.onshow = () => {
-        console.log('✅ Notification API shown successfully:', data.title);
-      };
-
       notification.onclick = () => {
-        console.log('Notification clicked');
         window.focus();
         notification.close();
       };
